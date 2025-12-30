@@ -1,0 +1,21 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/api/presence", "destination": "/api/presence.js" },
+    { "source": "/api/messages", "destination": "/api/messages.js" },
+    { "source": "/api/profile", "destination": "/api/profile.js" },
+    { "source": "/api/gigabrain/ingest", "destination": "/api/gigabrain/ingest.js" },
+    { "source": "/api/gigabrain/query", "destination": "/api/gigabrain/query.js" },
+    { "source": "/api/gigabrain/backfill", "destination": "/api/gigabrain/backfill.js" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}

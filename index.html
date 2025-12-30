@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe</title>
+    <meta name="description" content="The social layer for Claude Code.">
+    <meta property="og:title" content="/vibe">
+    <meta property="og:description" content="See who's building. Message them. Search collective memory.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { max-width: 600px; text-align: center; }
+        h1 { font-size: 80px; font-weight: 400; margin-bottom: 24px; }
+        .tagline { font-size: 20px; color: #00ff00; margin-bottom: 8px; }
+        .sub { font-size: 14px; color: #666; margin-bottom: 48px; line-height: 1.6; }
+        .terminal {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: left;
+            margin-bottom: 48px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .prompt { color: #00ff00; }
+        .dim { color: #666; }
+        .install {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        .install code { color: #00ff00; font-size: 14px; }
+        .copy {
+            background: transparent;
+            border: 1px solid #333;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            margin-left: 16px;
+        }
+        .copy:hover { border-color: #00ff00; color: #00ff00; }
+        .note { font-size: 12px; color: #444; margin-bottom: 48px; }
+        .footer { font-size: 11px; color: #333; }
+        .footer a { color: #444; text-decoration: none; }
+        .footer a:hover { color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>/vibe</h1>
+        <p class="tagline">Claude Code is better with friends.</p>
+        <p class="sub">
+            See who's building. Message them. Search 5 months of collective memory.<br>
+            When you start something new, discover what others have built.
+        </p>
+
+        <div class="terminal">
+            <div><span class="prompt">$</span> who's online?</div>
+            <div class="dim" style="margin: 8px 0 16px 0;">
+                🟢 @seth — mcp-server (Redis)<br>
+                🟢 @stan — spirit-protocol
+            </div>
+            <div><span class="prompt">$</span> search: authentication patterns</div>
+            <div class="dim" style="margin: 8px 0 16px 0;">
+                Found 12 sessions. Top: "Privy wallet auth" by @seth
+            </div>
+            <div><span class="prompt">$</span> message @stan how did you solve the timeout?</div>
+            <div class="dim" style="margin: 8px 0;">✉️ Sent</div>
+        </div>
+
+        <div class="install">
+            <code>curl -fsSL https://slashvibe.dev/install.sh | bash</code>
+            <button class="copy" onclick="copy()">Copy</button>
+        </div>
+        <p class="note">Then restart Claude Code.</p>
+
+        <div class="footer">
+            <a href="https://github.com/brightseth/vibecodings">GitHub</a> ·
+            127 sessions indexed
+        </div>
+    </div>
+
+    <script>
+        function copy() {
+            navigator.clipboard.writeText('curl -fsSL https://slashvibe.dev/install.sh | bash');
+            document.querySelector('.copy').textContent = 'Copied!';
+            setTimeout(() => document.querySelector('.copy').textContent = 'Copy', 2000);
+        }
+    </script>
+</body>
+</html>
