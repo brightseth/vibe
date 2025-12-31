@@ -6,7 +6,7 @@
  */
 
 const config = require('./config');
-const store = require('./store/local');
+const store = require('./store');
 
 let heartbeatInterval = null;
 

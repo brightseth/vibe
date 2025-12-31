@@ -2,6 +2,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/api/presence/heartbeat", "destination": "/api/presence/heartbeat.js" },
+    { "source": "/api/presence/who", "destination": "/api/presence/who.js" },
+    { "source": "/api/messages/send", "destination": "/api/messages/send.js" },
+    { "source": "/api/messages/inbox", "destination": "/api/messages/inbox.js" },
+    { "source": "/api/messages/thread", "destination": "/api/messages/thread.js" },
     { "source": "/api/presence", "destination": "/api/presence.js" },
     { "source": "/api/messages", "destination": "/api/messages.js" },
     { "source": "/api/profile", "destination": "/api/profile.js" },

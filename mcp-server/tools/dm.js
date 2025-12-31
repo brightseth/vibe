@@ -3,7 +3,7 @@
  */
 
 const config = require('../config');
-const store = require('../store/local');
+const store = require('../store');
 
 const definition = {
   name: 'vibe_dm',
