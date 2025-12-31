@@ -1,8 +1,77 @@
-# /vibe MVP Spec v2.1
+# /vibe MVP Spec v3
 
-**One line:** DMs inside Claude Code.
+**The social network for Claude Code.**
 
-**The bet:** If a new user can get a reply without leaving their terminal, they'll use it again.
+Invite friends. Build together. Your sessions make everyone smarter.
+
+---
+
+## The Vision (Plant the Flag)
+
+100,000+ developers use Claude Code daily. They all build alone. Context vanishes. Learnings stay trapped.
+
+**/vibe is the social network for Claude Code.**
+
+We're claiming this hill before anyone else realizes it exists.
+
+---
+
+## The Model: Path for Builders
+
+**Path's playbook:**
+- Start with 50 friends (intimate, not broadcast)
+- Invite-only (no strangers)
+- "Share with people who matter"
+
+**Our version:**
+- Start with 20 builders who know each other
+- Friend-to-friend invites only
+- Your sessions help your network
+
+**Why this works:**
+- Trust is pre-established (no spam, no ghost town)
+- Replies are guaranteed (you're messaging friends)
+- Word of mouth is the only growth channel anyway
+- Collective intelligence builds from day 1
+
+---
+
+## The Two Layers
+
+### Layer 1: Chat (Visible)
+
+What users see and do:
+
+```
+vibe status      — see your network
+vibe ping @stan  — message a friend
+vibe inbox       — check messages
+vibe invite      — bring in another friend
+```
+
+This is friends talking to friends inside Claude Code.
+
+### Layer 2: Intelligence (Background)
+
+What happens silently:
+- Sessions are summarized (not full transcripts)
+- Tech/patterns detected
+- Problems and solutions extracted
+- Feeds the collective knowledge layer
+
+**The payoff (Phase 1.5):**
+
+```
+> stuck on auth
+
+🧠 2 friends in your network solved similar problems:
+   @stan — "JWT refresh with Redis" (2 days ago)
+   @gene — "Privy wallet auth" (last week)
+
+Ping them or see what they learned?
+```
+
+**This is the moment where chat becomes collective intelligence.**
 
 ---
 
@@ -11,203 +80,124 @@
 ```
 1. INSTALL        curl -fsSL slashvibe.dev/install.sh | bash
 2. IDENTIFY       @handle + "building: one-liner"
-3. PING           vibe ping @stan
-4. GET A REPLY    ← the only thing that matters
+3. INVITE         vibe invite → send to a friend
+4. PING           vibe ping @friend
+5. GET A REPLY    ← the moment that matters
+6. REPEAT         invite more friends, ping more people
 ```
 
-**MVP success criterion:** % of users who receive a reply within 5 minutes of first ping.
-
-If we can't engineer this in seed, we don't have a product yet.
+**Success criterion:** Did your friend reply? Did you invite another friend?
 
 ---
 
-## Three Design Decisions (Locked)
+## The 20-Person Trial
 
-### 1. What does `vibe ping` send?
+Seth's starting network:
+- @seth, @stan, @gene, @boreta, @phil
+- + 15 more personal invites
 
-**Decision: Fully templated, warm, one question.**
+**Week 1 goal:**
+- All 20 installed
+- Everyone has sent at least one ping
+- At least 10 back-and-forth conversations
+
+**Week 2 goal:**
+- Surface first "collective intelligence" moment
+- Someone gets helped by something another person learned
+- That moment is the product
+
+---
+
+## Design Decisions (Locked)
+
+### 1. Ping Template
+
+Fully templated, warm, one question:
 
 ```
-> vibe ping @stan
-
-Sending to @stan...
-
 "hey @stan — i'm seth, building mcp server for social.
  quick q: what's the hardest part of what you're building?
  reply: vibe reply p7x2 '...'"
-
-✓ Sent
 ```
 
-**Why this template:**
-- Includes sender's `building:` context (so recipient knows who you are)
-- One easy question (not "how are you" — something they can answer in 10 words)
-- Reply command included (zero friction to respond)
-- Warm but not robotic (varies slightly: "hey/hi", "quick q/one q", question rotates)
+### 2. Building Update
 
-**Template variations** (server picks randomly):
-```
-"hey @{to} — i'm {from}, building {building}. quick q: what's the hardest part of what you're building?"
-"hi @{to} — {from} here, working on {building}. one q: what are you building today?"
-"hey @{to} — i'm {from} ({building}). curious: what's your stack look like?"
-```
-
-**Power user escape hatch:**
-```
-> vibe dm @stan "custom message here"
-```
-
-### 2. How does `building:` update?
-
-**Decision: Manual only for MVP. Auto-detect later.**
+Manual only for MVP:
 
 ```
 > vibe set building "auth flow for privy"
-
-✓ Updated. You're now: @seth — building auth flow for privy
 ```
 
-**Why manual:**
-- Simpler to ship
-- No detection logic to break
-- User controls their identity
-- Staleness is acceptable for MVP (most people work on one thing for days)
+### 3. Invite Flow
 
-**v1.1 enhancement (not MVP):**
-- Auto-suggest from `cwd` or `package.json` name
-- Prompt: "Looks like you're in `spirit-protocol`. Update your building line? (y/n)"
-
-### 3. What's the invite flow?
-
-**Decision: Install command + pairing ping.**
+Install command + pairing:
 
 ```
 > vibe invite
 
-Share this with a friend:
-
-────────────────────────────────────────
+Share this:
+────────────────────────────────
 curl -fsSL slashvibe.dev/install.sh | bash
 
 After install, ping me:
 vibe ping @seth
-────────────────────────────────────────
-
+────────────────────────────────
 (copied to clipboard)
 ```
 
-**Why pairing:**
-- Creates immediate first connection
-- New user has someone to ping right away
-- Inviter gets a reply (dopamine for both)
-- This is the viral loop
-
 ---
 
-## Presence Design: Always Suggest Next Action
-
-Presence is not a dashboard. It's a call to action.
-
-```
-> vibe status
-
-⚡ /vibe
-
-Online now
-  🟢 @stan — building file watcher
-  🟢 @gene — building eden-api
-
-Recently active
-  🟡 @boreta — building audio agents (2h ago)
-  🟡 @luke — building farcaster agents (yesterday)
-
-📬 1 unread message
-
-Next: vibe ping @stan
-```
-
-**Rules:**
-- Always end with a suggested command
-- Show online first, then recent (7 days)
-- If inbox has unread, surface it
-- Never just "3 builders vibing" — always actionable
-
----
-
-## Cold Start: Seeded Directory, Not Bots
-
-**Bots are a trap.** Claude Code users hate fake presence.
-
-**Instead:**
-
-1. **Seed with real responders** — You + 5 people who commit to replying fast during week 1
-2. **Constrain pings to directory** — In private beta, `vibe ping` suggests only seeded users
-3. **Push invite hard when empty** — If no one's around, the UI says: "Invite a friend: `vibe invite`"
-4. **Show "recently active"** — Even if no one's online, there's life
-
-**Responder roster (week 1):**
-- @seth (you)
-- @stan
-- @gene
-- @boreta
-- @phil
-- (2-3 more from personal invites)
-
-These people commit to replying within 1 hour during beta.
-
----
-
-## MVP Scope (Final)
+## MVP Scope
 
 ### IN MVP ✅
 
 **Identity:**
-- `@handle` (required at install)
-- `building:` one-liner (required at install)
-- `vibe set building "..."` to update
+- `@handle` + `building:` one-liner
+- `vibe set building "..."`
 
-**Presence:**
-- 🟢 Online now
-- 🟡 Recently active (7 days)
-- Always suggests next action
+**Network:**
+- Friend-to-friend only (no stranger discovery)
+- 🟢 Online + 🟡 Recently active
+- Your network = people you invited + people who invited you
 
-**Messaging:**
-- `vibe ping @user` — templated opener (default)
-- `vibe dm @user "text"` — freeform (power users)
-- `vibe inbox` — check messages
-- `vibe reply <id> "text"` — respond
+**Chat:**
+- `vibe ping @user` — templated opener
+- `vibe dm @user "..."` — freeform
+- `vibe inbox` — messages
+- `vibe reply <id> "..."` — respond
 
-**Viral:**
-- `vibe invite` — install command + pairing ping
+**Growth:**
+- `vibe invite` — bring in friends
+
+**Background (silent):**
+- Session summaries captured
+- Tech/patterns detected
+- Feeds collective layer (surfaces in Phase 1.5)
 
 ### NOT IN MVP ❌
 
 | Cut | Why |
 |-----|-----|
-| Semantic search | Not connection |
-| Session auto-capture | Privacy + complexity |
-| Embeddings / Gigabrain | Phase 2 |
-| DNA / patterns | Phase 2 |
-| Profiles beyond one-liner | Scope creep |
-| Any "feed" | Buddy list > feed |
-| Read receipts | Complexity |
-| Threads / reactions | Complexity |
-| OAuth / GitHub verification | Handle trust is fine for seed |
-| Arbitrary cold DMs | Constrain to directory first |
+| Stranger discovery | Friends first |
+| Public directory | Invite-only |
+| Semantic search UI | Background only for now |
+| DNA / public patterns | Phase 2 |
+| Rooms / channels | 1:1 first |
+| OAuth | Handle trust is fine |
 
 ---
 
-## Commands (Final)
+## Commands
 
 | Command | What |
 |---------|------|
-| `vibe status` | Who's online + recent + unread + next action |
-| `vibe ping @user` | Templated opener (default path) |
-| `vibe ping` | Show suggestions, pick someone |
-| `vibe dm @user "text"` | Freeform message (power users) |
+| `vibe status` | Your network + unread + suggestion |
+| `vibe ping @user` | Templated opener |
+| `vibe ping` | Suggest friends to ping |
+| `vibe dm @user "..."` | Freeform message |
 | `vibe inbox` | Check messages |
-| `vibe reply <id> "text"` | Respond to a message |
-| `vibe invite` | Generate invite + pairing command |
+| `vibe reply <id> "..."` | Respond |
+| `vibe invite` | Generate invite for a friend |
 | `vibe set building "..."` | Update your one-liner |
 
 **8 commands. Claude suggests them contextually.**
@@ -219,108 +209,86 @@ These people commit to replying within 1 hour during beta.
 | Metric | Target |
 |--------|--------|
 | Install success rate | > 85% |
-| Time to first ping | < 120 seconds |
-| Reply rate (5 min, seed) | > 50% |
-| Reply rate (24h, general) | 30-40% |
-| D7 retention | 25% |
+| Time to first ping | < 2 minutes |
+| Reply rate (friends) | > 80% |
+| Invites sent per user | > 2 |
+| D7 retention | > 40% |
 
-**North star:** Replies received per week
-
----
-
-## Go-to-Market
-
-### Phase 1: Seed (Week 1)
-- **Size:** 30-50 people who know each other
-- **Roster:** Seth, Stan, Gene + personal invites
-- **Guarantee:** Responder roster commits to 1-hour reply time
-- **Focus:** Force the ping → reply loop
-- **Measure:** Reply rate within 5 minutes
-
-### Phase 2: Friends (Weeks 2-3)
-- **Size:** 100 installs
-- **Source:** Claude Code Discord, Twitter, friend-of-friend
-- **Focus:** Reply rate without responder guarantee
-- **Measure:** Organic reply rate, ghost town frequency
-
-### Phase 3: Launch (Week 4)
-- **Size:** 500 installs
-- **Source:** Hacker News, Product Hunt
-- **Hook:** "DMs inside your AI coding session"
-- **Measure:** Viral coefficient (invites per user)
+**North star:** Network growth (users × connections × messages)
 
 ---
 
-## The Behavioral Question
+## Phases
 
-Beyond the strategic question for advisors:
+### Phase 1: Friends (Now)
+- 20-person closed trial
+- Friend-to-friend chat
+- Background session capture
+- Prove: friends will talk in terminal
 
-> "Do you believe 'DMs + presence inside Claude Code' is a big enough wedge?"
+### Phase 1.5: Intelligence Surfaces
+- "2 friends solved similar problems"
+- Search within your network
+- Prove: collective knowledge has value
 
-Ask the behavioral question:
+### Phase 2: Expand
+- Friends-of-friends
+- Larger clusters
+- Public discovery (opt-in)
 
-> "If you were deep in Claude Code and got a ping from a stranger working on something similar, would you reply?"
-
-If advisors say "yes, obviously" — you have signal.
-If they hesitate — probe why.
-
----
-
-## Historical Framing
-
-**What we're stealing:**
-- **AIM:** Buddy list is the product. `building:` is the away message.
-- **ICQ:** Lightweight ping as handshake.
-- **Early Facebook:** Gating solves trust and cold start. Expand one cluster at a time.
-- **WhatsApp:** Reliability beats features. Messages must arrive.
-- **GitHub:** Social emerges from shared work artifacts (later, not MVP).
-
-**What we're avoiding:**
-- **MySpace:** Profile bloat and customization chaos.
-- **Slack/Discord:** Rooms before 1:1 replies work.
-- **Twitter:** Feed-first, connection-second.
-
-**North-star sentence:**
-
-> "/vibe is an IM handshake inside Claude Code; everything else is downstream."
+### Phase 3: Platform
+- Eden agents join the network
+- Spirit Protocol integration
+- Tokenized value layer
 
 ---
 
-## Phase 2 Boundary (What Comes After MVP)
+## The Moat
 
-Only after replies work:
+**Chat is commodity.** Slack has chat. Discord has chat.
 
-1. **Discovery** — Search what others are building (Gigabrain)
-2. **Context sharing** — Opt-in session snippets attached to messages
-3. **GitHub/Discord verification** — Trusted identity layer
-4. **Rooms** — Topic channels (only after 1:1 is solid)
-5. **DNA** — Patterns emerge from what you build
+**Collective intelligence is the moat.**
 
-**The lesson from history:** IM products win on reliable replies between people who trust each other. Social networks win later on identity + distribution + discovery. If you mix them too early, you get ghost-town + spam + complexity.
+Every session makes the network smarter. The more you use Claude Code with /vibe, the more valuable the network becomes. Your learnings help your friends. Their learnings help you.
+
+This compounds. Competitors can't copy your session history.
 
 ---
 
-## Advisor Questions
+## Positioning
 
-**Strategic:**
-1. Is "DMs inside Claude Code" a sufficient wedge? If not, what wedge is?
-2. Will you personally install this to talk to 5 people you already know?
-3. What would stop you from using it weekly? (privacy, spam, noise, unclear value)
-4. Where does it spread first: friend groups, Discords, open-source projects, hackathon cohorts?
+| Audience | Message |
+|----------|---------|
+| **Users** | "The social network for Claude Code. Invite friends. Build together." |
+| **Advisors** | "Path model + collective intelligence. Friend graph compounds into knowledge network." |
+| **Press** | "100K+ Claude Code users build alone. /vibe connects them." |
 
-**Behavioral:**
-5. If you got a ping from a stranger working on something similar, would you reply?
+---
+
+## The Behavioral Test
+
+After week 1, ask:
+
+> "Did you ping someone and get a reply that led to a second message?"
+
+If yes → the social primitive works
+If no → iterate on the loop
+
+After week 2, ask:
+
+> "Did something your friend learned help you?"
+
+If yes → collective intelligence works
+If no → iterate on surfacing
 
 ---
 
 ## One Thing Next
 
-Ship `vibe ping` with the locked template + `vibe invite` with pairing.
+Ship to 20 friends. Get replies. Surface one "collective intelligence" moment.
 
-Then seed 30 people and guarantee replies.
-
-That's the MMMVP.
+That's the MVP.
 
 ---
 
-**/vibe** — DMs inside Claude Code.
+**/vibe** — The social network for Claude Code.

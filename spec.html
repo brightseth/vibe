@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe MVP Spec v3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, monospace;
+            background: #000;
+            color: #ccc;
+            line-height: 1.7;
+            padding: 48px 20px;
+        }
+        .container { max-width: 640px; margin: 0 auto; }
+        h1 { color: #fff; font-size: 28px; font-weight: 400; margin-bottom: 8px; }
+        .tagline { color: #00ff00; margin-bottom: 8px; font-size: 16px; }
+        .sub { color: #666; font-size: 13px; margin-bottom: 40px; }
+        h2 { color: #fff; font-size: 14px; font-weight: 400; margin-top: 40px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        p { margin-bottom: 16px; font-size: 14px; }
+        code { background: #111; padding: 2px 6px; border-radius: 3px; color: #00ff00; font-size: 13px; }
+        pre { background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 16px; overflow-x: auto; margin-bottom: 16px; font-size: 12px; line-height: 1.6; }
+        pre code { background: none; padding: 0; }
+        .highlight { color: #00ff00; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #222; }
+        th { color: #666; font-weight: 400; text-transform: uppercase; font-size: 10px; }
+        hr { border: none; border-top: 1px solid #222; margin: 40px 0; }
+        a { color: #00ff00; text-decoration: none; }
+        .back { display: inline-block; margin-bottom: 24px; color: #444; font-size: 11px; }
+        .box { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+        .box.highlight-box { border-color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back">&larr; back</a>
+
+        <h1>/vibe MVP Spec v3</h1>
+        <p class="tagline">The social network for Claude Code.</p>
+        <p class="sub">Invite friends. Build together. Your sessions make everyone smarter.</p>
+
+        <hr>
+
+        <h2>The Vision</h2>
+        <p>100K+ developers use Claude Code daily. They all build alone.</p>
+        <p><strong class="highlight">/vibe is the social network for Claude Code.</strong></p>
+        <p>We're claiming this hill before anyone else realizes it exists.</p>
+
+        <h2>The Model: Path for Builders</h2>
+        <div class="box">
+            <strong>Path's playbook:</strong> 50 friends, invite-only, share with people who matter.<br><br>
+            <strong>Our version:</strong> 20 builders, friend-to-friend, your sessions help your network.
+        </div>
+
+        <h2>The Two Layers</h2>
+        <p><strong>Layer 1: Chat (Visible)</strong></p>
+        <pre><code>vibe status      — see your network
+vibe ping @stan  — message a friend
+vibe inbox       — check messages
+vibe invite      — bring in another friend</code></pre>
+
+        <p><strong>Layer 2: Intelligence (Background)</strong></p>
+        <p>Sessions summarized. Tech detected. Problems extracted. Feeds the collective layer.</p>
+
+        <p><strong>The payoff:</strong></p>
+        <pre><code>> stuck on auth
+
+🧠 2 friends solved similar problems:
+   @stan — "JWT refresh with Redis" (2 days ago)
+   @gene — "Privy wallet auth" (last week)
+
+Ping them or see what they learned?</code></pre>
+
+        <h2>The Loop</h2>
+        <pre><code>1. INSTALL        curl -fsSL slashvibe.dev/install.sh | bash
+2. IDENTIFY       @handle + "building: one-liner"
+3. INVITE         send to a friend
+4. PING           vibe ping @friend
+5. GET A REPLY    &larr; the moment
+6. REPEAT</code></pre>
+
+        <h2>MVP Scope</h2>
+        <table>
+            <tr><th>In MVP</th><th>Not in MVP</th></tr>
+            <tr><td>Friend-to-friend chat</td><td>Stranger discovery</td></tr>
+            <tr><td>Invite-only growth</td><td>Public directory</td></tr>
+            <tr><td>Background session capture</td><td>Search UI (yet)</td></tr>
+            <tr><td>8 commands</td><td>Rooms/channels</td></tr>
+        </table>
+
+        <h2>Success Metrics</h2>
+        <table>
+            <tr><th>Metric</th><th>Target</th></tr>
+            <tr><td>Install success</td><td>> 85%</td></tr>
+            <tr><td>Reply rate (friends)</td><td>> 80%</td></tr>
+            <tr><td>Invites per user</td><td>> 2</td></tr>
+            <tr><td>D7 retention</td><td>> 40%</td></tr>
+        </table>
+
+        <h2>Phases</h2>
+        <div class="box">
+            <strong>Phase 1 (Now):</strong> 20 friends, chat, background capture<br>
+            <strong>Phase 1.5:</strong> Intelligence surfaces ("2 friends solved this")<br>
+            <strong>Phase 2:</strong> Friends-of-friends, larger clusters<br>
+            <strong>Phase 3:</strong> Eden agents, Spirit Protocol, platform
+        </div>
+
+        <h2>The Moat</h2>
+        <div class="box highlight-box">
+            <strong>Chat is commodity.</strong> Slack has chat. Discord has chat.<br><br>
+            <strong>Collective intelligence is the moat.</strong><br><br>
+            Every session makes the network smarter. Competitors can't copy your session history.
+        </div>
+
+        <hr>
+
+        <p style="font-size: 12px; color: #666;">Full spec: <a href="https://github.com/brightseth/vibe-public">GitHub</a></p>
+    </div>
+</body>
+</html>

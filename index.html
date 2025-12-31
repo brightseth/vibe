@@ -3,107 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>/vibe</title>
-    <meta name="description" content="The social layer for Claude Code.">
-    <meta property="og:title" content="/vibe">
-    <meta property="og:description" content="See who's building. Message them. Search collective memory.">
+    <title>/vibe — The social network for Claude Code</title>
+    <meta name="description" content="Invite friends. Build together. Your sessions make everyone smarter.">
+    <meta property="og:title" content="/vibe — The social network for Claude Code">
+    <meta property="og:description" content="Invite friends. Build together. Your sessions make everyone smarter.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'SF Mono', Monaco, monospace;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
             background: #000;
             color: #fff;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 48px 20px;
         }
-        .container { max-width: 600px; text-align: center; }
-        h1 { font-size: 80px; font-weight: 400; margin-bottom: 24px; }
-        .tagline { font-size: 20px; color: #00ff00; margin-bottom: 8px; }
-        .sub { font-size: 14px; color: #666; margin-bottom: 48px; line-height: 1.6; }
-        .terminal {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 24px;
-            text-align: left;
-            margin-bottom: 48px;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-        .prompt { color: #00ff00; }
-        .dim { color: #666; }
+        .container { max-width: 540px; margin: 0 auto; }
+
+        h1 { font-size: 56px; font-weight: 400; margin-bottom: 8px; letter-spacing: -2px; }
+        .tagline { font-size: 17px; color: #00ff00; margin-bottom: 8px; }
+        .sub { font-size: 14px; color: #666; margin-bottom: 40px; line-height: 1.6; }
+
         .install {
             background: #0a0a0a;
             border: 1px solid #222;
             border-radius: 8px;
-            padding: 16px 24px;
-            display: inline-block;
-            margin-bottom: 16px;
+            padding: 16px 20px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
-        .install code { color: #00ff00; font-size: 14px; }
+        .install code {
+            color: #00ff00;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .copy {
-            background: transparent;
-            border: 1px solid #333;
-            color: #666;
+            background: #00ff00;
+            border: none;
+            color: #000;
             padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
-            margin-left: 16px;
+            font-weight: 500;
+            flex-shrink: 0;
+            transition: all 0.15s;
         }
-        .copy:hover { border-color: #00ff00; color: #00ff00; }
-        .note { font-size: 12px; color: #444; margin-bottom: 48px; }
-        .footer { font-size: 11px; color: #333; }
+        .copy:hover { background: #00cc00; }
+
+        .note { font-size: 11px; color: #444; margin-bottom: 40px; }
+
+        .terminal {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.9;
+            margin-bottom: 40px;
+        }
+        .prompt { color: #00ff00; }
+        .dim { color: #666; }
+        .bright { color: #fff; }
+
+        .features {
+            margin-bottom: 40px;
+        }
+        .feature {
+            margin-bottom: 24px;
+        }
+        .feature-title {
+            font-size: 13px;
+            color: #00ff00;
+            margin-bottom: 6px;
+        }
+        .feature-desc {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .beta {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            border-radius: 6px;
+            padding: 16px;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        .beta strong { color: #00ff00; }
+
+        .stats {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .stat-value {
+            color: #00ff00;
+            font-size: 20px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .stat-label { color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .footer {
+            font-size: 11px;
+            color: #333;
+            padding-top: 20px;
+            border-top: 1px solid #111;
+        }
         .footer a { color: #444; text-decoration: none; }
         .footer a:hover { color: #00ff00; }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 40px; }
+            .install { flex-direction: column; align-items: stretch; }
+            .install code { font-size: 11px; text-align: center; }
+            .copy { text-align: center; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>/vibe</h1>
-        <p class="tagline">Claude Code is better with friends.</p>
-        <p class="sub">
-            See who's building. Message them. Search collective memory.<br>
-            Your sessions become everyone's intelligence. The more we build, the smarter we all get.
-        </p>
-
-        <div class="terminal">
-            <div><span class="prompt">$</span> who's online?</div>
-            <div class="dim" style="margin: 8px 0 16px 0;">
-                🟢 @seth — mcp-server (Redis)<br>
-                🟢 @stan — spirit-protocol
-            </div>
-            <div><span class="prompt">$</span> search: authentication patterns</div>
-            <div class="dim" style="margin: 8px 0 16px 0;">
-                Found 12 sessions. Top: "Privy wallet auth" by @seth
-            </div>
-            <div><span class="prompt">$</span> message @stan how did you solve the timeout?</div>
-            <div class="dim" style="margin: 8px 0;">✉️ Sent</div>
-        </div>
+        <p class="tagline">The social network for Claude Code.</p>
+        <p class="sub">Invite friends. Build together. Your sessions make everyone smarter.</p>
 
         <div class="install">
-            <code>curl -fsSL https://slashvibe.dev/install.sh | bash</code>
+            <code>curl -fsSL slashvibe.dev/install.sh | bash</code>
             <button class="copy" onclick="copy()">Copy</button>
         </div>
         <p class="note">Then restart Claude Code.</p>
 
+        <div class="terminal">
+            <div><span class="prompt">⚡</span> <span class="bright">Welcome to /vibe, @you</span></div>
+            <div class="dim" style="margin-bottom: 12px;">Your network: 3 friends online</div>
+            <div class="dim">  🟢 @stan — building file watcher</div>
+            <div class="dim">  🟢 @gene — building eden-api</div>
+            <div class="dim" style="margin-bottom: 12px;">  🟡 @boreta — building audio agents (2h ago)</div>
+            <div><span class="prompt">></span> vibe ping @stan</div>
+            <div class="dim" style="margin-bottom: 12px;">✓ Sent</div>
+            <div><span class="prompt">></span> vibe invite</div>
+            <div class="dim">📋 Invite copied. Send to a friend.</div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-title">Chat while you build</div>
+                <div class="feature-desc">Ping friends without leaving your terminal. See who's online. Stay in flow.</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">Collective intelligence</div>
+                <div class="feature-desc">Your sessions help your friends. Their sessions help you. The network gets smarter.</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">Invite-only</div>
+                <div class="feature-desc">Start with people you trust. No strangers. No spam. Just builders you know.</div>
+            </div>
+        </div>
+
+        <div class="beta">
+            <strong>Closed beta.</strong> We're starting with a small network of builders who know each other.
+            Install, invite your friends, and help us build the social layer for Claude Code.
+        </div>
+
+        <div class="stats">
+            <div>
+                <span class="stat-value" id="builders">12</span>
+                <span class="stat-label">Builders</span>
+            </div>
+            <div>
+                <span class="stat-value" id="messages">47</span>
+                <span class="stat-label">Messages</span>
+            </div>
+        </div>
+
         <div class="footer">
-            <a href="https://github.com/brightseth/vibe">GitHub</a> ·
-            127 sessions indexed
+            <a href="https://github.com/brightseth/vibe-public">GitHub</a> ·
+            <a href="/spec">Spec</a> ·
+            <a href="/vision">Vision</a>
         </div>
     </div>
 
     <script>
         function copy() {
-            navigator.clipboard.writeText('curl -fsSL https://slashvibe.dev/install.sh | bash');
-            document.querySelector('.copy').textContent = 'Copied!';
-            setTimeout(() => document.querySelector('.copy').textContent = 'Copy', 2000);
+            navigator.clipboard.writeText('curl -fsSL slashvibe.dev/install.sh | bash');
+            const btn = document.querySelector('.copy');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
         }
+
+        fetch('/api/stats')
+            .then(r => r.json())
+            .then(data => {
+                if (data.users) document.getElementById('builders').textContent = data.users;
+                if (data.messages) document.getElementById('messages').textContent = data.messages;
+            })
+            .catch(() => {});
     </script>
 </body>
 </html>
