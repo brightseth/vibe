@@ -1,105 +1,157 @@
 #!/bin/bash
 
-# /vibe Installer — The Social Layer for Claude Code
-# See who's building. Message them. Search collective memory.
+# /vibe Installer — The Social Network for Claude Code
+# Invite friends. Build together. Your sessions make everyone smarter.
 
 set -e
 
-VIBE_DIR="$HOME/.vibe"
-MCP_DIR="$VIBE_DIR/mcp-server"
-CONFIG_FILE="$HOME/.vibecodings/config.json"
-CLAUDE_SETTINGS="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+# Colors
+GREEN='\033[0;32m'
+DIM='\033[2m'
+BOLD='\033[1m'
+NC='\033[0m'
 
+VIBE_DIR="$HOME/.vibe"
+CONFIG_FILE="$VIBE_DIR/config.json"
+MCP_SERVER="$VIBE_DIR/mcp-server/index.js"
+
+# Claude Code settings locations
+CLAUDE_SETTINGS_1="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+CLAUDE_SETTINGS_2="$HOME/.claude/settings/claude_desktop_config.json"
+
+clear
 echo ""
-echo "  ⚡ /vibe — Claude Code is better with friends"
+echo -e "  ${BOLD}⚡ /vibe${NC}"
+echo -e "  ${GREEN}The social network for Claude Code.${NC}"
+echo -e "  ${DIM}Invite friends. Build together.${NC}"
+echo ""
 echo "  ─────────────────────────────────────────────"
 echo ""
 
 # Create directories
-mkdir -p "$MCP_DIR"
-mkdir -p "$HOME/.vibecodings"
+mkdir -p "$VIBE_DIR/mcp-server"
 
 # Get username
-echo "Pick a username (lowercase, no spaces):"
-read -p "  @" USERNAME
+echo -e "  ${BOLD}Pick a handle:${NC}"
+read -p "  @" HANDLE
 
-if [ -z "$USERNAME" ]; then
-  echo "Username required. Try again."
+if [ -z "$HANDLE" ]; then
+  echo ""
+  echo -e "  ${DIM}Handle required. Try again.${NC}"
   exit 1
 fi
 
-USERNAME=$(echo "$USERNAME" | tr '[:upper:]' '[:lower:]' | tr -d ' @')
+HANDLE=$(echo "$HANDLE" | tr '[:upper:]' '[:lower:]' | tr -d ' @')
+
+echo ""
+echo -e "  ${BOLD}What are you building?${NC} ${DIM}(one line)${NC}"
+read -p "  building: " BUILDING
+
+if [ -z "$BUILDING" ]; then
+  BUILDING="something cool"
+fi
 
 # Save config
-echo "{\"username\": \"$USERNAME\"}" > "$CONFIG_FILE"
+cat > "$CONFIG_FILE" << EOF
+{
+  "username": "$HANDLE",
+  "building": "$BUILDING",
+  "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+
 echo ""
-echo "  Welcome, @$USERNAME!"
+echo -e "  Welcome, ${GREEN}@$HANDLE${NC}!"
+echo -e "  ${DIM}Building: $BUILDING${NC}"
 echo ""
 
 # Download MCP server
-echo "  Downloading MCP server..."
-curl -sL "https://slashvibe.dev/mcp-server/index.js" -o "$MCP_DIR/index.js"
-chmod +x "$MCP_DIR/index.js"
+echo -e "  ${DIM}Downloading MCP server...${NC}"
+curl -sL "https://slashvibe.dev/mcp-server/index.js" -o "$MCP_SERVER"
+chmod +x "$MCP_SERVER"
 
-# Check if Claude settings exist
-if [ -f "$CLAUDE_SETTINGS" ]; then
-  echo "  Configuring Claude Code..."
+# Register on network
+echo -e "  ${DIM}Registering @$HANDLE...${NC}"
+curl -sL -X POST "https://slashvibe.dev/api/users" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\": \"$HANDLE\", \"building\": \"$BUILDING\"}" \
+  > /dev/null 2>&1 || true
 
-  # Check if vibe already configured
-  if grep -q "vibe-mcp" "$CLAUDE_SETTINGS" 2>/dev/null; then
-    echo "  /vibe already configured in Claude Code."
-  else
-    # Backup
-    cp "$CLAUDE_SETTINGS" "$CLAUDE_SETTINGS.backup"
+curl -sL -X POST "https://slashvibe.dev/api/presence" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\": \"$HANDLE\", \"workingOn\": \"$BUILDING\"}" \
+  > /dev/null 2>&1 || true
 
-    # Add MCP server to config (simple approach - add to mcpServers)
-    # This is a basic JSON manipulation - may need manual config for complex setups
-    cat > /tmp/vibe_mcp_config.json << EOF
+# Configure Claude Code
+MCP_CONFIG=$(cat << EOF
 {
   "mcpServers": {
-    "vibe-mcp": {
+    "vibe": {
       "command": "node",
-      "args": ["$MCP_DIR/index.js"]
+      "args": ["$MCP_SERVER"]
     }
   }
 }
 EOF
-    echo ""
-    echo "  ⚠️  Add this to your Claude settings manually:"
-    echo ""
-    cat /tmp/vibe_mcp_config.json
-    echo ""
+)
+
+configure_claude() {
+  local settings_file="$1"
+
+  if [ -f "$settings_file" ]; then
+    # Check if vibe already configured
+    if grep -q '"vibe"' "$settings_file" 2>/dev/null; then
+      echo -e "  ${DIM}/vibe already in Claude Code config${NC}"
+      return 0
+    fi
+
+    # Backup existing config
+    cp "$settings_file" "${settings_file}.backup.$(date +%s)"
+
+    # Try to merge with existing config
+    if command -v jq &> /dev/null; then
+      jq -s '.[0] * .[1]' "$settings_file" <(echo "$MCP_CONFIG") > "${settings_file}.tmp" 2>/dev/null && \
+        mv "${settings_file}.tmp" "$settings_file" && \
+        echo -e "  ${GREEN}✓${NC} Claude Code configured" && \
+        return 0
+    fi
   fi
-else
+
+  return 1
+}
+
+CONFIGURED=false
+
+if configure_claude "$CLAUDE_SETTINGS_1"; then
+  CONFIGURED=true
+elif configure_claude "$CLAUDE_SETTINGS_2"; then
+  CONFIGURED=true
+fi
+
+if [ "$CONFIGURED" = false ]; then
   echo ""
-  echo "  Claude settings not found at default location."
-  echo "  Add this MCP server to your Claude config:"
+  echo -e "  ${BOLD}Add this to your Claude Code settings:${NC}"
   echo ""
-  echo "  {\"mcpServers\": {\"vibe-mcp\": {\"command\": \"node\", \"args\": [\"$MCP_DIR/index.js\"]}}}"
+  echo "$MCP_CONFIG" | sed 's/^/  /'
   echo ""
 fi
 
-# Install auto-capture hook
-HOOKS_DIR="$HOME/.claude/hooks"
-mkdir -p "$HOOKS_DIR"
-echo "  Installing auto-capture hook..."
-curl -sL "https://slashvibe.dev/hooks/session-end.sh" -o "$HOOKS_DIR/session-end.sh"
-chmod +x "$HOOKS_DIR/session-end.sh"
-
-# Register presence
-echo "  Registering @$USERNAME..."
-curl -sL -X POST "https://slashvibe.dev/api/presence" \
-  -H "Content-Type: application/json" \
-  -d "{\"username\": \"$USERNAME\", \"workingOn\": \"just installed /vibe\"}" \
-  > /dev/null 2>&1 || true
-
+# Success message
 echo ""
-echo "  ✅ /vibe installed!"
+echo "  ─────────────────────────────────────────────"
 echo ""
-echo "  What happens now:"
-echo "  • Your sessions auto-capture to collective memory"
-echo "  • Say \"who's online?\" to see other builders"
-echo "  • Related work surfaces when you start something new"
+echo -e "  ${GREEN}✅ /vibe installed!${NC}"
 echo ""
-echo "  @$USERNAME is now vibing. ⚡"
+echo -e "  ${BOLD}What happens now:${NC}"
+echo -e "  • Restart Claude Code to activate"
+echo -e "  • Say \"who's online?\" or \"vibe status\""
+echo -e "  • Invite friends with \"vibe invite\""
+echo ""
+echo -e "  ${BOLD}Commands:${NC}"
+echo -e "  ${DIM}vibe status${NC}      — see your network"
+echo -e "  ${DIM}vibe ping @user${NC}  — message a friend"
+echo -e "  ${DIM}vibe inbox${NC}       — check messages"
+echo -e "  ${DIM}vibe invite${NC}      — bring in a friend"
+echo ""
+echo -e "  ${GREEN}@$HANDLE${NC} is now vibing. ⚡"
 echo ""

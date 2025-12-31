@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * VIBE MCP Server v5.0 — The Social Layer
+ * /vibe MCP Server v3.0 — The Social Network for Claude Code
  *
- * 3 tools. That's it.
- *
- * - vibe_status: Who's online, unread messages
- * - vibe_message: Send a message
- * - vibe_query: Search what others built
- *
- * Sessions auto-capture via hook. Discovery surfaces automatically.
+ * 8 commands:
+ * - vibe_status     — Your network + unread + suggestion
+ * - vibe_ping       — Templated opener to a friend
+ * - vibe_dm         — Freeform message to anyone
+ * - vibe_inbox      — Check your messages
+ * - vibe_reply      — Reply to a message
+ * - vibe_invite     — Generate invite for a friend
+ * - vibe_set        — Update your "building" one-liner
+ * - vibe_network    — Suggest friends to ping
  */
 
 const https = require('https');
@@ -22,78 +24,115 @@ const API_BASE = 'https://slashvibe.dev';
 class VibeMCPServer {
   constructor() {
     this.tools = this.defineTools();
-    this.stateFile = path.join(process.env.HOME, '.vibe', 'state.json');
+    this.configDir = path.join(process.env.HOME, '.vibe');
+    this.configFile = path.join(this.configDir, 'config.json');
+    this.stateFile = path.join(this.configDir, 'state.json');
 
-    // Message tracking
+    // Tracking
     this.lastMessageCount = 0;
-
-    // Presence tracking
     this.lastPresence = new Set();
-
-    // Discovery surfacing
-    this.sessionStart = Date.now();
-    this.lastContext = null;
-    this.lastContextHash = null;
-    this.lastContextChange = Date.now();
-    this.discoveryFired = false;
-    this.ignoredContexts = new Set();
-    this.lastDiscoverySurface = 0;
-
-    // Polling intervals
     this.notificationInterval = null;
-    this.stallCheckInterval = null;
 
-    // Load persisted state (survives restarts)
+    // Load persisted state
     this.loadState();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STATE PERSISTENCE: Survive restarts (inspired by Stan's vibe-check)
+  // CONFIG & STATE
   // ═══════════════════════════════════════════════════════════════════════════
+
+  loadConfig() {
+    try {
+      // Try new location first
+      if (fs.existsSync(this.configFile)) {
+        return JSON.parse(fs.readFileSync(this.configFile, 'utf8'));
+      }
+      // Fallback to old location
+      const oldConfig = path.join(process.env.HOME, '.vibecodings', 'config.json');
+      if (fs.existsSync(oldConfig)) {
+        return JSON.parse(fs.readFileSync(oldConfig, 'utf8'));
+      }
+    } catch (e) {}
+    return {};
+  }
+
+  saveConfig(config) {
+    try {
+      if (!fs.existsSync(this.configDir)) {
+        fs.mkdirSync(this.configDir, { recursive: true });
+      }
+      fs.writeFileSync(this.configFile, JSON.stringify(config, null, 2));
+    } catch (e) {}
+  }
 
   loadState() {
     try {
       if (fs.existsSync(this.stateFile)) {
         const state = JSON.parse(fs.readFileSync(this.stateFile, 'utf8'));
-        this.ignoredContexts = new Set(state.ignoredContexts || []);
         this.lastMessageCount = state.lastMessageCount || 0;
-        this.lastDiscoverySurface = state.lastDiscoverySurface || 0;
-        // process.stderr.write('State restored from previous session\n');
       }
-    } catch (e) {
-      // Start fresh if state corrupted
-    }
+    } catch (e) {}
   }
 
   saveState() {
     try {
       const state = {
-        ignoredContexts: [...this.ignoredContexts],
         lastMessageCount: this.lastMessageCount,
-        lastDiscoverySurface: this.lastDiscoverySurface,
         savedAt: Date.now()
       };
       fs.writeFileSync(this.stateFile, JSON.stringify(state, null, 2));
+    } catch (e) {}
+  }
+
+  getUsername() {
+    const config = this.loadConfig();
+    if (config.username) return config.username;
+    if (process.env.VIBE_USERNAME) return process.env.VIBE_USERNAME;
+
+    // Auto-detect from git
+    try {
+      const gitConfig = path.join(process.env.HOME, '.gitconfig');
+      if (fs.existsSync(gitConfig)) {
+        const content = fs.readFileSync(gitConfig, 'utf8');
+        const match = content.match(/name\s*=\s*(.+)/i);
+        if (match) return match[1].trim().toLowerCase().replace(/\s+/g, '');
+      }
+    } catch (e) {}
+
+    return process.env.USER || 'anonymous';
+  }
+
+  getBuilding() {
+    const config = this.loadConfig();
+    return config.building || this.detectProject();
+  }
+
+  detectProject() {
+    try {
+      const cwd = process.cwd();
+      const pkg = path.join(cwd, 'package.json');
+      if (fs.existsSync(pkg)) {
+        const data = JSON.parse(fs.readFileSync(pkg, 'utf8'));
+        return data.name || path.basename(cwd);
+      }
+      return path.basename(cwd);
     } catch (e) {
-      // Silent fail
+      return 'something cool';
     }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // SYSTEM: Sounds + Notifications
+  // SOUNDS & NOTIFICATIONS
   // ═══════════════════════════════════════════════════════════════════════════
 
   playSound(type) {
     const sounds = {
       message: '/System/Library/Sounds/Ping.aiff',
-      online: '/System/Library/Sounds/Blow.aiff',
-      offline: '/System/Library/Sounds/Basso.aiff',
       sent: '/System/Library/Sounds/Pop.aiff',
-      insight: '/System/Library/Sounds/Glass.aiff'
+      online: '/System/Library/Sounds/Blow.aiff'
     };
-    const sound = sounds[type];
-    if (sound) {
-      exec(`afplay "${sound}"`, () => {});
+    if (sounds[type]) {
+      exec(`afplay "${sounds[type]}"`, () => {});
     }
   }
 
@@ -103,106 +142,10 @@ class VibeMCPServer {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CONTEXT: Automagic detection
+  // API CLIENT
   // ═══════════════════════════════════════════════════════════════════════════
 
-  getCurrentContext() {
-    try {
-      const cwd = process.cwd();
-      const context = { project: null, tech: [], branch: null, activity: null };
-
-      // 1. Try package.json
-      const packagePath = path.join(cwd, 'package.json');
-      if (fs.existsSync(packagePath)) {
-        try {
-          const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-          context.project = pkg.name || path.basename(cwd);
-          const deps = Object.assign({}, pkg.dependencies, pkg.devDependencies);
-          if (deps.next) context.tech.push('Next.js');
-          else if (deps.react) context.tech.push('React');
-          if (deps['@vercel/kv'] || deps.redis) context.tech.push('Redis');
-          if (deps.prisma) context.tech.push('Prisma');
-          if (deps.openai) context.tech.push('AI');
-          if (deps.viem || deps.wagmi) context.tech.push('Web3');
-        } catch (e) {}
-      }
-
-      // 2. Try git branch
-      try {
-        const gitHeadPath = path.join(cwd, '.git', 'HEAD');
-        if (fs.existsSync(gitHeadPath)) {
-          const head = fs.readFileSync(gitHeadPath, 'utf8').trim();
-          const m = head.match(/ref: refs\/heads\/(.+)/);
-          if (m) context.branch = m[1];
-        }
-      } catch (e) {}
-
-      // 3. Fallback to directory name
-      if (!context.project) {
-        context.project = path.basename(cwd);
-        if (context.project === path.basename(process.env.HOME || '')) {
-          context.project = null;
-        }
-      }
-
-      // Build status string
-      let status = context.project || 'building';
-      if (context.tech.length > 0) {
-        status += ' (' + context.tech.slice(0, 2).join(', ') + ')';
-      }
-      if (context.branch && context.branch !== 'main' && context.branch !== 'master') {
-        status += ' [' + context.branch + ']';
-      }
-
-      return status.slice(0, 80);
-    } catch (e) {
-      return 'Claude Code session';
-    }
-  }
-
-  // Hash context for stable comparison (avoids false triggers)
-  hashContext(context) {
-    // Normalize: lowercase, strip timestamps/numbers
-    const normalized = context.toLowerCase().replace(/\d+/g, '').trim();
-    return crypto.createHash('md5').update(normalized).digest('hex').slice(0, 8);
-  }
-
-  getUsername() {
-    // 1. Check config file (set by installer)
-    try {
-      const configPath = path.join(process.env.HOME, '.vibecodings', 'config.json');
-      if (fs.existsSync(configPath)) {
-        return JSON.parse(fs.readFileSync(configPath, 'utf8')).username;
-      }
-    } catch (e) {}
-
-    // 2. Check environment variable
-    if (process.env.VIBE_USERNAME) {
-      return process.env.VIBE_USERNAME;
-    }
-
-    // 3. Auto-detect from git config (zero friction)
-    try {
-      const gitConfigPath = path.join(process.env.HOME, '.gitconfig');
-      if (fs.existsSync(gitConfigPath)) {
-        const gitConfig = fs.readFileSync(gitConfigPath, 'utf8');
-        const match = gitConfig.match(/name\s*=\s*(.+)/i);
-        if (match) {
-          // Convert "Seth Kranzler" to "sethkranzler" (no spaces, lowercase)
-          return match[1].trim().toLowerCase().replace(/\s+/g, '');
-        }
-      }
-    } catch (e) {}
-
-    // 4. Fallback to system username
-    return process.env.USER || 'anonymous';
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // API: HTTP client
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  async apiCall(endpoint, method = 'GET', body = null) {
+  async api(endpoint, method = 'GET', body = null) {
     return new Promise((resolve, reject) => {
       const url = new URL(endpoint, API_BASE);
       const options = {
@@ -211,7 +154,7 @@ class VibeMCPServer {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'VibeMCP/4.0'
+          'User-Agent': 'VibeMCP/3.0'
         }
       };
 
@@ -238,314 +181,125 @@ class VibeMCPServer {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PROACTIVE: Discovery Surfacing (Show & Tell)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  async surfaceDiscovery() {
-    const now = Date.now();
-    const context = this.getCurrentContext();
-    const contextHash = this.hashContext(context);
-    const username = this.getUsername();
-
-    // Skip if user opted out of this context
-    if (this.ignoredContexts.has(contextHash)) {
-      return;
-    }
-
-    // Context CHANGED = opportunity to surface related discoveries
-    const contextChanged = contextHash !== this.lastContextHash;
-
-    if (contextChanged) {
-      this.lastContext = context;
-      this.lastContextHash = contextHash;
-      this.lastContextChange = now;
-      this.discoveryFired = false;
-
-      // Surface discovery for new context (wait 10s to let them settle in)
-      setTimeout(async () => {
-        if (this.lastContextHash === contextHash && !this.discoveryFired) {
-          await this.showRelatedDiscoveries(context, username);
-        }
-      }, 10000);
-      return;
-    }
-
-    // Periodic discovery: every 15 minutes, maybe surface something interesting
-    const timeSinceLastSurface = now - this.lastDiscoverySurface;
-    const DISCOVERY_INTERVAL = 15 * 60 * 1000; // 15 minutes
-
-    if (timeSinceLastSurface > DISCOVERY_INTERVAL && !this.discoveryFired) {
-      await this.showWhatsHappening(username);
-    }
-  }
-
-  async showRelatedDiscoveries(context, username) {
-    // Query Gigabrain for related sessions
-    try {
-      const memory = await this.apiCall('/api/gigabrain/query', 'POST', {
-        query: context,
-        limit: 5
-      });
-
-      if (memory.results && memory.results.length > 0) {
-        // Find interesting results (prefer others' work, but own work counts too)
-        const relevant = memory.results.slice(0, 3);
-
-        if (relevant.length > 0) {
-          this.discoveryFired = true;
-          this.lastDiscoverySurface = Date.now();
-          this.playSound('insight');
-
-          let msg = '\n✨ Related to what you\'re building:\n\n';
-          relevant.forEach((r, i) => {
-            const who = r.user === username ? 'You' : '@' + r.user;
-            msg += '   ' + (i + 1) + '. ' + who + ' — "' + r.summary.slice(0, 50) + '"\n';
-            msg += '      ' + r.timeAgo;
-            if (r.tech && r.tech.length > 0) {
-              msg += ' · ' + r.tech.slice(0, 2).join(', ');
-            }
-            msg += '\n';
-          });
-          msg += '\nSay "show me #1" to explore, or just keep building.\n';
-
-          process.stderr.write(msg);
-        }
-      }
-    } catch (e) {}
-  }
-
-  async showWhatsHappening(username) {
-    // Check what others are building right now
-    try {
-      const presence = await this.apiCall('/api/presence?user=' + username);
-      const others = (presence.active || []).filter(u => u.username !== username);
-
-      if (others.length > 0) {
-        this.lastDiscoverySurface = Date.now();
-        this.playSound('insight');
-
-        let msg = '\n🔮 Meanwhile in /vibe:\n\n';
-        others.slice(0, 3).forEach(u => {
-          msg += '   • @' + u.username + ' is building ' + (u.workingOn || 'something cool') + '\n';
-        });
-        msg += '\nMessage them or keep vibing.\n';
-
-        process.stderr.write(msg);
-        return;
-      }
-
-      // Nobody online? Surface a random discovery from Gigabrain
-      const memory = await this.apiCall('/api/gigabrain/query', 'POST', {
-        query: this.getCurrentContext(),
-        limit: 1
-      });
-
-      if (memory.results && memory.results.length > 0) {
-        const tip = memory.results[0];
-        this.lastDiscoverySurface = Date.now();
-        this.playSound('insight');
-
-        process.stderr.write(`
-💡 Did you know?
-
-@${tip.user} built something related: "${tip.summary}"
-${tip.timeAgo}${tip.tech && tip.tech.length > 0 ? ' · ' + tip.tech.join(', ') : ''}
-
-Say "tell me more" or keep building.
-
-`);
-      }
-    } catch (e) {}
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STARTUP: Background polling + warm welcome
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  startNotifications() {
-    const POLL_INTERVAL = 15000; // 15 seconds
-
-    this.notificationInterval = setInterval(async () => {
-      try {
-        const username = this.getUsername();
-        if (username === 'anonymous') return;
-
-        // Fetch presence and messages in parallel
-        const [presenceResult, messagesResult] = await Promise.all([
-          this.apiCall('/api/presence?user=' + username),
-          this.apiCall('/api/messages?user=' + username)
-        ]);
-
-        // Check for new messages
-        if (messagesResult.success) {
-          const newCount = messagesResult.unread || 0;
-
-          if (newCount > this.lastMessageCount && this.lastMessageCount !== null) {
-            const latest = messagesResult.inbox && messagesResult.inbox[0];
-
-            this.playSound('message');
-
-            if (latest) {
-              let alert = '\n📬 New message from @' + latest.from + '!\n';
-              alert += '   "' + latest.text.slice(0, 60) + (latest.text.length > 60 ? '...' : '') + '"\n';
-              process.stderr.write(alert);
-
-              this.notify('@' + latest.from, latest.text.slice(0, 100));
-            }
-          }
-
-          this.lastMessageCount = newCount;
-        }
-
-        // Check for presence changes
-        if (presenceResult.success && this.lastPresence) {
-          const currentUsers = new Set((presenceResult.active || []).map(u => u.username));
-
-          // Who just came online?
-          for (const user of currentUsers) {
-            if (!this.lastPresence.has(user) && user !== username) {
-              const userData = (presenceResult.active || []).find(u => u.username === user);
-              this.playSound('online');
-              let msg = '\n🟢 @' + user + ' just started vibing';
-              if (userData && userData.workingOn) {
-                msg += ' — ' + userData.workingOn;
-              }
-              msg += '\n';
-              process.stderr.write(msg);
-            }
-          }
-
-          // Who left?
-          if (currentUsers.size > 0) {
-            for (const user of this.lastPresence) {
-              if (!currentUsers.has(user) && user !== username) {
-                this.playSound('offline');
-                process.stderr.write('\n👋 @' + user + ' stepped away\n');
-              }
-            }
-          }
-
-          this.lastPresence = currentUsers;
-        }
-
-        // Update our presence heartbeat
-        await this.apiCall('/api/presence', 'POST', {
-          username,
-          workingOn: this.getCurrentContext()
-        });
-
-        // Surface discoveries
-        await this.surfaceDiscovery();
-
-        // Periodically persist state (every poll cycle)
-        this.saveState();
-
-      } catch (e) {
-        // Silent fail on background polling
-      }
-    }, POLL_INTERVAL);
-
-    // Initial check after 1 second
-    setTimeout(() => this.checkInitialState(), 1000);
-  }
-
-  async checkInitialState() {
-    try {
-      const username = this.getUsername();
-      if (username === 'anonymous') {
-        process.stderr.write('\n✨ /vibe ready! Run the installer to set your username.\n');
-        return;
-      }
-
-      const [presence, messages] = await Promise.all([
-        this.apiCall('/api/presence?user=' + username),
-        this.apiCall('/api/messages?user=' + username)
-      ]);
-
-      const active = presence.active || [];
-      const unread = messages.unread || 0;
-      this.lastMessageCount = unread;
-      this.lastPresence = new Set(active.map(u => u.username));
-
-      // Build warm welcome
-      let welcome = '\n✨ Welcome back, @' + username + '!\n';
-
-      if (active.length > 0) {
-        welcome += '\n🟢 ' + active.length + ' builder' + (active.length > 1 ? 's' : '') + ' vibing right now:\n';
-        active.slice(0, 3).forEach(u => {
-          welcome += '   • @' + u.username + ' — ' + (u.workingOn || 'building something') + '\n';
-        });
-        if (active.length > 3) {
-          welcome += '   + ' + (active.length - 3) + ' more...\n';
-        }
-      } else {
-        welcome += '\n🌙 The room is quiet. You\'re the first one here.\n';
-      }
-
-      if (unread > 0) {
-        const latest = messages.inbox && messages.inbox[0];
-        welcome += '\n📬 You have ' + unread + ' unread message' + (unread > 1 ? 's' : '');
-        if (latest) {
-          welcome += ' — latest from @' + latest.from;
-        }
-        welcome += '\n';
-        this.playSound('message');
-      }
-
-      welcome += '\nAsk me "who\'s online?" or "check my messages" anytime.\n';
-
-      process.stderr.write(welcome);
-    } catch (e) {
-      process.stderr.write('\n✨ /vibe connected.\n');
-    }
-  }
-
-  stopNotifications() {
-    if (this.notificationInterval) {
-      clearInterval(this.notificationInterval);
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // TOOLS: 3 essential tools (status, message, query)
+  // TOOL DEFINITIONS — 8 commands per v3 spec
   // ═══════════════════════════════════════════════════════════════════════════
 
   defineTools() {
     return [
-      // 1. vibe_status — The dashboard
+      // 1. vibe_status — Dashboard
       {
         name: 'vibe_status',
-        description: 'Quick dashboard: who\'s online, unread messages, your current context.',
+        description: 'Show your /vibe status: who\'s online in your network, unread messages, and suggestions.',
         inputSchema: {
           type: 'object',
           properties: {}
         }
       },
 
-      // 2. vibe_message — Send DM
+      // 2. vibe_ping — Templated opener
       {
-        name: 'vibe_message',
-        description: 'Send a message to another builder.',
+        name: 'vibe_ping',
+        description: 'Send a friendly ping to someone in your network. Uses a warm, templated opener.',
         inputSchema: {
           type: 'object',
           properties: {
-            to: { type: 'string', description: 'Username' },
-            text: { type: 'string', description: 'Message' }
+            to: {
+              type: 'string',
+              description: 'Username to ping (e.g., "stan" or "@stan")'
+            }
+          },
+          required: ['to']
+        }
+      },
+
+      // 3. vibe_dm — Freeform message
+      {
+        name: 'vibe_dm',
+        description: 'Send a freeform direct message to someone.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            to: {
+              type: 'string',
+              description: 'Username to message'
+            },
+            text: {
+              type: 'string',
+              description: 'Your message'
+            }
           },
           required: ['to', 'text']
         }
       },
 
-      // 3. vibe_query — Search collective memory
+      // 4. vibe_inbox — Check messages
       {
-        name: 'vibe_query',
-        description: 'Search what others have built.',
+        name: 'vibe_inbox',
+        description: 'Check your messages and see what people have sent you.',
         inputSchema: {
           type: 'object',
           properties: {
-            query: { type: 'string', description: 'Search term' }
+            markRead: {
+              type: 'boolean',
+              description: 'Mark messages as read (default: true)'
+            }
+          }
+        }
+      },
+
+      // 5. vibe_reply — Reply to a message
+      {
+        name: 'vibe_reply',
+        description: 'Reply to a message by ID.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Message ID to reply to (e.g., "msg_abc123")'
+            },
+            text: {
+              type: 'string',
+              description: 'Your reply'
+            }
           },
-          required: ['query']
+          required: ['id', 'text']
+        }
+      },
+
+      // 6. vibe_invite — Generate invite
+      {
+        name: 'vibe_invite',
+        description: 'Generate an invite to share with a friend. They\'ll be added to your network when they install.',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+
+      // 7. vibe_set — Update building one-liner
+      {
+        name: 'vibe_set',
+        description: 'Update what you\'re building. This shows up next to your name in the network.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            building: {
+              type: 'string',
+              description: 'What you\'re building (one-liner, e.g., "auth flow for privy")'
+            }
+          },
+          required: ['building']
+        }
+      },
+
+      // 8. vibe_network — Suggest friends to ping
+      {
+        name: 'vibe_network',
+        description: 'See your network and get suggestions for who to ping.',
+        inputSchema: {
+          type: 'object',
+          properties: {}
         }
       }
     ];
@@ -556,18 +310,34 @@ Say "tell me more" or keep building.
   // ═══════════════════════════════════════════════════════════════════════════
 
   async handleToolCall(name, args) {
-    const username = args.username || this.getUsername();
+    const username = this.getUsername();
+    const building = this.getBuilding();
 
     try {
       switch (name) {
         case 'vibe_status':
-          return await this.getStatus(username);
+          return await this.handleStatus(username, building);
 
-        case 'vibe_message':
-          return await this.sendMessage(args, username);
+        case 'vibe_ping':
+          return await this.handlePing(args, username, building);
 
-        case 'vibe_query':
-          return await this.queryGigabrain(args, username);
+        case 'vibe_dm':
+          return await this.handleDM(args, username);
+
+        case 'vibe_inbox':
+          return await this.handleInbox(args, username);
+
+        case 'vibe_reply':
+          return await this.handleReply(args, username);
+
+        case 'vibe_invite':
+          return await this.handleInvite(username);
+
+        case 'vibe_set':
+          return await this.handleSet(args);
+
+        case 'vibe_network':
+          return await this.handleNetwork(username);
 
         default:
           return { error: 'Unknown tool: ' + name };
@@ -577,153 +347,403 @@ Say "tell me more" or keep building.
     }
   }
 
-  async getStatus(username) {
-    const [presence, messages] = await Promise.all([
-      this.apiCall('/api/presence?user=' + username),
-      this.apiCall('/api/messages?user=' + username)
+  // 1. STATUS — Dashboard
+  async handleStatus(username, building) {
+    const [presence, messages, friends] = await Promise.all([
+      this.api('/api/presence?user=' + username),
+      this.api('/api/messages?user=' + username),
+      this.api('/api/friends?user=' + username).catch(() => ({ friends: [] }))
     ]);
 
-    const active = presence.active || [];
+    const online = presence.active || [];
     const unread = messages.unread || 0;
-    const latestMessage = messages.inbox && messages.inbox[0];
-    const context = this.getCurrentContext();
+    const network = friends.friends || [];
 
-    let display = '## Your /vibe Status\n\n';
-    display += '**You:** @' + username + '\n';
-    display += '**Working on:** ' + context + '\n\n';
-    display += '---\n\n';
+    // Filter to show only friends who are online
+    const friendsOnline = online.filter(u =>
+      network.some(f => f.username === u.username) || u.username === username
+    );
 
-    if (active.length > 0) {
-      display += '### 🟢 ' + active.length + ' Online\n';
-      active.slice(0, 5).forEach(u => {
-        display += '• **@' + u.username + '** — ' + (u.workingOn || 'building') + '\n';
+    let display = `## /vibe Status\n\n`;
+    display += `**You:** @${username}\n`;
+    display += `**Building:** ${building}\n\n`;
+    display += `---\n\n`;
+
+    if (friendsOnline.length > 0) {
+      display += `### Your Network (${friendsOnline.length} online)\n`;
+      friendsOnline.forEach(u => {
+        const emoji = u.username === username ? '⚡' : '🟢';
+        display += `${emoji} **@${u.username}** — ${u.workingOn || 'building'}\n`;
       });
     } else {
-      display += '### 🌙 Room Empty\n';
-      display += '_You\'re the only one here right now_\n';
+      display += `### Your Network\n`;
+      display += `_No friends online right now._\n`;
     }
 
-    display += '\n---\n\n';
+    display += `\n---\n\n`;
 
     if (unread > 0) {
-      display += '### 📬 ' + unread + ' Unread\n';
-      if (latestMessage) {
-        display += 'Latest from **@' + latestMessage.from + ':** "' + latestMessage.text.slice(0, 50) + '..."\n';
+      const latest = messages.inbox && messages.inbox[0];
+      display += `### 📬 ${unread} Unread Message${unread > 1 ? 's' : ''}\n`;
+      if (latest) {
+        display += `Latest from **@${latest.from}:** "${latest.text.slice(0, 50)}..."\n`;
+        display += `\n_Use \`vibe inbox\` to read all messages._\n`;
       }
     } else {
-      display += '### 📭 No Unread Messages\n';
+      display += `### 📭 No Unread Messages\n`;
     }
 
-    return {
-      display,
-      username,
-      online: active.length,
-      unread,
-      context
-    };
+    // Suggestion
+    if (friendsOnline.length > 0 && unread === 0) {
+      const suggestion = friendsOnline.find(u => u.username !== username);
+      if (suggestion) {
+        display += `\n---\n\n`;
+        display += `💡 **Suggestion:** Ping @${suggestion.username} — they're building ${suggestion.workingOn || 'something cool'}`;
+      }
+    }
+
+    return { display, username, online: online.length, unread };
   }
 
-  async sendMessage(args, username) {
-    const text = args.text + '\n\n[Sent from: ' + this.getCurrentContext() + ']';
+  // 2. PING — Templated opener
+  async handlePing(args, username, building) {
+    const to = (args.to || '').replace('@', '').toLowerCase();
 
-    const result = await this.apiCall('/api/messages', 'POST', {
+    if (!to) {
+      return { error: 'Who do you want to ping? Use: vibe ping @username' };
+    }
+
+    // Build templated message
+    const template = `hey @${to} — i'm ${username}, building ${building}.\n\nquick q: what's the hardest part of what you're building?\n\nreply: vibe reply <id> '...'`;
+
+    const result = await this.api('/api/messages', 'POST', {
       from: username,
-      to: args.to.replace('@', ''),
-      text
+      to: to,
+      text: template
     });
 
     if (result.success) {
       this.playSound('sent');
       return {
         success: true,
-        display: '✉️ Message sent to **@' + args.to.replace('@', '') + '**!\n\nThey\'ll get a notification.',
-        to: args.to.replace('@', '')
+        display: `## Ping Sent!\n\n✉️ Pinged **@${to}**\n\n> ${template.split('\n')[0]}\n\nThey'll get a notification. When they reply, you'll see it in your inbox.`,
+        to
       };
     }
-    return result;
+
+    return { error: result.error || 'Failed to send ping' };
   }
 
-  async queryGigabrain(args, username) {
-    const result = await this.apiCall('/api/gigabrain/query', 'POST', {
-      query: args.query,
-      limit: args.limit || 5
+  // 3. DM — Freeform message
+  async handleDM(args, username) {
+    const to = (args.to || '').replace('@', '').toLowerCase();
+    const text = args.text || '';
+
+    if (!to || !text) {
+      return { error: 'Usage: vibe dm @username "your message"' };
+    }
+
+    const result = await this.api('/api/messages', 'POST', {
+      from: username,
+      to: to,
+      text: text
     });
 
-    if (result.success && result.results) {
-      let display = '## Collective Memory: "' + args.query + '"\n\n';
-
-      if (result.results.length === 0) {
-        display += '_No sessions found matching your query._\n';
-        display += '\nTry a different search term.';
-      } else {
-        display += 'Found ' + result.total + ' relevant sessions:\n\n';
-        result.results.forEach((r, i) => {
-          display += (i + 1) + '. **@' + r.user + '** — ' + r.summary + '\n';
-          display += '   _' + r.timeAgo + '_';
-          if (r.tech && r.tech.length > 0) {
-            display += ' · ' + r.tech.slice(0, 2).join(', ');
-          }
-          display += '\n\n';
-        });
-      }
-
+    if (result.success) {
+      this.playSound('sent');
       return {
-        display,
-        query: args.query,
-        results: result.results,
-        total: result.total
+        success: true,
+        display: `## Message Sent!\n\n✉️ Sent to **@${to}**\n\n> ${text.slice(0, 100)}${text.length > 100 ? '...' : ''}\n\nThey'll get a notification.`,
+        to
       };
     }
 
-    return { error: 'Failed to query collective memory' };
+    return { error: result.error || 'Failed to send message' };
   }
 
-  async getDNA(username) {
-    const result = await this.apiCall('/api/dna?username=' + username + '&matches=true');
+  // 4. INBOX — Check messages
+  async handleInbox(args, username) {
+    const markRead = args.markRead !== false;
+    const messages = await this.api(`/api/messages?user=${username}&markRead=${markRead}`);
 
-    if (result.success && result.dna) {
-      let display = '## DNA: @' + username + '\n\n';
+    if (!messages.success) {
+      return { error: 'Failed to fetch inbox' };
+    }
 
-      if (result.dna.strengths && result.dna.strengths.length > 0) {
-        display += '**Strengths:** ' + result.dna.strengths.join(', ') + '\n';
-      }
-      if (result.dna.signatureMoves && result.dna.signatureMoves.length > 0) {
-        display += '**Signature Moves:** ' + result.dna.signatureMoves.join(', ') + '\n';
-      }
-      if (result.dna.cadence) {
-        display += '**Build Cadence:** ' + result.dna.cadence + '\n';
-      }
-      if (result.dna.gaps && result.dna.gaps.length > 0) {
-        display += '**Growth Areas:** ' + result.dna.gaps.join(', ') + '\n';
-      }
+    const inbox = messages.inbox || [];
+    const unread = messages.unread || 0;
 
-      display += '\n_DNA is computed from observed behavior, not self-description._';
+    let display = `## Your Inbox\n\n`;
 
+    if (inbox.length === 0) {
+      display += `_No messages yet._\n\n`;
+      display += `💡 Ping someone to start a conversation: \`vibe ping @username\``;
+      return { display, total: 0, unread: 0 };
+    }
+
+    display += `**${inbox.length} message${inbox.length > 1 ? 's' : ''}** (${unread} unread)\n\n`;
+    display += `---\n\n`;
+
+    inbox.slice(0, 10).forEach((msg, i) => {
+      const unreadMark = msg.read ? '' : '🔵 ';
+      display += `### ${unreadMark}From @${msg.from} — ${msg.timeAgo}\n`;
+      display += `> ${msg.text.slice(0, 200)}${msg.text.length > 200 ? '...' : ''}\n\n`;
+      display += `_Reply: \`vibe reply ${msg.id} "your reply"\`_\n\n`;
+    });
+
+    if (inbox.length > 10) {
+      display += `_...and ${inbox.length - 10} more messages_\n`;
+    }
+
+    return { display, total: inbox.length, unread };
+  }
+
+  // 5. REPLY — Reply to a message
+  async handleReply(args, username) {
+    const { id, text } = args;
+
+    if (!id || !text) {
+      return { error: 'Usage: vibe reply <message-id> "your reply"' };
+    }
+
+    // Get the original message to find who to reply to
+    const messages = await this.api(`/api/messages?user=${username}`);
+    const original = (messages.inbox || []).find(m => m.id === id);
+
+    if (!original) {
+      return { error: `Message ${id} not found in your inbox` };
+    }
+
+    const result = await this.api('/api/messages', 'POST', {
+      from: username,
+      to: original.from,
+      text: text,
+      replyTo: id
+    });
+
+    if (result.success) {
+      this.playSound('sent');
       return {
-        display,
-        username,
-        dna: result.dna
+        success: true,
+        display: `## Reply Sent!\n\n✉️ Replied to **@${original.from}**\n\n> ${text.slice(0, 100)}${text.length > 100 ? '...' : ''}`,
+        to: original.from
       };
     }
 
-    return { error: 'Could not fetch DNA for @' + username };
+    return { error: result.error || 'Failed to send reply' };
   }
 
-  ignoreCurrentContext() {
-    const contextHash = this.hashContext(this.getCurrentContext());
-    this.ignoredContexts.add(contextHash);
-    this.discoveryFired = false;
-    this.saveState(); // Persist immediately
+  // 6. INVITE — Generate invite
+  async handleInvite(username) {
+    // Generate invite code
+    const inviteCode = crypto.randomBytes(4).toString('hex');
+
+    // Register invite on server
+    await this.api('/api/friends', 'POST', {
+      from: username,
+      inviteCode: inviteCode
+    }).catch(() => {});
+
+    const installCommand = `curl -fsSL slashvibe.dev/install.sh | bash`;
+
+    const display = `## Invite a Friend
+
+Share this with someone you want in your network:
+
+\`\`\`
+────────────────────────────────────────
+${installCommand}
+
+After install, ping me:
+vibe ping @${username}
+────────────────────────────────────────
+\`\`\`
+
+When they install, they'll be added to your network.
+
+📋 _Copied to clipboard (if supported)_`;
+
+    // Try to copy to clipboard
+    try {
+      exec(`echo "${installCommand}\n\nAfter install, ping me:\nvibe ping @${username}" | pbcopy`);
+    } catch (e) {}
+
+    return { display, inviteCode };
+  }
+
+  // 7. SET — Update building
+  async handleSet(args) {
+    const building = args.building;
+
+    if (!building) {
+      return { error: 'Usage: vibe set building "what you\'re building"' };
+    }
+
+    // Save to local config
+    const config = this.loadConfig();
+    config.building = building;
+    this.saveConfig(config);
+
+    // Update presence on server
+    const username = this.getUsername();
+    await this.api('/api/presence', 'POST', {
+      username,
+      workingOn: building
+    }).catch(() => {});
+
+    // Update user profile
+    await this.api('/api/users', 'POST', {
+      username,
+      building
+    }).catch(() => {});
 
     return {
       success: true,
-      display: 'Got it — heads down mode. I\'ll pause discoveries for this context.',
-      ignoredHash: contextHash
+      display: `## Updated!\n\n**Building:** ${building}\n\nThis now shows next to your name when friends see you online.`,
+      building
     };
   }
 
+  // 8. NETWORK — Show network and suggestions
+  async handleNetwork(username) {
+    const [presence, friends] = await Promise.all([
+      this.api('/api/presence?user=' + username),
+      this.api('/api/friends?user=' + username).catch(() => ({ friends: [] }))
+    ]);
+
+    const network = friends.friends || [];
+    const online = presence.active || [];
+
+    let display = `## Your Network\n\n`;
+
+    if (network.length === 0) {
+      display += `_No friends in your network yet._\n\n`;
+      display += `### Get Started\n`;
+      display += `1. **Invite friends:** \`vibe invite\` to get an invite link\n`;
+      display += `2. **Ping someone:** When they install, ping them to connect\n`;
+      return { display, networkSize: 0 };
+    }
+
+    display += `**${network.length} friend${network.length > 1 ? 's' : ''}** in your network\n\n`;
+    display += `---\n\n`;
+
+    // Sort: online first, then by last seen
+    const sorted = network.map(f => {
+      const onlineUser = online.find(o => o.username === f.username);
+      return {
+        ...f,
+        online: !!onlineUser,
+        workingOn: onlineUser?.workingOn || f.building || 'something'
+      };
+    }).sort((a, b) => b.online - a.online);
+
+    sorted.forEach(f => {
+      const emoji = f.online ? '🟢' : '⚪';
+      display += `${emoji} **@${f.username}** — ${f.workingOn}\n`;
+    });
+
+    // Suggestions
+    const onlineFriends = sorted.filter(f => f.online);
+    if (onlineFriends.length > 0) {
+      display += `\n---\n\n`;
+      display += `### 💡 Suggestions\n`;
+      onlineFriends.slice(0, 3).forEach(f => {
+        display += `• Ping **@${f.username}** — they're building ${f.workingOn}\n`;
+      });
+    }
+
+    return { display, networkSize: network.length };
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
-  // MCP PROTOCOL HANDLERS
+  // BACKGROUND NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  startNotifications() {
+    const POLL_INTERVAL = 15000; // 15 seconds
+
+    this.notificationInterval = setInterval(async () => {
+      try {
+        const username = this.getUsername();
+        if (username === 'anonymous') return;
+
+        // Check messages
+        const messages = await this.api('/api/messages?user=' + username);
+        if (messages.success) {
+          const newCount = messages.unread || 0;
+          if (newCount > this.lastMessageCount && this.lastMessageCount !== null) {
+            const latest = messages.inbox && messages.inbox[0];
+            if (latest) {
+              this.playSound('message');
+              process.stderr.write(`\n📬 New message from @${latest.from}!\n   "${latest.text.slice(0, 60)}..."\n`);
+              this.notify('@' + latest.from, latest.text.slice(0, 100));
+            }
+          }
+          this.lastMessageCount = newCount;
+        }
+
+        // Update presence heartbeat
+        await this.api('/api/presence', 'POST', {
+          username,
+          workingOn: this.getBuilding()
+        });
+
+        this.saveState();
+      } catch (e) {
+        // Silent fail
+      }
+    }, POLL_INTERVAL);
+
+    // Initial welcome
+    setTimeout(() => this.showWelcome(), 1000);
+  }
+
+  async showWelcome() {
+    const username = this.getUsername();
+    if (username === 'anonymous') {
+      process.stderr.write('\n⚡ /vibe ready! Run the installer to set your username.\n');
+      return;
+    }
+
+    try {
+      const [presence, messages] = await Promise.all([
+        this.api('/api/presence?user=' + username),
+        this.api('/api/messages?user=' + username)
+      ]);
+
+      const online = presence.active || [];
+      const unread = messages.unread || 0;
+      this.lastMessageCount = unread;
+
+      let welcome = `\n⚡ Welcome back, @${username}!\n`;
+
+      if (online.length > 0) {
+        welcome += `\n🟢 ${online.length} builder${online.length > 1 ? 's' : ''} online:\n`;
+        online.slice(0, 3).forEach(u => {
+          welcome += `   • @${u.username} — ${u.workingOn || 'building'}\n`;
+        });
+      }
+
+      if (unread > 0) {
+        welcome += `\n📬 ${unread} unread message${unread > 1 ? 's' : ''}\n`;
+        this.playSound('message');
+      }
+
+      welcome += `\nAsk me "who's online?" or "check my messages" anytime.\n`;
+      process.stderr.write(welcome);
+    } catch (e) {
+      process.stderr.write('\n⚡ /vibe connected.\n');
+    }
+  }
+
+  stopNotifications() {
+    if (this.notificationInterval) {
+      clearInterval(this.notificationInterval);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MCP PROTOCOL
   // ═══════════════════════════════════════════════════════════════════════════
 
   async handleRequest(request) {
@@ -739,8 +759,8 @@ Say "tell me more" or keep building.
             capabilities: { tools: {} },
             serverInfo: {
               name: 'vibe-mcp',
-              version: '4.0.0',
-              description: 'Cognitive layer for Claude Code builders'
+              version: '3.0.0',
+              description: 'The social network for Claude Code'
             }
           }
         };
@@ -760,7 +780,9 @@ Say "tell me more" or keep building.
           result: {
             content: [{
               type: 'text',
-              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+              text: typeof result === 'string' ? result :
+                    result.display ? result.display :
+                    JSON.stringify(result, null, 2)
             }]
           }
         };
@@ -797,7 +819,7 @@ Say "tell me more" or keep building.
       }
     });
 
-    // Handle clean shutdown (save state)
+    // Clean shutdown
     process.on('SIGINT', () => {
       this.saveState();
       this.stopNotifications();
@@ -813,7 +835,7 @@ Say "tell me more" or keep building.
     // Start background notifications
     this.startNotifications();
 
-    process.stderr.write('VIBE MCP Server v4.0 started\n');
+    process.stderr.write('/vibe MCP Server v3.0 started\n');
   }
 }
 
