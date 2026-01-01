@@ -18,8 +18,9 @@
 | Metric | Value |
 |--------|-------|
 | Users | 12 registered |
-| Messages | 47 sent |
+| Messages | 42 sent |
 | Active agents | 2 (@vibe, @solienne) |
+| First external user | @wanderingstan (Stan James) |
 | Invites out | 17 pending |
 
 ### What's Shipped
@@ -197,10 +198,15 @@ you: I'm @davemorin, working on social apps
 **Inference Rules (implemented):**
 | Signal | Mood | Display |
 |--------|------|---------|
-| Error shared | 🐛 | _(error shared)_ |
-| File changed | 🔥 | _(file changed)_ |
-| 3+ file changes in 10m | 🔥 | _(3 files in 10m)_ |
-| Late night (10pm-4am) + active | 🌙 | _(late night session)_ |
+| Error shared via context | 🐛 | _(error shared)_ |
+| File changed since last heartbeat | 🔥 | _(file changed)_ |
+| Late night (10pm-4am) + file shared | 🌙 | _(late night session)_ |
+
+**How it works:**
+1. User shares context: `vibe context --file auth.js --error "TypeError"`
+2. API detects signal → infers mood
+3. Mood shows in `vibe who` with explanation
+4. Explicit mood (via `vibe status`) always wins over inferred
 
 **Constraints (all met):**
 - Explainable in one sentence ✅
@@ -210,8 +216,9 @@ you: I'm @davemorin, working on social apps
 
 **Display:**
 ```
-● @sethgoldstein 🔥 _(file changed)_ — x.com/sethgoldstein
-  auth.js • feature/oauth
+● @sethgoldstein 🐛 _(error shared)_ — x.com/sethgoldstein
+  auth.js
+  ⚠️ "TypeError: Cannot read property..."
 ```
 
 ---
