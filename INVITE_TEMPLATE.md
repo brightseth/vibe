@@ -2,6 +2,8 @@
 
 Personal invite template for closed alpha launch.
 
+**Metric:** Did at least one person DM another person inside Claude Code without being prompted to?
+
 ---
 
 ## Quick Copy Template
@@ -90,6 +92,36 @@ Send to 20 people. Track responses.
 
 ## Success Metric
 
-**Did they DM someone inside Claude Code instead of switching apps?**
+**Did at least one person DM another person inside Claude Code without being prompted to?**
 
-That's the only thing that matters for Phase 1.
+---
+
+## Signal Log (24-72 hours)
+
+### Green (wedge exists)
+- [ ] "I just DM'd you in Claude"
+- [ ] "I forgot to open Discord"
+- [ ] "Who's online?"
+- [ ] Message references what someone is building
+
+### Yellow (friction detected)
+- [ ] Installed but didn't message
+- [ ] Messaged once, then reverted
+- [ ] Confusion about vibe inbox
+
+### Red (hypothesis failed)
+- [ ] "Cool idea" with no usage
+- [ ] Immediate feature requests for intelligence
+- [ ] "I'll just ping you on Discord"
+
+---
+
+## First Unsolicited DM
+
+When it happens, log:
+
+**Who sent it:**
+**To whom:**
+**What triggered it:**
+
+This moment determines everything that comes next.
