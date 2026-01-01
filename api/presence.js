@@ -121,10 +121,25 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // POST - Update presence (heartbeat)
+  // POST - Update presence (heartbeat) or typing indicator
   if (req.method === 'POST') {
     try {
-      const { username, workingOn, project, location } = req.body;
+      const { username, workingOn, project, location, typingTo, context } = req.body;
+
+      // Typing indicator - separate short-lived key
+      if (typingTo) {
+        const user = username.toLowerCase().replace('@', '');
+        const recipient = typingTo.toLowerCase().replace('@', '');
+        const kv = await getKV();
+        if (kv) {
+          await kv.set(`typing:${user}:${recipient}`, Date.now(), { ex: 5 }); // 5 second TTL
+        }
+        return res.status(200).json({
+          success: true,
+          message: `Typing indicator set for @${user} → @${recipient}`,
+          expiresIn: '5s'
+        });
+      }
 
       if (!username) {
         return res.status(400).json({
@@ -139,12 +154,22 @@ export default async function handler(req, res) {
       const existing = await getPresence(user) || {};
 
       const now = new Date().toISOString();
+
+      // Context object for richer session sharing
+      // Can include: file, branch, recentFiles, tools, mood, etc.
+      const sessionContext = context ? {
+        ...existing.context,
+        ...context,
+        updatedAt: now
+      } : existing.context || null;
+
       const presenceData = {
         username: user,
         x: existing.x || user,
         workingOn: workingOn || existing.workingOn || 'Building something',
         project: project || existing.project || null,
         location: location || existing.location || null,
+        context: sessionContext,
         firstSeen: existing.firstSeen || now,  // Track session start
         lastSeen: now,
         dna: existing.dna || { top: 'platform' }
@@ -171,10 +196,31 @@ export default async function handler(req, res) {
     }
   }
 
-  // GET - Who's online
+  // GET - Who's online (or check typing status)
   if (req.method === 'GET') {
-    const { user } = req.query;
+    const { user, typing } = req.query;
     const forUser = user?.toLowerCase().replace('@', '');
+
+    // Check who's typing to this user
+    if (typing === 'true' && forUser) {
+      const kv = await getKV();
+      if (kv) {
+        const keys = await kv.keys(`typing:*:${forUser}`);
+        const typingUsers = keys.map(k => k.split(':')[1]);
+        return res.status(200).json({
+          success: true,
+          typingTo: forUser,
+          typingUsers,
+          count: typingUsers.length
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        typingTo: forUser,
+        typingUsers: [],
+        count: 0
+      });
+    }
 
     const allPresence = await getAllPresence();
 

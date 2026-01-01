@@ -128,6 +128,21 @@ export default async function handler(req, res) {
     // Get thread with specific user
     if (withUser) {
       const otherUser = withUser.toLowerCase().replace('@', '');
+
+      // Auto-mark received messages as read when viewing thread
+      let updated = false;
+      const now = new Date().toISOString();
+      messages = messages.map(m => {
+        if (m.from === otherUser && m.to === username && !m.read) {
+          updated = true;
+          return { ...m, read: true, readAt: now };
+        }
+        return m;
+      });
+      if (updated) {
+        await saveMessages(messages);
+      }
+
       const thread = messages
         .filter(m =>
           (m.from === username && m.to === otherUser) ||
@@ -145,6 +160,26 @@ export default async function handler(req, res) {
         thread,
         with: otherUser,
         count: thread.length,
+        storage: KV_CONFIGURED ? 'kv' : 'memory'
+      });
+    }
+
+    // Get sent messages (outbox with read receipts)
+    const { sent } = req.query;
+    if (sent === 'true') {
+      const outbox = messages
+        .filter(m => m.from === username)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(m => ({
+          ...m,
+          timeAgo: timeAgo(m.createdAt),
+          readStatus: m.read ? `Read ${timeAgo(m.readAt)}` : 'Delivered'
+        }));
+
+      return res.status(200).json({
+        success: true,
+        sent: outbox,
+        total: outbox.length,
         storage: KV_CONFIGURED ? 'kv' : 'memory'
       });
     }
