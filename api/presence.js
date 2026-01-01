@@ -271,6 +271,7 @@ export default async function handler(req, res) {
 
       // Infer mood from context if not explicitly set
       const inferred = inferMood(sessionContext, existing);
+      console.log('Inference:', { sessionContext, inferred, hasError: !!sessionContext?.error });
 
       const presenceData = {
         username: user,
