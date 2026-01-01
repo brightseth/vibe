@@ -5,6 +5,8 @@ Vibe adds a communication layer inside Claude Code.
 **This alpha is testing ONE thing:**
 > Do you DM people inside Claude Code instead of switching to Discord?
 
+**Alpha note:** Messages are not end-to-end encrypted. Don't send secrets.
+
 ---
 
 ## Install (2 minutes)

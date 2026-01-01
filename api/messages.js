@@ -103,29 +103,11 @@ export default async function handler(req, res) {
     });
   }
 
-  // DELETE - Remove messages (admin/cleanup)
+  // DELETE - Disabled for Phase 1 alpha (security)
   if (req.method === 'DELETE') {
-    const { user, messageId, clearAll } = req.body || req.query;
-
-    let messages = await getMessages();
-    const before = messages.length;
-
-    if (clearAll === 'true' && user) {
-      // Clear all messages for a user
-      const username = user.toLowerCase().replace('@', '');
-      messages = messages.filter(m => m.to !== username);
-    } else if (messageId) {
-      // Delete specific message
-      messages = messages.filter(m => m.id !== messageId);
-    }
-
-    await saveMessages(messages);
-
-    return res.status(200).json({
-      success: true,
-      deleted: before - messages.length,
-      remaining: messages.length,
-      storage: KV_CONFIGURED ? 'kv' : 'memory'
+    return res.status(403).json({
+      success: false,
+      error: 'DELETE disabled for alpha'
     });
   }
 

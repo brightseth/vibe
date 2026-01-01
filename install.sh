@@ -13,6 +13,23 @@ echo "/vibe installer"
 echo "==============="
 echo ""
 
+# Check Node version (need 18+ for native fetch)
+if ! command -v node &> /dev/null; then
+  echo "Error: Node.js is required but not installed."
+  echo "Install Node 18+ from https://nodejs.org"
+  exit 1
+fi
+
+NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 18 ]; then
+  echo "Error: Node 18+ required (you have $(node -v))"
+  echo "Update from https://nodejs.org"
+  exit 1
+fi
+
+echo "Node $(node -v) ✓"
+echo ""
+
 # Create directories
 mkdir -p "$MCP_DIR/tools" "$MCP_DIR/store"
 
@@ -58,31 +75,19 @@ if [ ! -f "$CLAUDE_CONFIG" ]; then
 EOF
   echo "Created $CLAUDE_CONFIG"
 else
-  # Check if jq is available
-  if command -v jq &> /dev/null; then
-    TEMP_FILE=$(mktemp)
-    jq --arg dir "$MCP_DIR" '.mcpServers.vibe = {
-      "command": "node",
-      "args": [$dir + "/index.js"],
-      "env": {
-        "VIBE_API_URL": "https://vibe-public-topaz.vercel.app"
-      }
-    }' "$CLAUDE_CONFIG" > "$TEMP_FILE"
-    mv "$TEMP_FILE" "$CLAUDE_CONFIG"
-    echo "Updated $CLAUDE_CONFIG"
-  else
-    echo ""
-    echo "Add this to your ~/.claude.json mcpServers:"
-    echo ""
-    echo '  "vibe": {'
-    echo '    "command": "node",'
-    echo "    \"args\": [\"$MCP_DIR/index.js\"],"
-    echo '    "env": {'
-    echo '      "VIBE_API_URL": "https://vibe-public-topaz.vercel.app"'
-    echo '    }'
-    echo '  }'
-    echo ""
-  fi
+  # Use Node to update config (no jq dependency)
+  node -e "
+    const fs = require('fs');
+    const config = JSON.parse(fs.readFileSync('$CLAUDE_CONFIG', 'utf8'));
+    if (!config.mcpServers) config.mcpServers = {};
+    config.mcpServers.vibe = {
+      command: 'node',
+      args: ['$MCP_DIR/index.js'],
+      env: { VIBE_API_URL: 'https://vibe-public-topaz.vercel.app' }
+    };
+    fs.writeFileSync('$CLAUDE_CONFIG', JSON.stringify(config, null, 2));
+  "
+  echo "Updated $CLAUDE_CONFIG"
 fi
 
 # Done
