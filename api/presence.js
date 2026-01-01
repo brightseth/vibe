@@ -151,6 +151,34 @@ function getBuilderMode(presence) {
   return 'exploring';
 }
 
+/**
+ * Infer mood from context
+ * @param {object} context - Session context (file, error, etc.)
+ * @param {object} existing - Previous presence data
+ * @returns {{ mood: string, reason: string } | null}
+ */
+function inferMood(context, existing) {
+  if (!context) return null;
+
+  // Rule 1: Error shared → debugging
+  if (context.error) {
+    return { mood: '🐛', reason: 'error shared' };
+  }
+
+  // Rule 2: File changed since last context → shipping
+  if (context.file && existing?.context?.file && context.file !== existing.context.file) {
+    return { mood: '🔥', reason: 'file changed' };
+  }
+
+  // Rule 3: Late night (10pm-4am) + active → deep work
+  const hour = new Date().getHours();
+  if ((hour >= 22 || hour < 4) && context.file) {
+    return { mood: '🌙', reason: 'late night session' };
+  }
+
+  return null;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -241,6 +269,9 @@ export default async function handler(req, res) {
         updatedAt: now
       } : existing.context || null;
 
+      // Infer mood from context if not explicitly set
+      const inferred = inferMood(sessionContext, existing);
+
       const presenceData = {
         username: user,
         x: existing.x || user,
@@ -248,6 +279,10 @@ export default async function handler(req, res) {
         project: project || existing.project || null,
         location: location || existing.location || null,
         context: sessionContext,
+        // Mood: explicit wins, then inferred, then existing
+        mood: sessionContext?.mood || inferred?.mood || existing.mood || null,
+        mood_inferred: !sessionContext?.mood && !!inferred,
+        mood_reason: inferred?.reason || null,
         firstSeen: existing.firstSeen || now,  // Track session start
         lastSeen: now,
         dna: existing.dna || { top: 'platform' }

@@ -33,26 +33,30 @@ module.exports = async function handler(req, res) {
     }
 
     // Get presence data for each handle
+    // Note: Main API uses kv.set (JSON), not hset (hash)
     const users = await Promise.all(
       handles.map(async (handle) => {
-        const data = await kv.hgetall(`presence:${handle}`);
-        if (!data || !data.visible) return null;
+        const data = await kv.get(`presence:${handle}`);
+        if (!data) return null;
 
-        const age = now - (data.last_heartbeat || 0);
+        // Data is stored as JSON object by /api/presence.js
+        const lastSeen = data.lastSeen ? new Date(data.lastSeen).getTime() : 0;
+        const age = now - lastSeen;
+
         return {
-          handle: data.handle,
-          one_liner: data.one_liner || '',
+          handle: data.username || handle,
+          one_liner: data.workingOn || '',
           status: age < IDLE_THRESHOLD ? 'active' : 'idle',
-          lastSeen: data.last_heartbeat,
-          last_seen: formatTimeAgo(data.last_heartbeat),
-          // Context
-          file: data.file || null,
-          branch: data.branch || null,
-          error: data.error || null,
-          note: data.note || null,
+          lastSeen: lastSeen,
+          last_seen: formatTimeAgo(lastSeen),
+          // Context (from context object)
+          file: data.context?.file || null,
+          branch: data.context?.branch || null,
+          error: data.context?.error || null,
+          note: data.context?.note || null,
           // Mood (explicit or inferred)
           mood: data.mood || null,
-          mood_inferred: data.mood_inferred === 'true' || data.mood_inferred === true,
+          mood_inferred: data.mood_inferred === true,
           mood_reason: data.mood_reason || null
         };
       })
