@@ -38,9 +38,15 @@ async function handler(args) {
     return {
       display: `## Who's Around
 
-_No one else is here yet._
+_The room is quiet..._
 
-Invite someone to install /vibe.`
+You're one of the first here! A few things to try:
+
+1. **Share what you're building**: "I'm working on auth"
+2. **Message someone**: "dm @sethgoldstein hey, just joined!"
+3. **Invite a friend**: Send them slashvibe.dev
+
+_More people are joining soon._`
     };
   }
 

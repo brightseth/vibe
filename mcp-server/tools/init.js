@@ -57,7 +57,8 @@ async function handler(args) {
   const sessionId = config.getSessionId();
 
   // Register session with API (maps sessionId → handle)
-  const registration = await store.registerSession(sessionId, h);
+  // Also registers user in users DB for @vibe welcome tracking
+  const registration = await store.registerSession(sessionId, h, one_liner);
   if (!registration.success) {
     return {
       display: `## Identity Set (Local Only)
@@ -83,17 +84,17 @@ Local config saved. Heartbeats will use username fallback.`
   } catch (e) {}
 
   return {
-    display: `## Identity Set
+    display: `## Welcome to /vibe!
 
 **@${h}** — [x.com/${h}](https://x.com/${h})
-_${one_liner}_
+_${one_liner}_${unreadNotice}${xHandleHint}
 
-Session: ${sessionId.substring(0, 12)}...
-Expires: 1 hour (auto-refreshes)${unreadNotice}${xHandleHint}
+**What to do now:**
+1. Say "who's around?" to see active builders
+2. Say "message @sethgoldstein hello!" to connect
+3. Say "I'm shipping" to set your status
 
-You're now visible to others. Try:
-- \`vibe who\` — see who's around
-- \`vibe dm @someone "hello"\` — send a message`
+_@vibe will DM you shortly with tips._`
   };
 }
 

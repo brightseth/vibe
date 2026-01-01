@@ -60,8 +60,9 @@ function getSessionId() {
   return currentSessionId;
 }
 
-async function registerSession(sessionId, handle) {
+async function registerSession(sessionId, handle, building = null) {
   try {
+    // Register session for presence
     const result = await request('POST', '/api/presence', {
       action: 'register',
       sessionId,
@@ -70,6 +71,17 @@ async function registerSession(sessionId, handle) {
     if (result.success) {
       currentSessionId = sessionId;
     }
+
+    // Also register user in users DB (for @vibe welcome tracking)
+    try {
+      await request('POST', '/api/users', {
+        username: handle,
+        building: building || 'something cool'
+      });
+    } catch (e) {
+      // Non-fatal if user registration fails
+    }
+
     return result;
   } catch (e) {
     console.error('Session registration failed:', e.message);
