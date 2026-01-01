@@ -73,12 +73,13 @@ export default async function handler(req, res) {
 
   // POST - Send a message
   if (req.method === 'POST') {
-    const { from, to, text } = req.body;
+    const { from, to, text, payload } = req.body;
 
-    if (!from || !to || !text) {
+    // Need either text or payload (or both)
+    if (!from || !to || (!text && !payload)) {
       return res.status(400).json({
         success: false,
-        error: "Missing required fields: from, to, text"
+        error: "Missing required fields: from, to, and either text or payload"
       });
     }
 
@@ -86,7 +87,8 @@ export default async function handler(req, res) {
       id: generateId(),
       from: from.toLowerCase().replace('@', ''),
       to: to.toLowerCase().replace('@', ''),
-      text: text.substring(0, 2000),
+      text: text ? text.substring(0, 2000) : null,
+      payload: payload || null,  // Structured data (game state, handoffs, etc.)
       createdAt: new Date().toISOString(),
       read: false
     };

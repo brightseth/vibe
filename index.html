@@ -1,12 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+<!--
+/vibe — Social layer for Claude Code
+
+WHAT IT IS:
+  An MCP server that connects Claude Code users in a shared space.
+  Local-first. Open source. Inspectable.
+
+  MCP (Model Context Protocol) lets Claude Code use external tools.
+  /vibe adds presence, messaging, and memory to your Claude session.
+
+INSTALL:
+  Tell Claude Code: "go to slashvibe.dev and install /vibe"
+
+  Or run directly:
+  curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+
+  Then restart Claude Code.
+
+USAGE (conversational — just talk):
+  "I'm seth, working on auth"
+  "who's around?"
+  "message stan about the OAuth bug"
+  "what did gene say earlier?"
+  "remember that stan prefers async"
+  "I'm done for the night"
+
+Claude interprets naturally and calls the right tools.
+
+PRIMITIVES (for reference):
+  vibe init @handle "what you're building"
+  vibe who / vibe inbox / vibe dm / vibe open
+  vibe status / vibe context / vibe remember / vibe recall
+  vibe summarize / vibe bye
+
+WHAT GETS INSTALLED:
+  ~/.vibe/mcp-server/     — The MCP server (Node.js, ~15 files)
+  ~/.vibe/memory/         — Your local thread memories (JSONL, inspectable)
+  ~/.claude.json updated  — Registers the MCP server with Claude Code
+
+SOURCE: https://github.com/brightseth/vibe
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>/vibe — Communication layer for Claude Code</title>
-    <meta name="description" content="DM people without leaving your terminal. See who's building. Stay in flow.">
-    <meta property="og:title" content="/vibe — Communication layer for Claude Code">
-    <meta property="og:description" content="DM people without leaving your terminal. See who's building. Stay in flow.">
+    <title>/vibe — Social layer for Claude Code</title>
+    <meta name="description" content="Talk to other Claude Code users without leaving your session. Just say who's around or message someone.">
+    <meta property="og:title" content="/vibe — Social layer for Claude Code">
+    <meta property="og:description" content="Talk to other Claude Code users without leaving your session. Just say who's around or message someone.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -133,45 +174,45 @@
 <body>
     <div class="container">
         <h1>/vibe</h1>
-        <p class="tagline">Communication layer for Claude Code.</p>
-        <p class="sub">DM people without leaving your terminal. See who's building. Stay in flow.</p>
+        <p class="tagline">Social layer for Claude Code.</p>
+        <p class="sub">Talk to other Claude Code users without leaving your session. Not commands — conversation.</p>
 
         <div class="install">
             <code>curl -fsSL raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash</code>
             <button class="copy" onclick="copy()">Copy</button>
         </div>
-        <p class="note">Then restart Claude Code.</p>
+        <p class="note">Then restart Claude Code. Or just tell Claude: "go to slashvibe.dev and install /vibe"</p>
 
         <div class="terminal">
-            <div><span class="prompt">></span> vibe init</div>
-            <div class="dim" style="margin-bottom: 12px;">✓ You're now @seth — "building /vibe"</div>
-            <div><span class="prompt">></span> vibe who</div>
-            <div class="dim">  🟢 @stan — building file watcher (2m ago)</div>
-            <div class="dim" style="margin-bottom: 12px;">  🟢 @gene — eden-api refactor (just now)</div>
-            <div><span class="prompt">></span> vibe dm @stan hey, want to sync on that file watcher?</div>
-            <div class="dim" style="margin-bottom: 12px;">✓ Sent to @stan</div>
-            <div><span class="prompt">></span> vibe inbox</div>
-            <div class="dim">📬 @gene (2 unread) · @stan (1 unread)</div>
+            <div><span class="prompt">you:</span> I'm seth, working on auth</div>
+            <div class="dim" style="margin-bottom: 12px;">✓ You're @seth — "working on auth"</div>
+            <div><span class="prompt">you:</span> who's around?</div>
+            <div class="dim">● @stan 🔥 — auth.js • feature/oauth</div>
+            <div class="dim" style="margin-bottom: 12px;">● @gene 🧠 — eden refactor (2m ago)</div>
+            <div><span class="prompt">you:</span> tell stan I want to pair on OAuth</div>
+            <div class="dim">✓ Sent to @stan</div>
         </div>
 
         <div class="features">
             <div class="feature">
-                <div class="feature-title">vibe who</div>
-                <div class="feature-desc">See who's building right now. Their handle + what they're working on.</div>
+                <div class="feature-title">"who's around?"</div>
+                <div class="feature-desc">See who's building. What file they're in. What branch they're on.</div>
             </div>
             <div class="feature">
-                <div class="feature-title">vibe dm</div>
-                <div class="feature-desc">Message anyone without leaving Claude Code. No context switch. No Discord tab.</div>
+                <div class="feature-title">"message stan about the bug"</div>
+                <div class="feature-desc">DM without context-switching. Claude sends it.</div>
             </div>
             <div class="feature">
-                <div class="feature-title">vibe inbox</div>
-                <div class="feature-desc">Check your messages. Reply inline. Stay in the terminal where you work.</div>
+                <div class="feature-title">"remember that gene prefers async"</div>
+                <div class="feature-desc">Build memory about collaborators. Persists across sessions.</div>
             </div>
         </div>
 
         <div class="beta">
-            <strong>Phase 1 Alpha.</strong> Testing one thing: do you DM people inside Claude Code instead of switching to Discord?
-            Install, message a friend, tell us what works.
+            <strong>What you're installing:</strong> An MCP server (~15 files) that adds presence, messaging, and memory to Claude Code.
+            Local-first. Open source. Your memories stay in ~/.vibe/memory/ as inspectable JSONL files.
+            <br><br>
+            <a href="https://github.com/brightseth/vibe" style="color: #00ff00;">View source on GitHub →</a>
         </div>
 
         <div class="stats">
@@ -186,9 +227,7 @@
         </div>
 
         <div class="footer">
-            <a href="https://github.com/brightseth/vibe-public">GitHub</a> ·
-            <a href="/spec">Spec</a> ·
-            <a href="/vision">Vision</a>
+            <a href="https://github.com/brightseth/vibe-public">GitHub</a>
         </div>
     </div>
 

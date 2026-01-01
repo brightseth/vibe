@@ -12,9 +12,9 @@ Based on NYE 2025 session + advisor feedback.
 
 ---
 
-## Tier 1: The Moat (Do These)
+## Tier 1: The Moat — COMPLETE ✅
 
-### 1. Smart Summary — FIRST PRIORITY (The Keystone)
+### 1. Smart Summary — SHIPPED Jan 1, 2026 ✅
 
 **Why first:** Proves the AI-native dividend immediately. Trains a new reflex: "close session → receive meaning." Doesn't require new social coordination or trust.
 
@@ -56,33 +56,37 @@ Session Summary — 23:41–00:12
 
 Forced broadcast will make people self-censor.
 
-**After Smart Summary ships, THEN:**
+**Smart Summary shipped. NEXT:**
 1. Context Sharing becomes a payload summaries can reference
 2. Collaborative Memory becomes an explicit "Save this summary" action
 
 That ordering keeps power with the human.
 
+**Implementation:** `~/.vibe/mcp-server/tools/summarize.js` + `bye.js`
+**Test:** `vibe summarize` or `vibe bye`
+
 ---
 
-### 2. Context Sharing — READ-ONLY, EPHEMERAL, EXPLICIT
+### 2. Context Sharing — SHIPPED Jan 1, 2026 ✅
 
 **One command:**
 ```
-/vibe context
+vibe context --file "auth.js" --note "debugging OAuth"
 ```
 
 **Shares:**
-- Current file
-- Git branch
-- Last error (if any)
-- Toolchain
+- Current file (explicit)
+- Git branch (auto-detected)
+- Error (optional)
+- Note (optional)
 
-**Rules:**
-- No auto-sharing
-- No ambient surveillance
-- Explicit opt-in every time
+**Shipped features:**
+- `tools/context.js` — Share/clear context
+- `who` output shows `file • branch` + note
+- Ephemeral — gone when you go offline
+- No auto-sharing, explicit opt-in only
 
-**Why it matters:** Anything implicit here will spook people. This is the "killer wedge" but only if it feels safe.
+**Why it shipped:** "Killer wedge" that feels safe. READ-ONLY, EPHEMERAL, EXPLICIT.
 
 ---
 
@@ -117,20 +121,32 @@ That ordering keeps power with the human.
 
 ---
 
-### 4. Collaborative Memory — OPT-IN, PER-THREAD, APPEND-ONLY
+### 4. Collaborative Memory — SHIPPED Jan 1, 2026 ✅
 
-**No global brain.** Start with:
+**No global brain.** Explicit, local, inspectable:
 
 ```
-/vibe remember "Solienne prefers center opening"
+vibe remember @handle "observation"  — save to thread memory
+vibe recall @handle                  — query thread memories
+vibe recall                          — list all threads
+vibe recall @handle --search "term"  — filter memories
+vibe forget @handle                  — delete thread
+vibe forget --all                    — delete all (requires --confirm)
 ```
 
-**Rules:**
+**Rules (all implemented):**
 - Opt-in (explicit command)
 - Per-thread (scoped to conversation pair)
-- Append-only (no edits, no deletes)
+- Append-only (JSONL format, new entries appended)
+- Local storage (`~/.vibe/memory/thread_HANDLE.jsonl`)
+- Inspectable (plain JSON, no encryption)
 
-**Why it matters:** Earn trust before building the global brain.
+**Storage format:**
+```json
+{"id":"abc123","timestamp":"2026-01-01T...","observation":"...","from":"seth","about":"solienne"}
+```
+
+**Why it matters:** Earned trust through restraint. Memory is a promotion, not a capture.
 
 ---
 
