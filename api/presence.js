@@ -14,45 +14,8 @@ const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_
 // Presence TTL in seconds (5 minutes - auto-expires inactive users)
 const PRESENCE_TTL = 300;
 
-// In-memory fallback with seed data
-let memoryPresence = {
-  sethgoldstein: {
-    username: "sethgoldstein",
-    x: "sethgoldstein",
-    workingOn: "Terminal-native messaging for Claude Code",
-    project: "vibecodings",
-    location: "SF",
-    lastSeen: new Date().toISOString(),
-    dna: { top: "platform" }
-  },
-  wanderingstan: {
-    username: "wanderingstan",
-    x: "wanderingstan",
-    workingOn: "Vibe Check analytics",
-    project: "vibe-check",
-    location: null,
-    lastSeen: new Date(Date.now() - 24 * 3600000).toISOString(),
-    dna: { top: "tools" }
-  },
-  genekogan: {
-    username: "genekogan",
-    x: "genekogan",
-    workingOn: "Abraham autonomous artist",
-    project: "abraham",
-    location: null,
-    lastSeen: new Date(Date.now() - 24 * 3600000).toISOString(),
-    dna: { top: "agents" }
-  },
-  xsteenbrugge: {
-    username: "xsteenbrugge",
-    x: "xsteenbrugge",
-    workingOn: "Spirit Protocol",
-    project: "spirit",
-    location: null,
-    lastSeen: new Date(Date.now() - 24 * 3600000).toISOString(),
-    dna: { top: "infrastructure" }
-  }
-};
+// In-memory fallback (no seed data - real users only)
+let memoryPresence = {};
 
 // KV wrapper functions with fallback
 async function getKV() {
@@ -90,6 +53,14 @@ async function getAllPresence() {
     return data.filter(p => p !== null);
   }
   return Object.values(memoryPresence);
+}
+
+async function deletePresence(username) {
+  const kv = await getKV();
+  if (kv) {
+    await kv.del(`presence:${username}`);
+  }
+  delete memoryPresence[username];
 }
 
 function timeAgo(dateStr) {
@@ -143,7 +114,7 @@ function getBuilderMode(presence) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -152,44 +123,52 @@ export default async function handler(req, res) {
 
   // POST - Update presence (heartbeat)
   if (req.method === 'POST') {
-    const { username, workingOn, project, location } = req.body;
+    try {
+      const { username, workingOn, project, location } = req.body;
 
-    if (!username) {
-      return res.status(400).json({
+      if (!username) {
+        return res.status(400).json({
+          success: false,
+          error: "Missing required field: username"
+        });
+      }
+
+      const user = username.toLowerCase().replace('@', '');
+
+      // Get existing data to preserve fields
+      const existing = await getPresence(user) || {};
+
+      const now = new Date().toISOString();
+      const presenceData = {
+        username: user,
+        x: existing.x || user,
+        workingOn: workingOn || existing.workingOn || 'Building something',
+        project: project || existing.project || null,
+        location: location || existing.location || null,
+        firstSeen: existing.firstSeen || now,  // Track session start
+        lastSeen: now,
+        dna: existing.dna || { top: 'platform' }
+      };
+
+      // Compute builderMode from session signals
+      presenceData.builderMode = getBuilderMode(presenceData);
+
+      // Set with TTL for KV, or just update memory
+      await setPresence(user, presenceData, { ex: PRESENCE_TTL });
+
+      return res.status(200).json({
+        success: true,
+        presence: presenceData,
+        message: "Presence updated",
+        storage: KV_CONFIGURED ? 'kv' : 'memory'
+      });
+    } catch (error) {
+      return res.status(500).json({
         success: false,
-        error: "Missing required field: username"
+        error: error.message,
+        stack: error.stack
       });
     }
-
-    const user = username.toLowerCase().replace('@', '');
-
-    // Get existing data to preserve fields
-    const existing = await getPresence(user) || {};
-
-    const now = new Date().toISOString();
-    const presenceData = {
-      username: user,
-      x: existing.x || user,
-      workingOn: workingOn || existing.workingOn || 'Building something',
-      project: project || existing.project || null,
-      location: location || existing.location || null,
-      firstSeen: existing.firstSeen || now,  // Track session start
-      lastSeen: now,
-      dna: existing.dna || { top: 'platform' }
-    };
-
-    // Compute builderMode from session signals
-    presenceData.builderMode = getBuilderMode(presenceData);
-
-    // Set with TTL for KV, or just update memory
-    await setPresence(user, presenceData, { ex: PRESENCE_TTL });
-
-    return res.status(200).json({
-      success: true,
-      presence: presenceData,
-      message: "Presence updated",
-      storage: KV_CONFIGURED ? 'kv' : 'memory'
-    });
   }
 
   // GET - Who's online
@@ -226,6 +205,27 @@ export default async function handler(req, res) {
         away: away.length,
         total: list.length
       },
+      storage: KV_CONFIGURED ? 'kv' : 'memory'
+    });
+  }
+
+  // DELETE - Remove presence (cleanup test accounts)
+  if (req.method === 'DELETE') {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required query param: username"
+      });
+    }
+
+    const user = username.toLowerCase().replace('@', '');
+    await deletePresence(user);
+
+    return res.status(200).json({
+      success: true,
+      message: `Removed presence for @${user}`,
       storage: KV_CONFIGURED ? 'kv' : 'memory'
     });
   }
