@@ -14,8 +14,12 @@ const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_
 // Presence TTL in seconds (5 minutes - auto-expires inactive users)
 const PRESENCE_TTL = 300;
 
+// Session TTL in seconds (1 hour - sessions are more persistent than presence)
+const SESSION_TTL = 3600;
+
 // In-memory fallback (no seed data - real users only)
 let memoryPresence = {};
+let memorySessions = {};  // sessionId → handle mapping
 
 // KV wrapper functions with fallback
 async function getKV() {
@@ -61,6 +65,41 @@ async function deletePresence(username) {
     await kv.del(`presence:${username}`);
   }
   delete memoryPresence[username];
+}
+
+// Session management - maps sessionId to handle for per-session identity
+async function registerSession(sessionId, handle) {
+  const kv = await getKV();
+  const data = { handle, registeredAt: new Date().toISOString() };
+  if (kv) {
+    await kv.set(`session:${sessionId}`, data, { ex: SESSION_TTL });
+  }
+  memorySessions[sessionId] = data;
+  return data;
+}
+
+async function getSession(sessionId) {
+  const kv = await getKV();
+  if (kv) {
+    return await kv.get(`session:${sessionId}`);
+  }
+  return memorySessions[sessionId] || null;
+}
+
+async function refreshSession(sessionId) {
+  const kv = await getKV();
+  if (kv) {
+    const session = await kv.get(`session:${sessionId}`);
+    if (session) {
+      await kv.set(`session:${sessionId}`, session, { ex: SESSION_TTL });
+    }
+    return session;
+  }
+  return memorySessions[sessionId] || null;
+}
+
+function generateSessionId() {
+  return 'sess_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
 }
 
 function timeAgo(dateStr) {
@@ -121,14 +160,52 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // POST - Update presence (heartbeat) or typing indicator
+  // POST - Update presence (heartbeat), typing indicator, or session registration
   if (req.method === 'POST') {
     try {
-      const { username, workingOn, project, location, typingTo, context } = req.body;
+      const { username, workingOn, project, location, typingTo, context, sessionId, action } = req.body;
+
+      // Session registration - register a sessionId → handle mapping
+      if (action === 'register') {
+        if (!sessionId || !username) {
+          return res.status(400).json({
+            success: false,
+            error: "Session registration requires sessionId and username (handle)"
+          });
+        }
+        const handle = username.toLowerCase().replace('@', '');
+        const session = await registerSession(sessionId, handle);
+        return res.status(200).json({
+          success: true,
+          action: 'register',
+          sessionId,
+          handle,
+          expiresIn: `${SESSION_TTL}s`,
+          message: `Session registered: ${sessionId} → @${handle}`
+        });
+      }
+
+      // Session lookup - resolve sessionId to handle
+      if (sessionId && !username) {
+        const session = await getSession(sessionId);
+        if (!session) {
+          return res.status(400).json({
+            success: false,
+            error: "Session not found. Run /vibe init to register.",
+            sessionId
+          });
+        }
+        // Use the handle from the session
+        req.body.username = session.handle;
+        // Refresh session TTL
+        await refreshSession(sessionId);
+      }
+
+      const { username: resolvedUsername } = req.body;
 
       // Typing indicator - separate short-lived key
       if (typingTo) {
-        const user = username.toLowerCase().replace('@', '');
+        const user = (resolvedUsername || username).toLowerCase().replace('@', '');
         const recipient = typingTo.toLowerCase().replace('@', '');
         const kv = await getKV();
         if (kv) {
@@ -141,14 +218,15 @@ export default async function handler(req, res) {
         });
       }
 
-      if (!username) {
+      const finalUsername = resolvedUsername || username;
+      if (!finalUsername) {
         return res.status(400).json({
           success: false,
-          error: "Missing required field: username"
+          error: "Missing required field: username (or valid sessionId)"
         });
       }
 
-      const user = username.toLowerCase().replace('@', '');
+      const user = finalUsername.toLowerCase().replace('@', '');
 
       // Get existing data to preserve fields
       const existing = await getPresence(user) || {};
