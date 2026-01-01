@@ -86,7 +86,7 @@ export default async function handler(req, res) {
       id: generateId(),
       from: from.toLowerCase().replace('@', ''),
       to: to.toLowerCase().replace('@', ''),
-      text: text.substring(0, 500),
+      text: text.substring(0, 2000),
       createdAt: new Date().toISOString(),
       read: false
     };
