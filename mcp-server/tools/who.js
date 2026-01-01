@@ -54,9 +54,10 @@ Invite someone to install /vibe.`
     const isMe = u.handle === myHandle;
     const tag = isMe ? ' (you)' : '';
     const mood = u.mood ? ` ${u.mood}` : '';
+    const moodReason = u.mood_inferred && u.mood_reason ? ` _(${u.mood_reason})_` : '';
     const xLink = `[x.com/${u.handle}](https://x.com/${u.handle})`;
 
-    display += `● **@${u.handle}**${tag}${mood} — ${xLink}\n`;
+    display += `● **@${u.handle}**${tag}${mood}${moodReason} — ${xLink}\n`;
 
     // Show context if shared (file, branch, note)
     const hasContext = u.file || u.branch || u.note || u.error;

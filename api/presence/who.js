@@ -43,7 +43,17 @@ module.exports = async function handler(req, res) {
           handle: data.handle,
           one_liner: data.one_liner || '',
           status: age < IDLE_THRESHOLD ? 'active' : 'idle',
-          last_seen: formatTimeAgo(data.last_heartbeat)
+          lastSeen: data.last_heartbeat,
+          last_seen: formatTimeAgo(data.last_heartbeat),
+          // Context
+          file: data.file || null,
+          branch: data.branch || null,
+          error: data.error || null,
+          note: data.note || null,
+          // Mood (explicit or inferred)
+          mood: data.mood || null,
+          mood_inferred: data.mood_inferred === 'true' || data.mood_inferred === true,
+          mood_reason: data.mood_reason || null
         };
       })
     );
