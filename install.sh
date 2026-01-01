@@ -33,37 +33,34 @@ echo ""
 # Create directories
 mkdir -p "$MCP_DIR/tools" "$MCP_DIR/store" "$VIBE_DIR/memory"
 
-# Download MCP server files
+# Download MCP server files (parallel for speed)
 echo "Downloading MCP server..."
 
-# Core files
-curl -fsSL "$REPO_URL/mcp-server/index.js" -o "$MCP_DIR/index.js"
-curl -fsSL "$REPO_URL/mcp-server/config.js" -o "$MCP_DIR/config.js"
-curl -fsSL "$REPO_URL/mcp-server/presence.js" -o "$MCP_DIR/presence.js"
-curl -fsSL "$REPO_URL/mcp-server/memory.js" -o "$MCP_DIR/memory.js"
+# All downloads in parallel
+curl -fsSL "$REPO_URL/mcp-server/index.js" -o "$MCP_DIR/index.js" &
+curl -fsSL "$REPO_URL/mcp-server/config.js" -o "$MCP_DIR/config.js" &
+curl -fsSL "$REPO_URL/mcp-server/presence.js" -o "$MCP_DIR/presence.js" &
+curl -fsSL "$REPO_URL/mcp-server/memory.js" -o "$MCP_DIR/memory.js" &
+curl -fsSL "$REPO_URL/mcp-server/store/index.js" -o "$MCP_DIR/store/index.js" &
+curl -fsSL "$REPO_URL/mcp-server/store/local.js" -o "$MCP_DIR/store/local.js" &
+curl -fsSL "$REPO_URL/mcp-server/store/api.js" -o "$MCP_DIR/store/api.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/init.js" -o "$MCP_DIR/tools/init.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/who.js" -o "$MCP_DIR/tools/who.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/ping.js" -o "$MCP_DIR/tools/ping.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/dm.js" -o "$MCP_DIR/tools/dm.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/inbox.js" -o "$MCP_DIR/tools/inbox.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/open.js" -o "$MCP_DIR/tools/open.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/status.js" -o "$MCP_DIR/tools/status.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/context.js" -o "$MCP_DIR/tools/context.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/summarize.js" -o "$MCP_DIR/tools/summarize.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/bye.js" -o "$MCP_DIR/tools/bye.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/remember.js" -o "$MCP_DIR/tools/remember.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/recall.js" -o "$MCP_DIR/tools/recall.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/forget.js" -o "$MCP_DIR/tools/forget.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/test.js" -o "$MCP_DIR/tools/test.js" &
 
-# Store
-curl -fsSL "$REPO_URL/mcp-server/store/index.js" -o "$MCP_DIR/store/index.js"
-curl -fsSL "$REPO_URL/mcp-server/store/local.js" -o "$MCP_DIR/store/local.js"
-curl -fsSL "$REPO_URL/mcp-server/store/api.js" -o "$MCP_DIR/store/api.js"
-
-# Tools - Phase 1 (identity, presence, DM)
-curl -fsSL "$REPO_URL/mcp-server/tools/init.js" -o "$MCP_DIR/tools/init.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/who.js" -o "$MCP_DIR/tools/who.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/ping.js" -o "$MCP_DIR/tools/ping.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/dm.js" -o "$MCP_DIR/tools/dm.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/inbox.js" -o "$MCP_DIR/tools/inbox.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/open.js" -o "$MCP_DIR/tools/open.js"
-
-# Tools - Tier 1 (status, context, summary, memory)
-curl -fsSL "$REPO_URL/mcp-server/tools/status.js" -o "$MCP_DIR/tools/status.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/context.js" -o "$MCP_DIR/tools/context.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/summarize.js" -o "$MCP_DIR/tools/summarize.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/bye.js" -o "$MCP_DIR/tools/bye.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/remember.js" -o "$MCP_DIR/tools/remember.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/recall.js" -o "$MCP_DIR/tools/recall.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/forget.js" -o "$MCP_DIR/tools/forget.js"
-curl -fsSL "$REPO_URL/mcp-server/tools/test.js" -o "$MCP_DIR/tools/test.js"
+# Wait for all downloads to complete
+wait
 
 echo "Downloaded to $MCP_DIR"
 

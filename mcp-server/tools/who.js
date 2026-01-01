@@ -54,8 +54,9 @@ Invite someone to install /vibe.`
     const isMe = u.handle === myHandle;
     const tag = isMe ? ' (you)' : '';
     const mood = u.mood ? ` ${u.mood}` : '';
+    const xLink = `[x.com/${u.handle}](https://x.com/${u.handle})`;
 
-    display += `● **@${u.handle}**${tag}${mood}\n`;
+    display += `● **@${u.handle}**${tag}${mood} — ${xLink}\n`;
 
     // Show context if shared (file, branch, note)
     const hasContext = u.file || u.branch || u.note || u.error;
@@ -87,7 +88,8 @@ Invite someone to install /vibe.`
     away.forEach(u => {
       const isMe = u.handle === myHandle;
       const tag = isMe ? ' (you)' : '';
-      display += `○ **@${u.handle}**${tag} — _${formatTimeAgo(u.lastSeen)}_\n`;
+      const xLink = `[x.com/${u.handle}](https://x.com/${u.handle})`;
+      display += `○ **@${u.handle}**${tag} — ${xLink} — _${formatTimeAgo(u.lastSeen)}_\n`;
     });
     display += '\n';
   }

@@ -36,6 +36,13 @@ async function handler(args) {
     };
   }
 
+  // Hint about X handles for short/common names
+  let xHandleHint = '';
+  const commonShortNames = ['dave', 'dan', 'john', 'mike', 'chris', 'alex', 'sam', 'ben', 'tom', 'matt', 'nick', 'joe', 'max', 'ian', 'rob', 'bob', 'jim', 'tim', 'pat', 'ed'];
+  if (h.length <= 5 && commonShortNames.includes(h)) {
+    xHandleHint = `\n\n💡 _Tip: Use your X handle (e.g., @${h}smith) so people can find you._`;
+  }
+
   // Save identity to SESSION file (per-process isolation)
   config.setSessionIdentity(h, one_liner || '');
 
@@ -78,11 +85,11 @@ Local config saved. Heartbeats will use username fallback.`
   return {
     display: `## Identity Set
 
-**@${h}**
+**@${h}** — [x.com/${h}](https://x.com/${h})
 _${one_liner}_
 
 Session: ${sessionId.substring(0, 12)}...
-Expires: 1 hour (auto-refreshes)${unreadNotice}
+Expires: 1 hour (auto-refreshes)${unreadNotice}${xHandleHint}
 
 You're now visible to others. Try:
 - \`vibe who\` — see who's around
