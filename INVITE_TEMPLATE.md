@@ -18,7 +18,10 @@ curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | b
 
 Then restart Claude Code and run "vibe init"
 
-I'm testing if people actually use this instead of switching apps. Would love your feedback.
+After install, DM me inside Claude Code with:
+vibe dm @seth "installed"
+
+That way I can confirm it's working on your end.
 
 —seth
 ```
@@ -27,72 +30,99 @@ I'm testing if people actually use this instead of switching apps. Would love yo
 
 ## Personalized Variants
 
-### For fellow builders
+### Friendly (for people you DM often)
 ```
-Hey [NAME] — built something dumb: DMs inside Claude Code.
+Hey [NAME] — built DMs inside Claude Code.
 
-You're in my terminal right now. I could ping you without opening Discord.
+Instead of switching to Discord, I just type "vibe dm @you" and you get it.
 
-2 min install: curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+2 min: curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
 
-Run "vibe init" after restart. Let me know if it's useful or if I'm wasting my time.
+After restart, run "vibe init" then:
+vibe dm @seth "installed"
+
+That way I know it worked.
 ```
 
-### For skeptics
+### Blunt (for active builders)
+```
+[NAME] — communication layer for Claude Code. DM without leaving terminal.
+
+curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+
+Restart, run "vibe init", then:
+vibe dm @seth "installed"
+
+Testing if people actually use this instead of switching apps.
+```
+
+### Skeptic (for honest feedback)
 ```
 [NAME] — testing a hypothesis: would you DM someone from Claude Code if you could?
 
-I built it. 2 min install:
+I built it. 2 min:
 curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+
+Restart, "vibe init", then DM me:
+vibe dm @seth "installed"
 
 Honest feedback wanted. Either this is useful or I should stop.
 ```
 
-### For busy people
-```
-[NAME] — 2 min install, 1 question:
-
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
-
-Did you DM someone from Claude Code today instead of switching to Discord?
-
-That's the only thing I'm testing.
-```
-
 ---
 
-## Invite List (fill in handles)
+## Invite List (order matters)
 
-Send to 20 people. Track responses.
+### Tier 1: People you DM frequently (5) — use Friendly template
+If these don't convert, you've learned something painful fast.
 
-| # | Name | Handle | Sent | Installed | First DM |
-|---|------|--------|------|-----------|----------|
-| 1 | | | [ ] | [ ] | [ ] |
-| 2 | | | [ ] | [ ] | [ ] |
-| 3 | | | [ ] | [ ] | [ ] |
-| 4 | | | [ ] | [ ] | [ ] |
-| 5 | | | [ ] | [ ] | [ ] |
-| 6 | | | [ ] | [ ] | [ ] |
-| 7 | | | [ ] | [ ] | [ ] |
-| 8 | | | [ ] | [ ] | [ ] |
-| 9 | | | [ ] | [ ] | [ ] |
-| 10 | | | [ ] | [ ] | [ ] |
-| 11 | | | [ ] | [ ] | [ ] |
-| 12 | | | [ ] | [ ] | [ ] |
-| 13 | | | [ ] | [ ] | [ ] |
-| 14 | | | [ ] | [ ] | [ ] |
-| 15 | | | [ ] | [ ] | [ ] |
-| 16 | | | [ ] | [ ] | [ ] |
-| 17 | | | [ ] | [ ] | [ ] |
-| 18 | | | [ ] | [ ] | [ ] |
-| 19 | | | [ ] | [ ] | [ ] |
-| 20 | | | [ ] | [ ] | [ ] |
+| # | Name | Handle | Sent | "installed" DM |
+|---|------|--------|------|----------------|
+| 1 | | | [ ] | [ ] |
+| 2 | | | [ ] | [ ] |
+| 3 | | | [ ] | [ ] |
+| 4 | | | [ ] | [ ] |
+| 5 | | | [ ] | [ ] |
+
+### Tier 2: Active Claude Code / terminal builders (10) — use Blunt template
+
+| # | Name | Handle | Sent | "installed" DM |
+|---|------|--------|------|----------------|
+| 6 | | | [ ] | [ ] |
+| 7 | | | [ ] | [ ] |
+| 8 | | | [ ] | [ ] |
+| 9 | | | [ ] | [ ] |
+| 10 | | | [ ] | [ ] |
+| 11 | | | [ ] | [ ] |
+| 12 | | | [ ] | [ ] |
+| 13 | | | [ ] | [ ] |
+| 14 | | | [ ] | [ ] |
+| 15 | | | [ ] | [ ] |
+
+### Tier 3: Skeptics who'll tell you what's annoying (5) — use Skeptic template
+
+| # | Name | Handle | Sent | "installed" DM |
+|---|------|--------|------|----------------|
+| 16 | | | [ ] | [ ] |
+| 17 | | | [ ] | [ ] |
+| 18 | | | [ ] | [ ] |
+| 19 | | | [ ] | [ ] |
+| 20 | | | [ ] | [ ] |
 
 ---
 
 ## Success Metric
 
 **Did at least one person DM another person inside Claude Code without being prompted to?**
+
+---
+
+## First 2 Hours — What to Watch
+
+Log exact timestamps for:
+- [ ] Someone messages someone else (not you)
+- [ ] Someone checks `vibe who` repeatedly
+- [ ] Someone says "I didn't open Discord"
 
 ---
 
