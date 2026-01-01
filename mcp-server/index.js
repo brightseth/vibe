@@ -15,7 +15,15 @@ const tools = {
   vibe_ping: require('./tools/ping'),
   vibe_dm: require('./tools/dm'),
   vibe_inbox: require('./tools/inbox'),
-  vibe_open: require('./tools/open')
+  vibe_open: require('./tools/open'),
+  vibe_status: require('./tools/status'),
+  vibe_context: require('./tools/context'),
+  vibe_summarize: require('./tools/summarize'),
+  vibe_bye: require('./tools/bye'),
+  // Memory tools (Tier 1 — Collaborative Memory)
+  vibe_remember: require('./tools/remember'),
+  vibe_recall: require('./tools/recall'),
+  vibe_forget: require('./tools/forget')
 };
 
 /**

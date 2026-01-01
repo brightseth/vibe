@@ -38,20 +38,32 @@ Send one with \`vibe dm @someone "hello"\``
   const sorted = threads.sort((a, b) => {
     if (a.unread > 0 && b.unread === 0) return -1;
     if (b.unread > 0 && a.unread === 0) return 1;
-    return (b.latest?.timestamp || 0) - (a.latest?.timestamp || 0);
+    return (b.lastTimestamp || 0) - (a.lastTimestamp || 0);
   });
 
-  let display = `## Inbox\n\n`;
+  const totalUnread = sorted.reduce((sum, t) => sum + (t.unread || 0), 0);
+  let display = `## Inbox`;
+  if (totalUnread > 0) {
+    display += ` (${totalUnread} unread)`;
+  }
+  display += `\n\n`;
 
   sorted.forEach(thread => {
-    const unreadBadge = thread.unread > 0 ? ` (${thread.unread} new)` : '';
-    const preview = thread.preview || '';
+    const unreadBadge = thread.unread > 0 ? ` 📬 ${thread.unread} new` : '';
+    const preview = (thread.lastMessage || '').substring(0, 60);
+    const timeAgo = store.formatTimeAgo ? store.formatTimeAgo(thread.lastTimestamp) : '';
 
     display += `**@${thread.handle}**${unreadBadge}\n`;
-    display += `  "${preview}" — _${thread.last_seen}_\n\n`;
+    if (preview) {
+      display += `  "${preview}${thread.lastMessage?.length > 60 ? '...' : ''}"\n`;
+    }
+    if (timeAgo) {
+      display += `  _${timeAgo}_\n`;
+    }
+    display += `\n`;
   });
 
-  display += `---\n\`vibe open @handle\` to see full thread`;
+  display += `---\n\`vibe open @handle\` to read full thread`;
 
   return { display };
 }

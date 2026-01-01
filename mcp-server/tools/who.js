@@ -5,6 +5,16 @@
 const config = require('../config');
 const store = require('../store');
 
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const seconds = Math.floor((now - timestamp) / 1000);
+
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return `${Math.floor(seconds / 86400)}d ago`;
+}
+
 const definition = {
   name: 'vibe_who',
   description: 'See who\'s online and what they\'re building.',
@@ -34,16 +44,55 @@ Invite someone to install /vibe.`
     };
   }
 
-  let display = `## Who's Around\n\n`;
+  // Separate active from away
+  const active = users.filter(u => u.status === 'active');
+  const away = users.filter(u => u.status !== 'active');
 
-  users.forEach(u => {
+  let display = `## Who's Around (${active.length} active)\n\n`;
+
+  active.forEach(u => {
     const isMe = u.handle === myHandle;
-    const status = u.status === 'active' ? '●' : '○';
     const tag = isMe ? ' (you)' : '';
+    const mood = u.mood ? ` ${u.mood}` : '';
 
-    display += `${status} **@${u.handle}**${tag} — ${u.one_liner}\n`;
-    display += `  _${u.last_seen}_\n\n`;
+    display += `● **@${u.handle}**${tag}${mood}\n`;
+
+    // Show context if shared (file, branch, note)
+    const hasContext = u.file || u.branch || u.note || u.error;
+    if (hasContext) {
+      // Build context line: file • branch
+      const parts = [];
+      if (u.file) parts.push(u.file);
+      if (u.branch) parts.push(u.branch);
+      if (parts.length > 0) {
+        display += `  ${parts.join(' • ')}\n`;
+      }
+      // Show note or error if present
+      if (u.note) {
+        display += `  _"${u.note}"_\n`;
+      } else if (u.error) {
+        display += `  ⚠️ _${u.error.slice(0, 60)}${u.error.length > 60 ? '...' : ''}_\n`;
+      }
+    } else {
+      // Fall back to one_liner
+      const oneLiner = u.one_liner || 'Building something';
+      display += `  ${oneLiner}\n`;
+    }
+
+    display += `  _${formatTimeAgo(u.lastSeen)}_\n\n`;
   });
+
+  if (away.length > 0) {
+    display += `### Away (${away.length})\n\n`;
+    away.forEach(u => {
+      const isMe = u.handle === myHandle;
+      const tag = isMe ? ' (you)' : '';
+      display += `○ **@${u.handle}**${tag} — _${formatTimeAgo(u.lastSeen)}_\n`;
+    });
+    display += '\n';
+  }
+
+  display += `---\n\`vibe dm @handle "message"\` to reach someone`;
 
   return { display };
 }

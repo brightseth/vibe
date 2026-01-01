@@ -36,21 +36,53 @@ async function handler(args) {
     };
   }
 
-  // Save config
+  // Save identity to SESSION file (per-process isolation)
+  config.setSessionIdentity(h, one_liner || '');
+
+  // Also update shared config for backward compat
   const cfg = config.load();
   cfg.handle = h;
   cfg.one_liner = one_liner || '';
   cfg.visible = true;
   config.save(cfg);
 
-  // Register presence
+  // Get session ID for this Claude Code process
+  const sessionId = config.getSessionId();
+
+  // Register session with API (maps sessionId → handle)
+  const registration = await store.registerSession(sessionId, h);
+  if (!registration.success) {
+    return {
+      display: `## Identity Set (Local Only)
+
+**@${h}**
+_${one_liner}_
+
+⚠️ Session registration failed: ${registration.error}
+Local config saved. Heartbeats will use username fallback.`
+    };
+  }
+
+  // Send initial heartbeat
   await store.heartbeat(h, one_liner);
+
+  // Check for unread messages
+  let unreadNotice = '';
+  try {
+    const unreadCount = await store.getUnreadCount(h);
+    if (unreadCount > 0) {
+      unreadNotice = `\n\n📬 **${unreadCount} unread message${unreadCount > 1 ? 's' : ''}** — \`vibe inbox\` to read`;
+    }
+  } catch (e) {}
 
   return {
     display: `## Identity Set
 
 **@${h}**
 _${one_liner}_
+
+Session: ${sessionId.substring(0, 12)}...
+Expires: 1 hour (auto-refreshes)${unreadNotice}
 
 You're now visible to others. Try:
 - \`vibe who\` — see who's around

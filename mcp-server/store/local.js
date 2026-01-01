@@ -9,6 +9,23 @@ const config = require('../config');
 const MESSAGES_FILE = path.join(config.VIBE_DIR, 'messages.jsonl');
 const PRESENCE_FILE = path.join(config.VIBE_DIR, 'presence.json');
 
+// ============ SESSION (stubs for local mode) ============
+
+let currentSessionId = null;
+
+function setSessionId(sessionId) {
+  currentSessionId = sessionId;
+}
+
+function getSessionId() {
+  return currentSessionId;
+}
+
+async function registerSession(sessionId, handle) {
+  currentSessionId = sessionId;
+  return { success: true, local: true };
+}
+
 // ============ PRESENCE ============
 
 function loadPresence() {
@@ -159,6 +176,11 @@ function formatTimeAgo(timestamp) {
 }
 
 module.exports = {
+  // Session
+  registerSession,
+  setSessionId,
+  getSessionId,
+
   // Presence
   heartbeat,
   getActiveUsers,

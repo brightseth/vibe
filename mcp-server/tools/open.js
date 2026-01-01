@@ -5,6 +5,66 @@
 const config = require('../config');
 const store = require('../store');
 
+/**
+ * Render a payload into display text
+ */
+function renderPayload(payload) {
+  if (!payload) return null;
+
+  const type = payload.type || 'data';
+
+  // Game state (tic-tac-toe)
+  if (type === 'game' && payload.game === 'tictactoe') {
+    const board = payload.state?.board || Array(9).fill('');
+    const turn = payload.state?.turn || '?';
+    const winner = payload.state?.winner;
+
+    // Render 3x3 board
+    const cell = (i) => board[i] || '·';
+    let grid = '```\n';
+    grid += ` ${cell(0)} │ ${cell(1)} │ ${cell(2)} \n`;
+    grid += `───┼───┼───\n`;
+    grid += ` ${cell(3)} │ ${cell(4)} │ ${cell(5)} \n`;
+    grid += `───┼───┼───\n`;
+    grid += ` ${cell(6)} │ ${cell(7)} │ ${cell(8)} \n`;
+    grid += '```';
+
+    if (winner) {
+      grid += `\n🏆 **${winner} wins!**`;
+    } else if (board.every(c => c)) {
+      grid += `\n🤝 **Draw!**`;
+    } else {
+      grid += `\n_${turn}'s turn_`;
+    }
+
+    return grid;
+  }
+
+  // Code review request
+  if (type === 'review') {
+    let display = '📝 **Code Review Request**\n';
+    if (payload.files) {
+      display += `Files: ${payload.files.join(', ')}\n`;
+    }
+    if (payload.description) {
+      display += `"${payload.description}"`;
+    }
+    return display;
+  }
+
+  // Handoff
+  if (type === 'handoff') {
+    let display = '🤝 **Handoff**\n';
+    if (payload.context) {
+      display += payload.context;
+    }
+    return display;
+  }
+
+  // Generic payload - show type
+  return `📦 _${type} payload_`;
+}
+
 const definition = {
   name: 'vibe_open',
   description: 'Open the conversation thread with someone.',
@@ -39,11 +99,20 @@ async function handler(args) {
   const thread = await store.getThread(myHandle, them);
   await store.markThreadRead(myHandle, them);
 
+  // Check if they're typing
+  let typingNotice = '';
+  try {
+    const typingUsers = await store.getTypingUsers(myHandle);
+    if (typingUsers.includes(them)) {
+      typingNotice = `\n_@${them} is typing..._\n`;
+    }
+  } catch (e) {}
+
   if (thread.length === 0) {
     return {
       display: `## @${them}
 
-_No messages yet._
+_No messages yet._${typingNotice}
 
 Start with \`vibe dm @${them} "hello"\``
     };
@@ -57,8 +126,26 @@ Start with \`vibe dm @${them} "hello"\``
     const time = store.formatTimeAgo(m.timestamp);
 
     display += `**${sender}** — _${time}_\n`;
-    display += `${m.body}\n\n`;
+
+    // Show text if present
+    if (m.body) {
+      display += `${m.body}\n`;
+    }
+
+    // Render payload if present
+    if (m.payload) {
+      const rendered = renderPayload(m.payload);
+      if (rendered) {
+        display += `${rendered}\n`;
+      }
+    }
+
+    display += '\n';
   });
+
+  if (typingNotice) {
+    display += typingNotice + '\n';
+  }
 
   display += `---\n\`vibe dm @${them} "message"\` to reply`;
 
