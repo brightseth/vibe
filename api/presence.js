@@ -271,7 +271,11 @@ export default async function handler(req, res) {
 
       // Infer mood from context if not explicitly set
       const inferred = inferMood(sessionContext, existing);
-      console.log('Inference:', { sessionContext, inferred, hasError: !!sessionContext?.error });
+
+      // Build mood fields - explicit mood wins over inferred
+      const moodValue = sessionContext?.mood || inferred?.mood || existing.mood || null;
+      const moodInferred = !sessionContext?.mood && inferred !== null;
+      const moodReason = inferred?.reason || null;
 
       const presenceData = {
         username: user,
@@ -280,10 +284,9 @@ export default async function handler(req, res) {
         project: project || existing.project || null,
         location: location || existing.location || null,
         context: sessionContext,
-        // Mood: explicit wins, then inferred, then existing
-        mood: sessionContext?.mood || inferred?.mood || existing.mood || null,
-        mood_inferred: !sessionContext?.mood && !!inferred,
-        mood_reason: inferred?.reason || null,
+        mood: moodValue,
+        mood_inferred: moodInferred,
+        mood_reason: moodReason,
         firstSeen: existing.firstSeen || now,  // Track session start
         lastSeen: now,
         dna: existing.dna || { top: 'platform' }
