@@ -19,12 +19,16 @@ INSTALL:
   Then restart Claude Code.
 
 USAGE (conversational — just talk):
-  "I'm seth, working on auth"
+  "I'm @sethgoldstein, working on /vibe"   ← use your X handle
   "who's around?"
-  "message stan about the OAuth bug"
+  "message davemorin about the agent protocol"
   "what did gene say earlier?"
   "remember that stan prefers async"
   "I'm done for the night"
+
+IDENTITY:
+  Use your X (Twitter) handle. It's how people will find you.
+  No auth yet — just convention. Easy to verify: x.com/yourhandle
 
 Claude interprets naturally and calls the right tools.
 
@@ -184,14 +188,16 @@ SOURCE: https://github.com/brightseth/vibe
         <p class="note">Then restart Claude Code. Or just tell Claude: "go to slashvibe.dev and install /vibe"</p>
 
         <div class="terminal">
-            <div><span class="prompt">you:</span> I'm seth, working on auth</div>
-            <div class="dim" style="margin-bottom: 12px;">✓ You're @seth — "working on auth"</div>
+            <div><span class="prompt">you:</span> I'm @davemorin, working on social apps</div>
+            <div class="dim" style="margin-bottom: 12px;">✓ You're @davemorin — "working on social apps"</div>
             <div><span class="prompt">you:</span> who's around?</div>
-            <div class="dim">● @stan 🔥 — auth.js • feature/oauth</div>
-            <div class="dim" style="margin-bottom: 12px;">● @gene 🧠 — eden refactor (2m ago)</div>
-            <div><span class="prompt">you:</span> tell stan I want to pair on OAuth</div>
-            <div class="dim">✓ Sent to @stan</div>
+            <div class="dim">● @sethgoldstein 🔥 — building /vibe</div>
+            <div class="dim" style="margin-bottom: 12px;">● @betashop 🧠 — agent SDK (2m ago)</div>
+            <div><span class="prompt">you:</span> message seth about the agent protocol</div>
+            <div class="dim">✓ Sent to @sethgoldstein</div>
         </div>
+
+        <p class="note" style="margin-top: 16px; margin-bottom: 32px;">Use your X handle — it's how people will find you.</p>
 
         <div class="features">
             <div class="feature">
