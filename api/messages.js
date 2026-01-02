@@ -52,14 +52,21 @@ function extractToken(req) {
 // Check if KV is configured via environment variables
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
-// Key for all messages
-const MESSAGES_KEY = 'vibe:messages';
+// Limits to prevent unbounded growth
+const INBOX_LIMIT = 1000;
+const OUTBOX_LIMIT = 1000;
+const THREAD_LIMIT = 500;
 
-// In-memory fallback
-let memoryMessages = [];
-let memorySessions = {};  // Mirror of presence sessions for token verification
+// In-memory fallback (structured like KV for consistency)
+const memory = {
+  messages: {},      // msg:${id} → message
+  inboxes: {},       // inbox:${user} → [id, ...]
+  outboxes: {},      // outbox:${user} → [id, ...]
+  threads: {},       // thread:${a}:${b} → [id, ...]
+  sessions: {}       // session:${id} → session
+};
 
-// KV wrapper functions
+// KV wrapper
 async function getKV() {
   if (!KV_CONFIGURED) return null;
   try {
@@ -70,21 +77,128 @@ async function getKV() {
   }
 }
 
-async function getMessages() {
-  const kv = await getKV();
-  if (kv) {
-    const messages = await kv.get(MESSAGES_KEY);
-    return messages || [];
-  }
-  return memoryMessages;
+// ============ MESSAGE STORAGE (per-user lists) ============
+
+// Get canonical thread key (alphabetical order)
+function threadKey(userA, userB) {
+  const [a, b] = [userA, userB].sort();
+  return `thread:${a}:${b}`;
 }
 
-async function saveMessages(messages) {
+// Store a message and update all indexes
+async function storeMessage(message) {
+  const kv = await getKV();
+  const { id, from, to } = message;
+
+  if (kv) {
+    // Use Redis pipeline for atomic-ish operations
+    const pipeline = kv.pipeline();
+
+    // Store message data
+    pipeline.set(`msg:${id}`, message);
+
+    // Add to recipient's inbox (newest first)
+    pipeline.lpush(`inbox:${to}`, id);
+    pipeline.ltrim(`inbox:${to}`, 0, INBOX_LIMIT - 1);
+
+    // Add to sender's outbox (newest first)
+    pipeline.lpush(`outbox:${from}`, id);
+    pipeline.ltrim(`outbox:${from}`, 0, OUTBOX_LIMIT - 1);
+
+    // Add to thread (newest first)
+    const tKey = threadKey(from, to);
+    pipeline.lpush(tKey, id);
+    pipeline.ltrim(tKey, 0, THREAD_LIMIT - 1);
+
+    await pipeline.exec();
+  } else {
+    // In-memory fallback
+    memory.messages[id] = message;
+
+    if (!memory.inboxes[to]) memory.inboxes[to] = [];
+    memory.inboxes[to].unshift(id);
+    memory.inboxes[to] = memory.inboxes[to].slice(0, INBOX_LIMIT);
+
+    if (!memory.outboxes[from]) memory.outboxes[from] = [];
+    memory.outboxes[from].unshift(id);
+    memory.outboxes[from] = memory.outboxes[from].slice(0, OUTBOX_LIMIT);
+
+    const tKey = threadKey(from, to);
+    if (!memory.threads[tKey]) memory.threads[tKey] = [];
+    memory.threads[tKey].unshift(id);
+    memory.threads[tKey] = memory.threads[tKey].slice(0, THREAD_LIMIT);
+  }
+}
+
+// Get messages by IDs
+async function getMessagesByIds(ids) {
+  if (!ids || ids.length === 0) return [];
+
   const kv = await getKV();
   if (kv) {
-    await kv.set(MESSAGES_KEY, messages);
+    const keys = ids.map(id => `msg:${id}`);
+    const messages = await kv.mget(...keys);
+    return messages.filter(m => m !== null);
+  } else {
+    return ids.map(id => memory.messages[id]).filter(m => m);
   }
-  memoryMessages = messages;
+}
+
+// Get user's inbox
+async function getInbox(username, limit = 100) {
+  const kv = await getKV();
+  if (kv) {
+    const ids = await kv.lrange(`inbox:${username}`, 0, limit - 1);
+    return getMessagesByIds(ids);
+  } else {
+    const ids = (memory.inboxes[username] || []).slice(0, limit);
+    return getMessagesByIds(ids);
+  }
+}
+
+// Get user's outbox
+async function getOutbox(username, limit = 100) {
+  const kv = await getKV();
+  if (kv) {
+    const ids = await kv.lrange(`outbox:${username}`, 0, limit - 1);
+    return getMessagesByIds(ids);
+  } else {
+    const ids = (memory.outboxes[username] || []).slice(0, limit);
+    return getMessagesByIds(ids);
+  }
+}
+
+// Get thread between two users
+async function getThread(userA, userB, limit = 100) {
+  const kv = await getKV();
+  const tKey = threadKey(userA, userB);
+
+  if (kv) {
+    const ids = await kv.lrange(tKey, 0, limit - 1);
+    return getMessagesByIds(ids);
+  } else {
+    const ids = (memory.threads[tKey] || []).slice(0, limit);
+    return getMessagesByIds(ids);
+  }
+}
+
+// Update a message (for read receipts)
+async function updateMessage(id, updates) {
+  const kv = await getKV();
+  if (kv) {
+    const message = await kv.get(`msg:${id}`);
+    if (message) {
+      const updated = { ...message, ...updates };
+      await kv.set(`msg:${id}`, updated);
+      return updated;
+    }
+  } else {
+    if (memory.messages[id]) {
+      memory.messages[id] = { ...memory.messages[id], ...updates };
+      return memory.messages[id];
+    }
+  }
+  return null;
 }
 
 // Session lookup for token verification (reads from same KV as presence)
@@ -93,7 +207,70 @@ async function getSession(sessionId) {
   if (kv) {
     return await kv.get(`session:${sessionId}`);
   }
-  return memorySessions[sessionId] || null;
+  return memory.sessions[sessionId] || null;
+}
+
+// ============ MIGRATION ============
+
+// Migrate from old global array to new per-user lists
+async function migrateMessages(res) {
+  const kv = await getKV();
+  if (!kv) {
+    return res.status(400).json({
+      success: false,
+      error: 'Migration requires KV storage'
+    });
+  }
+
+  try {
+    // Read old global array
+    const oldMessages = await kv.get('vibe:messages') || [];
+
+    if (oldMessages.length === 0) {
+      return res.status(200).json({
+        success: true,
+        migrated: 0,
+        message: 'No messages to migrate'
+      });
+    }
+
+    let migrated = 0;
+    let errors = [];
+
+    // Migrate each message
+    for (const message of oldMessages) {
+      try {
+        // Skip if already migrated (check if msg:${id} exists)
+        const existing = await kv.get(`msg:${message.id}`);
+        if (existing) {
+          continue; // Already migrated
+        }
+
+        // Store using new schema
+        await storeMessage(message);
+        migrated++;
+      } catch (e) {
+        errors.push({ id: message.id, error: e.message });
+      }
+    }
+
+    // Optionally delete old array after successful migration
+    // (keeping it for now as backup)
+    // await kv.del('vibe:messages');
+
+    return res.status(200).json({
+      success: true,
+      migrated,
+      total: oldMessages.length,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Migrated ${migrated}/${oldMessages.length} messages to new schema`
+    });
+  } catch (e) {
+    return res.status(500).json({
+      success: false,
+      error: e.message
+    });
+  }
 }
 
 function generateId() {
@@ -179,9 +356,8 @@ export default async function handler(req, res) {
       read: false
     };
 
-    const messages = await getMessages();
-    messages.push(message);
-    await saveMessages(messages);
+    // Store in per-user lists (atomic, no race conditions)
+    await storeMessage(message);
 
     return res.status(200).json({
       success: true,
@@ -193,6 +369,12 @@ export default async function handler(req, res) {
 
   // DELETE - Disabled for Phase 1 alpha (security)
   if (req.method === 'DELETE') {
+    // Special case: migration action
+    const { action } = req.query;
+    if (action === 'migrate') {
+      return await migrateMessages(res);
+    }
+
     return res.status(403).json({
       success: false,
       error: 'DELETE disabled for alpha'
@@ -201,7 +383,7 @@ export default async function handler(req, res) {
 
   // GET - Fetch messages
   if (req.method === 'GET') {
-    const { user, with: withUser, markRead } = req.query;
+    const { user, with: withUser, markRead, sent } = req.query;
 
     if (!user) {
       return res.status(400).json({
@@ -211,31 +393,26 @@ export default async function handler(req, res) {
     }
 
     const username = user.toLowerCase().replace('@', '');
-    let messages = await getMessages();
 
     // Get thread with specific user
     if (withUser) {
       const otherUser = withUser.toLowerCase().replace('@', '');
+      const now = new Date().toISOString();
+
+      // Get thread messages (already newest-first from storage)
+      let threadMessages = await getThread(username, otherUser);
 
       // Auto-mark received messages as read when viewing thread
-      let updated = false;
-      const now = new Date().toISOString();
-      messages = messages.map(m => {
+      for (const m of threadMessages) {
         if (m.from === otherUser && m.to === username && !m.read) {
-          updated = true;
-          return { ...m, read: true, readAt: now };
+          await updateMessage(m.id, { read: true, readAt: now });
+          m.read = true;
+          m.readAt = now;
         }
-        return m;
-      });
-      if (updated) {
-        await saveMessages(messages);
       }
 
-      const thread = messages
-        .filter(m =>
-          (m.from === username && m.to === otherUser) ||
-          (m.from === otherUser && m.to === username)
-        )
+      // Sort oldest-first for display (chat order)
+      const thread = threadMessages
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
         .map(m => ({
           ...m,
@@ -253,16 +430,14 @@ export default async function handler(req, res) {
     }
 
     // Get sent messages (outbox with read receipts)
-    const { sent } = req.query;
     if (sent === 'true') {
-      const outbox = messages
-        .filter(m => m.from === username)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .map(m => ({
-          ...m,
-          timeAgo: timeAgo(m.createdAt),
-          readStatus: m.read ? `Read ${timeAgo(m.readAt)}` : 'Delivered'
-        }));
+      const outboxMessages = await getOutbox(username);
+
+      const outbox = outboxMessages.map(m => ({
+        ...m,
+        timeAgo: timeAgo(m.createdAt),
+        readStatus: m.read ? `Read ${timeAgo(m.readAt)}` : 'Delivered'
+      }));
 
       return res.status(200).json({
         success: true,
@@ -272,31 +447,27 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get inbox
-    const inbox = messages
-      .filter(m => m.to === username)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .map(m => ({
-        ...m,
-        timeAgo: timeAgo(m.createdAt)
-      }));
-
-    const unread = inbox.filter(m => !m.read).length;
+    // Get inbox (default)
+    const inboxMessages = await getInbox(username);
+    const now = new Date().toISOString();
 
     // Mark as read if requested
     if (markRead === 'true') {
-      let updated = false;
-      messages = messages.map(m => {
-        if (m.to === username && !m.read) {
-          updated = true;
-          return { ...m, read: true };
+      for (const m of inboxMessages) {
+        if (!m.read) {
+          await updateMessage(m.id, { read: true, readAt: now });
+          m.read = true;
+          m.readAt = now;
         }
-        return m;
-      });
-      if (updated) {
-        await saveMessages(messages);
       }
     }
+
+    const inbox = inboxMessages.map(m => ({
+      ...m,
+      timeAgo: timeAgo(m.createdAt)
+    }));
+
+    const unread = inbox.filter(m => !m.read).length;
 
     // Group by sender
     const bySender = {};
