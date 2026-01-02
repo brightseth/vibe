@@ -1,12 +1,12 @@
-# /vibe + AICP Status — January 2, 2026
+# /vibe + AIRC Status — January 2, 2026
 
 ## Executive Summary
 
 **/vibe** is a working social layer for Claude Code — presence, DMs, games, notifications. It's deployed and functional.
 
-**AICP** is the protocol spec we wrote today to formalize what /vibe does, positioning it as "the MCP for social" — a standard that other AI tools (Cursor, Windsurf, etc.) could adopt.
+**AIRC** is the protocol spec we wrote today to formalize what /vibe does, positioning it as "the MCP for social" — a standard that other AI tools (Cursor, Windsurf, etc.) could adopt.
 
-**State:** /vibe works but isn't fully AICP-compliant yet. The spec is published and ready for feedback.
+**State:** /vibe works but isn't fully AIRC-compliant yet. The spec is published and ready for feedback.
 
 ---
 
@@ -60,11 +60,11 @@
 
 ---
 
-## AICP Protocol Spec
+## AIRC Protocol Spec
 
 ### What It Is
 
-AICP (Agent Identity & Communication Protocol) formalizes what /vibe does into an open standard:
+AIRC (Agent Identity & Communication Protocol) formalizes what /vibe does into an open standard:
 
 - **6 Primitives:** Identity, Presence, Message, Payload, Thread, Consent
 - **Security:** Ed25519 signing, replay protection, consent handshake
@@ -73,8 +73,8 @@ AICP (Agent Identity & Communication Protocol) formalizes what /vibe does into a
 
 ### Spec Location
 
-- **File:** `/Users/seth/vibe-public/AICP_SPEC.md`
-- **GitHub:** https://github.com/brightseth/vibe/blob/main/AICP_SPEC.md
+- **File:** `/Users/seth/vibe-public/AIRC_SPEC.md`
+- **GitHub:** https://github.com/brightseth/vibe/blob/main/AIRC_SPEC.md
 - **Length:** ~700 lines, comprehensive
 
 ### Key Design Decisions
@@ -85,7 +85,7 @@ AICP (Agent Identity & Communication Protocol) formalizes what /vibe does into a
 4. **Payloads interpreted** — No UI spec, receiving agent decides how to render
 5. **Polling-first** — Stateless, works everywhere, webhooks optional
 
-### AICP Compliance Checklist for /vibe
+### AIRC Compliance Checklist for /vibe
 
 - [ ] Add public key to identity registration
 - [ ] Store keypairs in MCP server config
@@ -121,7 +121,7 @@ AICP (Agent Identity & Communication Protocol) formalizes what /vibe does into a
 │   │   └── ...
 │   ├── store/                    # API client
 │   └── protocol/                 # Payload schemas
-├── AICP_SPEC.md                  # Protocol specification
+├── AIRC_SPEC.md                  # Protocol specification
 └── tests/                        # Light tests
 
 ~/.vibe/                          # Runtime location (MCP server runs from here)
@@ -167,7 +167,7 @@ Claude Code → MCP Server → API (slashvibe.dev) → Vercel KV (Redis)
 
 1. **Welcome DM** — New users receive DM from @vibe with tips
 2. **Domain fix** — slashvibe.dev now points to correct Vercel project
-3. **AICP spec written** — Complete v0.1 protocol specification
+3. **AIRC spec written** — Complete v0.1 protocol specification
 4. **Spec review fixes** — Canonical JSON signing, presence expiry timing
 5. **MCP sync** — Updated `~/.vibe/mcp-server/` with latest code
 
@@ -188,7 +188,7 @@ Claude Code → MCP Server → API (slashvibe.dev) → Vercel KV (Redis)
 
 ### What's Strong
 
-- "MCP is to tools, AICP is to social" — winning framing
+- "MCP is to tools, AIRC is to social" — winning framing
 - "Interpreted, not rendered" — key differentiator
 - Consent primitive — transforms from "dumb pipe" to "social graph"
 - Minimal scope — v0.1 is implementable
@@ -213,14 +213,14 @@ Claude Code → MCP Server → API (slashvibe.dev) → Vercel KV (Redis)
 
 ### Immediate (This Week)
 
-1. **Share AICP spec** for final advisor review
+1. **Share AIRC spec** for final advisor review
 2. **Announce on X** — "We wrote the MCP for social"
-3. **Basic AICP compliance** — Add signing + consent to /vibe
+3. **Basic AIRC compliance** — Add signing + consent to /vibe
 
 ### Short-term (This Month)
 
 4. **Reach out** to Cursor, Replit, MCP maintainers
-5. **Get first external implementation** of AICP
+5. **Get first external implementation** of AIRC
 6. **Add webhook delivery** (v0.2)
 
 ### Medium-term (Q1 2026)
@@ -270,7 +270,7 @@ cd /Users/seth/vibe-public && ./tests/run-light-tests.sh
 
 | File | Purpose |
 |------|---------|
-| `AICP_SPEC.md` | Protocol specification |
+| `AIRC_SPEC.md` | Protocol specification |
 | `api/users.js` | Registration + welcome DM |
 | `api/messages.js` | Message send/receive/inbox |
 | `api/presence.js` | Heartbeat + who's online |

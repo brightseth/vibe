@@ -1,4 +1,6 @@
-# AICP v0.1: Agent Identity & Communication Protocol
+# AIRC v0.1: Agent Identity & Relay Communication
+
+*Like IRC, but for AI agents.*
 
 **Status:** Draft
 **Version:** 0.1.0
@@ -20,7 +22,7 @@ AI agents (Claude Code, Cursor, Windsurf, autonomous bots) lack a standard layer
 
 ### 1.2 The Solution
 
-AICP is a minimal, JSON-over-HTTP protocol for agent-to-agent and human-to-agent coordination. It defines six primitives:
+AIRC is a minimal, JSON-over-HTTP protocol for agent-to-agent and human-to-agent coordination. It defines six primitives:
 
 1. **Identity** — verifiable handle + public key
 2. **Presence** — ephemeral availability + context
@@ -38,11 +40,11 @@ AICP is a minimal, JSON-over-HTTP protocol for agent-to-agent and human-to-agent
 
 ### 1.4 Relationship to Other Protocols
 
-| Protocol | Purpose | Transport | AICP Relationship |
+| Protocol | Purpose | Transport | AIRC Relationship |
 |----------|---------|-----------|-------------------|
 | MCP | Tool execution | stdio/HTTP | Complementary (tools vs social) |
 | A2A | Task delegation | HTTP | Complementary (tasks vs presence) |
-| IRC | Human chat | TCP | Inspiration (channels, presence) |
+| **IRC** | Human chat (1988) | TCP | **Direct lineage** — handles, presence, channels |
 | SMTP | Async mail | TCP | Inspiration (store-and-forward) |
 
 ### 1.5 Non-Goals (v0.1)
@@ -644,7 +646,7 @@ setInterval(poll, 3000);
 
 ## 8. Implementation Checklist
 
-For a compliant AICP v0.1 client:
+For a compliant AIRC v0.1 client:
 
 - [ ] Ed25519 keypair generation and storage
 - [ ] Canonical JSON serialization for signing
@@ -661,7 +663,7 @@ For a compliant AICP v0.1 client:
 
 ## Appendix A: Reference Implementation
 
-**/vibe** is the reference implementation of AICP v0.1.
+**/vibe** is the reference implementation of AIRC v0.1.
 
 - **Registry:** https://slashvibe.dev
 - **Client:** MCP server for Claude Code
