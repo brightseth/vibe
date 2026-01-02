@@ -31,7 +31,7 @@ echo "Node $(node -v) ✓"
 echo ""
 
 # Create directories
-mkdir -p "$MCP_DIR/tools" "$MCP_DIR/store" "$VIBE_DIR/memory"
+mkdir -p "$MCP_DIR/tools/_shared" "$MCP_DIR/store" "$MCP_DIR/protocol" "$VIBE_DIR/memory"
 
 # Download MCP server files (parallel for speed)
 echo "Downloading MCP server..."
@@ -59,6 +59,11 @@ curl -fsSL "$REPO_URL/mcp-server/tools/recall.js" -o "$MCP_DIR/tools/recall.js" 
 curl -fsSL "$REPO_URL/mcp-server/tools/forget.js" -o "$MCP_DIR/tools/forget.js" &
 curl -fsSL "$REPO_URL/mcp-server/tools/test.js" -o "$MCP_DIR/tools/test.js" &
 curl -fsSL "$REPO_URL/mcp-server/tools/start.js" -o "$MCP_DIR/tools/start.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/doctor.js" -o "$MCP_DIR/tools/doctor.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/game.js" -o "$MCP_DIR/tools/game.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/consent.js" -o "$MCP_DIR/tools/consent.js" &
+curl -fsSL "$REPO_URL/mcp-server/tools/_shared/index.js" -o "$MCP_DIR/tools/_shared/index.js" &
+curl -fsSL "$REPO_URL/mcp-server/protocol/index.js" -o "$MCP_DIR/protocol/index.js" &
 
 # Wait for all downloads to complete
 wait
@@ -79,7 +84,7 @@ if [ ! -f "$CLAUDE_CONFIG" ]; then
       "command": "node",
       "args": ["$MCP_DIR/index.js"],
       "env": {
-        "VIBE_API_URL": "https://vibe-public-topaz.vercel.app"
+        "VIBE_API_URL": "https://slashvibe.dev"
       }
     }
   }
@@ -95,7 +100,7 @@ else
     config.mcpServers.vibe = {
       command: 'node',
       args: ['$MCP_DIR/index.js'],
-      env: { VIBE_API_URL: 'https://vibe-public-topaz.vercel.app' }
+      env: { VIBE_API_URL: 'https://slashvibe.dev' }
     };
     fs.writeFileSync('$CLAUDE_CONFIG', JSON.stringify(config, null, 2));
   "
