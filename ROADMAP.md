@@ -10,22 +10,23 @@
 
 **What's working:** init, who, dm, inbox, open, status, game, doctor, remember/recall, welcome DM, inline notifications
 
-**What's missing:** AIRC compliance (signing, consent, public keys)
+**What's missing:** AIRC compliance (signing ✅ consent done, public keys pending)
 
 ---
 
 ## Short-Term (This Week)
 
-### S1. MCP Server Stability
+### S1. MCP Server Stability ✅ DONE
 - **Problem:** Must manually sync `vibe-public/mcp-server/` to `~/.vibe/mcp-server/`
-- **Fix:** Add npm postinstall script or symlink
-- **Files:** `package.json`, install script
+- **Fix:** Symlink `~/.vibe/mcp-server` → `/Users/seth/vibe-public/mcp-server`
+- **Status:** Complete (Jan 2, 2026)
 
-### S2. Consent Handshake (AIRC Compliance)
+### S2. Consent Handshake (AIRC Compliance) ✅ DONE
 - **Problem:** Anyone can DM anyone (spam risk)
-- **Fix:** Add consent request/accept/block flow
-- **Files:** `api/consent.js` (new), `api/messages.js`, `mcp-server/tools/dm.js`
-- **UX:** First DM to stranger sends consent request, they accept/block
+- **Fix:** Consent request/accept/block flow implemented
+- **Files:** `api/consent.js`, `api/messages.js`, `mcp-server/tools/consent.js`
+- **UX:** First DM to stranger auto-creates pending consent, they accept/block
+- **Status:** Complete (Jan 2, 2026)
 
 ### S3. Better Onboarding
 - **Problem:** New users don't know what to do
