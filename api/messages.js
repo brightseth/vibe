@@ -4,10 +4,16 @@
  * Uses Vercel KV (Redis) for persistence across cold starts
  * Falls back to in-memory if KV not configured
  *
- * POST /api/messages - Send a message
+ * POST /api/messages - Send a message (requires auth token)
  * GET /api/messages?user=X - Get inbox for user X
  * GET /api/messages?user=X&with=Y - Get thread between X and Y
+ *
+ * Authentication:
+ * - POST requires valid token in Authorization header
+ * - Token format: sessionId.signature (from /api/presence register)
  */
+
+import { extractToken, verifyToken } from './lib/auth.js';
 
 // Check if KV is configured via environment variables
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -17,6 +23,7 @@ const MESSAGES_KEY = 'vibe:messages';
 
 // In-memory fallback
 let memoryMessages = [];
+let memorySessions = {};  // Mirror of presence sessions for token verification
 
 // KV wrapper functions
 async function getKV() {
@@ -46,6 +53,15 @@ async function saveMessages(messages) {
   memoryMessages = messages;
 }
 
+// Session lookup for token verification (reads from same KV as presence)
+async function getSession(sessionId) {
+  const kv = await getKV();
+  if (kv) {
+    return await kv.get(`session:${sessionId}`);
+  }
+  return memorySessions[sessionId] || null;
+}
+
 function generateId() {
   return 'msg_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
 }
@@ -65,13 +81,13 @@ export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Token');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // POST - Send a message
+  // POST - Send a message (requires authentication)
   if (req.method === 'POST') {
     const { from, to, text, payload } = req.body;
 
@@ -83,9 +99,45 @@ export default async function handler(req, res) {
       });
     }
 
+    const sender = from.toLowerCase().replace('@', '');
+
+    // Token-based authentication
+    const token = extractToken(req);
+    let authenticatedHandle = null;
+
+    if (token) {
+      const parts = token.split('.');
+      if (parts.length === 2) {
+        const [tokenSessionId] = parts;
+        const session = await getSession(tokenSessionId);
+        if (session) {
+          const result = verifyToken(token, session.handle);
+          if (result.valid) {
+            authenticatedHandle = session.handle;
+          }
+        }
+      }
+    }
+
+    // Require authentication for sending messages
+    if (!authenticatedHandle) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required. Register via POST /api/presence with action='register', then include token in Authorization header."
+      });
+    }
+
+    // Verify sender matches authenticated handle
+    if (authenticatedHandle !== sender) {
+      return res.status(403).json({
+        success: false,
+        error: `Cannot send as @${sender}. Authenticated as @${authenticatedHandle}.`
+      });
+    }
+
     const message = {
       id: generateId(),
-      from: from.toLowerCase().replace('@', ''),
+      from: sender,
       to: to.toLowerCase().replace('@', ''),
       text: text ? text.substring(0, 2000) : null,
       payload: payload || null,  // Structured data (game state, handoffs, etc.)

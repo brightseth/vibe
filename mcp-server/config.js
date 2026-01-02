@@ -131,7 +131,28 @@ function getSessionOneLiner() {
 
 function setSessionIdentity(handle, one_liner) {
   const sessionId = getSessionId();
-  saveSessionData({ sessionId, handle, one_liner });
+  const existingData = getSessionData() || {};
+  saveSessionData({
+    sessionId,
+    handle,
+    one_liner,
+    // Preserve token if already set (from server registration)
+    token: existingData.token || null
+  });
+}
+
+function setAuthToken(token, sessionId = null) {
+  const data = getSessionData() || {};
+  saveSessionData({
+    ...data,
+    sessionId: sessionId || data.sessionId || generateSessionId(),
+    token
+  });
+}
+
+function getAuthToken() {
+  const data = getSessionData();
+  return data?.token || null;
 }
 
 function clearSession() {
@@ -154,6 +175,8 @@ module.exports = {
   getSessionHandle,
   getSessionOneLiner,
   setSessionIdentity,
+  setAuthToken,
+  getAuthToken,
   clearSession,
   generateSessionId
 };

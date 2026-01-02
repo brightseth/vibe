@@ -2,31 +2,41 @@
  * API Store — Messages and presence via remote API
  *
  * Uses VIBE_API_URL environment variable
+ * Uses HMAC-signed tokens for authentication
  */
 
 const https = require('https');
 const http = require('http');
+const config = require('../config');
 
 const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
 
-function request(method, path, data = null) {
+function request(method, path, data = null, options = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, API_URL);
     const isHttps = url.protocol === 'https:';
     const client = isHttps ? https : http;
 
-    const options = {
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'vibe-mcp/1.0'
+    };
+
+    // Add auth token if provided or if we have one stored
+    const token = options.token || config.getAuthToken();
+    if (token && options.auth !== false) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const reqOptions = {
       hostname: url.hostname,
       port: url.port || (isHttps ? 443 : 80),
       path: url.pathname + url.search,
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'vibe-mcp/1.0'
-      }
+      headers
     };
 
-    const req = client.request(options, (res) => {
+    const req = client.request(reqOptions, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
@@ -62,14 +72,24 @@ function getSessionId() {
 
 async function registerSession(sessionId, handle, building = null) {
   try {
-    // Register session for presence
+    // Register session for presence - server generates sessionId and returns signed token
     const result = await request('POST', '/api/presence', {
       action: 'register',
-      sessionId,
       username: handle
-    });
-    if (result.success) {
+    }, { auth: false });  // Don't send token for registration (we don't have one yet)
+
+    if (result.success && result.token) {
+      // Use server-issued sessionId and token (not client-generated)
+      currentSessionId = result.sessionId;
+
+      // Save token for future authenticated requests
+      config.setAuthToken(result.token, result.sessionId);
+
+      console.error(`[vibe] Registered @${handle} with session ${result.sessionId}`);
+    } else if (result.success) {
+      // Fallback for servers that don't yet return tokens
       currentSessionId = sessionId;
+      console.error(`[vibe] Registered @${handle} (legacy mode)`);
     }
 
     // Also register user in users DB (for @vibe welcome tracking)
@@ -77,7 +97,7 @@ async function registerSession(sessionId, handle, building = null) {
       await request('POST', '/api/users', {
         username: handle,
         building: building || 'something cool'
-      });
+      }, { auth: false });  // User registration doesn't need auth
     } catch (e) {
       // Non-fatal if user registration fails
     }
@@ -91,10 +111,14 @@ async function registerSession(sessionId, handle, building = null) {
 
 async function heartbeat(handle, one_liner, context = null) {
   try {
-    // Use sessionId if available, otherwise fall back to handle
-    const payload = currentSessionId
-      ? { sessionId: currentSessionId, workingOn: one_liner }
-      : { username: handle, workingOn: one_liner };
+    // Token-based auth: server extracts handle from token
+    // Only need to send workingOn and context
+    const payload = { workingOn: one_liner };
+
+    // Fallback: if no token, send username (legacy support)
+    if (!config.getAuthToken()) {
+      payload.username = handle;
+    }
 
     // Add context (mood, file, etc.) if provided
     if (context) {
@@ -109,10 +133,15 @@ async function heartbeat(handle, one_liner, context = null) {
 
 async function sendTypingIndicator(handle, toHandle) {
   try {
-    await request('POST', '/api/presence', {
-      username: handle,
-      typingTo: toHandle
-    });
+    // Token auth: server extracts sender from token
+    const payload = { typingTo: toHandle };
+
+    // Fallback for legacy
+    if (!config.getAuthToken()) {
+      payload.username = handle;
+    }
+
+    await request('POST', '/api/presence', payload);
   } catch (e) {
     console.error('Typing indicator failed:', e.message);
   }
@@ -163,11 +192,19 @@ async function setVisibility(handle, visible) {
 
 async function sendMessage(from, to, body, type = 'dm', payload = null) {
   try {
+    // Always include 'from' for the API (it will be verified against token)
     const data = { from, to, text: body };
     if (payload) {
       data.payload = payload;
     }
     const result = await request('POST', '/api/messages', data);
+
+    // Handle auth errors
+    if (!result.success && result.error?.includes('Authentication')) {
+      console.error('[vibe] Auth failed for message. Try `vibe init` to re-register.');
+      return null;
+    }
+
     return result.message;
   } catch (e) {
     console.error('Send failed:', e.message);

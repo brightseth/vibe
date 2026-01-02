@@ -6,7 +6,13 @@
  *
  * POST /api/presence - Update your presence (heartbeat)
  * GET /api/presence - See who's active
+ *
+ * Authentication:
+ * - Register returns a signed token (sessionId.signature)
+ * - Write operations require valid token in Authorization header
  */
+
+import { generateToken, generateSessionId, requireAuth, extractToken, verifyToken } from './lib/auth.js';
 
 // Check if KV is configured via environment variables
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -193,47 +199,89 @@ export default async function handler(req, res) {
     try {
       const { username, workingOn, project, location, typingTo, context, sessionId, action } = req.body;
 
-      // Session registration - register a sessionId → handle mapping
+      // Session registration - generate server-side sessionId and signed token
       if (action === 'register') {
-        if (!sessionId || !username) {
+        if (!username) {
           return res.status(400).json({
             success: false,
-            error: "Session registration requires sessionId and username (handle)"
+            error: "Session registration requires username (handle)"
           });
         }
         const handle = username.toLowerCase().replace('@', '');
-        const session = await registerSession(sessionId, handle);
+
+        // Generate server-side session ID (ignore client-provided one)
+        const serverSessionId = generateSessionId();
+
+        // Create signed token
+        const token = generateToken(serverSessionId, handle);
+
+        // Store session
+        await registerSession(serverSessionId, handle);
+
         return res.status(200).json({
           success: true,
           action: 'register',
-          sessionId,
+          sessionId: serverSessionId,
           handle,
+          token,  // Client must store and use this for all requests
           expiresIn: `${SESSION_TTL}s`,
-          message: `Session registered: ${sessionId} → @${handle}`
+          message: `Session registered: ${serverSessionId} → @${handle}`
         });
       }
 
-      // Session lookup - resolve sessionId to handle
-      if (sessionId && !username) {
-        const session = await getSession(sessionId);
-        if (!session) {
-          return res.status(400).json({
-            success: false,
-            error: "Session not found. Run /vibe init to register.",
-            sessionId
-          });
+      // Token-based auth: verify token and extract handle
+      const token = extractToken(req);
+      let authenticatedHandle = null;
+
+      if (token) {
+        // Token provided - verify it
+        const parts = token.split('.');
+        if (parts.length === 2) {
+          const [tokenSessionId] = parts;
+          // Get session to find the handle
+          const session = await getSession(tokenSessionId);
+          if (session) {
+            const result = verifyToken(token, session.handle);
+            if (result.valid) {
+              authenticatedHandle = session.handle;
+              // Refresh session TTL
+              await refreshSession(tokenSessionId);
+            }
+          }
         }
-        // Use the handle from the session
-        req.body.username = session.handle;
-        // Refresh session TTL
-        await refreshSession(sessionId);
       }
 
-      const { username: resolvedUsername } = req.body;
+      // Legacy fallback: sessionId without token (for transition period)
+      if (!authenticatedHandle && sessionId && !username) {
+        const session = await getSession(sessionId);
+        if (session) {
+          // Warn but allow during transition
+          console.warn(`[presence] Unauthenticated session access: ${sessionId}`);
+          authenticatedHandle = session.handle;
+          await refreshSession(sessionId);
+        }
+      }
 
-      // Typing indicator - separate short-lived key
+      // Determine final username
+      const finalUsername = authenticatedHandle || (username ? username.toLowerCase().replace('@', '') : null);
+
+      if (!finalUsername) {
+        return res.status(400).json({
+          success: false,
+          error: "Authentication required. Include token in Authorization header."
+        });
+      }
+
+      const user = finalUsername;
+
+      // Typing indicator - requires auth
       if (typingTo) {
-        const user = (resolvedUsername || username).toLowerCase().replace('@', '');
+        if (!authenticatedHandle) {
+          return res.status(401).json({
+            success: false,
+            error: "Typing indicator requires authentication"
+          });
+        }
         const recipient = typingTo.toLowerCase().replace('@', '');
         const kv = await getKV();
         if (kv) {
@@ -245,16 +293,6 @@ export default async function handler(req, res) {
           expiresIn: '5s'
         });
       }
-
-      const finalUsername = resolvedUsername || username;
-      if (!finalUsername) {
-        return res.status(400).json({
-          success: false,
-          error: "Missing required field: username (or valid sessionId)"
-        });
-      }
-
-      const user = finalUsername.toLowerCase().replace('@', '');
 
       // Get existing data to preserve fields
       const existing = await getPresence(user) || {};
