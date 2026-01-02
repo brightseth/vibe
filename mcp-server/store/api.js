@@ -11,11 +11,15 @@ const config = require('../config');
 
 const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
 
+// Default timeout for API requests (10 seconds)
+const REQUEST_TIMEOUT = 10000;
+
 function request(method, path, data = null, options = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, API_URL);
     const isHttps = url.protocol === 'https:';
     const client = isHttps ? https : http;
+    const timeout = options.timeout || REQUEST_TIMEOUT;
 
     const headers = {
       'Content-Type': 'application/json',
@@ -33,13 +37,25 @@ function request(method, path, data = null, options = {}) {
       port: url.port || (isHttps ? 443 : 80),
       path: url.pathname + url.search,
       method,
-      headers
+      headers,
+      timeout
     };
 
     const req = client.request(reqOptions, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
+        // Handle non-2xx responses
+        if (res.statusCode >= 400) {
+          try {
+            const parsed = JSON.parse(body);
+            resolve({ success: false, error: parsed.error || `HTTP ${res.statusCode}`, statusCode: res.statusCode });
+          } catch (e) {
+            resolve({ success: false, error: `HTTP ${res.statusCode}`, statusCode: res.statusCode });
+          }
+          return;
+        }
+
         try {
           resolve(JSON.parse(body));
         } catch (e) {
@@ -48,7 +64,15 @@ function request(method, path, data = null, options = {}) {
       });
     });
 
-    req.on('error', reject);
+    // Handle timeout
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({ success: false, error: 'Request timeout', timeout: true });
+    });
+
+    req.on('error', (e) => {
+      resolve({ success: false, error: e.message, network: true });
+    });
 
     if (data) {
       req.write(JSON.stringify(data));

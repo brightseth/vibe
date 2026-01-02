@@ -70,6 +70,9 @@ const PRESENCE_TTL = 300;
 // Session TTL in seconds (1 hour - sessions are more persistent than presence)
 const SESSION_TTL = 3600;
 
+// Redis keys for sorted set pattern
+const PRESENCE_INDEX = 'presence:index';  // Sorted set: score=timestamp, member=username
+
 // In-memory fallback (no seed data - real users only)
 let memoryPresence = {};
 let memorySessions = {};  // sessionId → handle mapping
@@ -85,39 +88,153 @@ async function getKV() {
   }
 }
 
+// ============ PRESENCE STORAGE (sorted set pattern) ============
+
 async function getPresence(username) {
   const kv = await getKV();
   if (kv) {
-    return await kv.get(`presence:${username}`);
+    return await kv.get(`presence:data:${username}`);
   }
   return memoryPresence[username] || null;
 }
 
 async function setPresence(username, data, options = {}) {
   const kv = await getKV();
+  const timestamp = Date.now();
+
   if (kv) {
-    await kv.set(`presence:${username}`, data, options);
+    // Use pipeline for atomic operations
+    const pipeline = kv.pipeline();
+
+    // Store user data with TTL
+    pipeline.set(`presence:data:${username}`, data, options);
+
+    // Update sorted set index (score = timestamp for sorting)
+    pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
+
+    await pipeline.exec();
+  } else {
+    memoryPresence[username] = { ...data, _timestamp: timestamp };
   }
-  memoryPresence[username] = data;
 }
 
 async function getAllPresence() {
   const kv = await getKV();
+
   if (kv) {
-    const keys = await kv.keys('presence:*');
-    if (keys.length === 0) return [];
+    // Get all users from sorted set, newest first
+    // Using ZRANGE with REV to get descending order by score
+    const usernames = await kv.zrange(PRESENCE_INDEX, 0, -1, { rev: true });
+
+    if (!usernames || usernames.length === 0) return [];
+
+    // Batch fetch all user data
+    const keys = usernames.map(u => `presence:data:${u}`);
     const data = await kv.mget(...keys);
-    return data.filter(p => p !== null);
+
+    // Filter out expired/null entries and clean up stale index entries
+    const validData = [];
+    const staleUsers = [];
+
+    for (let i = 0; i < usernames.length; i++) {
+      if (data[i]) {
+        validData.push(data[i]);
+      } else {
+        staleUsers.push(usernames[i]);
+      }
+    }
+
+    // Clean up stale index entries (data expired but index remains)
+    if (staleUsers.length > 0) {
+      await kv.zrem(PRESENCE_INDEX, ...staleUsers);
+    }
+
+    return validData;
   }
-  return Object.values(memoryPresence);
+
+  // Memory fallback: sort by timestamp
+  return Object.values(memoryPresence)
+    .sort((a, b) => (b._timestamp || 0) - (a._timestamp || 0));
+}
+
+// Get only active users (seen within cutoff period) - O(log N)
+async function getActivePresence(cutoffSeconds = 1800) {
+  const kv = await getKV();
+  const cutoffTime = Date.now() - (cutoffSeconds * 1000);
+
+  if (kv) {
+    // Get users with score > cutoffTime (active within cutoff)
+    const usernames = await kv.zrangebyscore(PRESENCE_INDEX, cutoffTime, '+inf');
+
+    if (!usernames || usernames.length === 0) return [];
+
+    const keys = usernames.map(u => `presence:data:${u}`);
+    const data = await kv.mget(...keys);
+    return data.filter(d => d !== null);
+  }
+
+  // Memory fallback
+  return Object.values(memoryPresence)
+    .filter(p => p._timestamp && p._timestamp > cutoffTime);
 }
 
 async function deletePresence(username) {
   const kv = await getKV();
   if (kv) {
-    await kv.del(`presence:${username}`);
+    const pipeline = kv.pipeline();
+    pipeline.del(`presence:data:${username}`);
+    pipeline.zrem(PRESENCE_INDEX, username);
+    await pipeline.exec();
   }
   delete memoryPresence[username];
+}
+
+// Migration: move old presence:${user} keys to new schema
+async function migratePresence() {
+  const kv = await getKV();
+  if (!kv) return { success: false, error: 'KV not configured' };
+
+  try {
+    // Find old-style keys
+    const oldKeys = await kv.keys('presence:*');
+    const keysToMigrate = oldKeys.filter(k =>
+      !k.startsWith('presence:data:') &&
+      !k.startsWith('presence:index') &&
+      k !== PRESENCE_INDEX
+    );
+
+    if (keysToMigrate.length === 0) {
+      return { success: true, migrated: 0, message: 'No old presence keys to migrate' };
+    }
+
+    let migrated = 0;
+    for (const oldKey of keysToMigrate) {
+      const username = oldKey.replace('presence:', '');
+      const data = await kv.get(oldKey);
+
+      if (data && data.username) {
+        // Migrate to new schema
+        const timestamp = data.lastSeen ? new Date(data.lastSeen).getTime() : Date.now();
+
+        const pipeline = kv.pipeline();
+        pipeline.set(`presence:data:${username}`, data, { ex: PRESENCE_TTL });
+        pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
+        pipeline.del(oldKey);
+        await pipeline.exec();
+
+        migrated++;
+      }
+    }
+
+    return {
+      success: true,
+      migrated,
+      total: keysToMigrate.length,
+      message: `Migrated ${migrated}/${keysToMigrate.length} presence records`
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 }
 
 // Session management - maps sessionId to handle for per-session identity
@@ -403,10 +520,10 @@ export default async function handler(req, res) {
         storage: KV_CONFIGURED ? 'kv' : 'memory'
       });
     } catch (error) {
+      // Don't leak stack traces in production
       return res.status(500).json({
         success: false,
-        error: error.message,
-        stack: error.stack
+        error: error.message
       });
     }
   }
@@ -470,10 +587,17 @@ export default async function handler(req, res) {
     });
   }
 
-  // DELETE - Remove presence (cleanup test accounts)
+  // DELETE - Remove presence or run migration
   if (req.method === 'DELETE') {
-    const { username } = req.query;
+    const { username, action } = req.query;
 
+    // Migration action
+    if (action === 'migrate') {
+      const result = await migratePresence();
+      return res.status(result.success ? 200 : 500).json(result);
+    }
+
+    // Delete user presence
     if (!username) {
       return res.status(400).json({
         success: false,
