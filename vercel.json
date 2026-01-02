@@ -11,6 +11,7 @@
     { "source": "/api/messages", "destination": "/api/messages.js" },
     { "source": "/api/profile", "destination": "/api/profile.js" },
     { "source": "/api/users", "destination": "/api/users.js" },
+    { "source": "/api/consent", "destination": "/api/consent.js" },
     { "source": "/api/friends", "destination": "/api/friends.js" },
     { "source": "/api/stats", "destination": "/api/stats.js" },
     { "source": "/api/gigabrain/ingest", "destination": "/api/gigabrain/ingest.js" },

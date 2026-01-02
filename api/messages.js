@@ -63,8 +63,12 @@ const memory = {
   inboxes: {},       // inbox:${user} → [id, ...]
   outboxes: {},      // outbox:${user} → [id, ...]
   threads: {},       // thread:${a}:${b} → [id, ...]
-  sessions: {}       // session:${id} → session
+  sessions: {},      // session:${id} → session
+  consent: {}        // consent:${from}:${to} → { status, ... }
 };
+
+// System accounts that bypass consent
+const SYSTEM_ACCOUNTS = ['vibe', 'system', 'solienne'];
 
 // KV wrapper
 async function getKV() {
@@ -210,6 +214,42 @@ async function getSession(sessionId) {
   return memory.sessions[sessionId] || null;
 }
 
+// ============ CONSENT HELPERS ============
+
+function consentKey(from, to) {
+  return `consent:${from}:${to}`;
+}
+
+async function getConsent(from, to) {
+  const kv = await getKV();
+  const key = consentKey(from, to);
+  if (kv) {
+    return await kv.get(key);
+  }
+  return memory.consent[key] || null;
+}
+
+async function setConsent(from, to, data) {
+  const kv = await getKV();
+  const key = consentKey(from, to);
+  if (kv) {
+    await kv.set(key, data);
+  } else {
+    memory.consent[key] = data;
+  }
+}
+
+// Check if two users have an existing relationship (have messaged before)
+async function hasExistingThread(userA, userB) {
+  const kv = await getKV();
+  const tKey = threadKey(userA, userB);
+  if (kv) {
+    const count = await kv.llen(tKey);
+    return count > 0;
+  }
+  return (memory.threads[tKey]?.length || 0) > 0;
+}
+
 // ============ MIGRATION ============
 
 // Migrate from old global array to new per-user lists
@@ -346,25 +386,94 @@ export default async function handler(req, res) {
       });
     }
 
+    const recipient = to.toLowerCase().replace('@', '');
+
+    // ============ CONSENT CHECK ============
+    // Bypass consent for:
+    // 1. System accounts (vibe, solienne, etc.)
+    // 2. Existing threads (have messaged before)
+    // 3. Handshake payloads (consent requests themselves)
+
+    const isSystemAccount = SYSTEM_ACCOUNTS.includes(sender) || SYSTEM_ACCOUNTS.includes(recipient);
+    const isHandshakePayload = payload?.type === 'handshake';
+    let consentStatus = 'accepted';  // Default for system/handshake
+    let consentAutoRequested = false;
+
+    if (!isSystemAccount && !isHandshakePayload) {
+      // Check consent status
+      const consent = await getConsent(sender, recipient);
+      consentStatus = consent?.status || 'none';
+
+      if (consentStatus === 'blocked') {
+        return res.status(403).json({
+          success: false,
+          error: 'consent_blocked',
+          message: 'You have been blocked by this user'
+        });
+      }
+
+      // If no consent, check for existing thread (grandfathered relationship)
+      if (consentStatus === 'none' || consentStatus === 'pending') {
+        const hasThread = await hasExistingThread(sender, recipient);
+        if (hasThread) {
+          // Grandfather existing relationships - auto-accept
+          await setConsent(sender, recipient, {
+            status: 'accepted',
+            requestedAt: new Date().toISOString(),
+            respondedAt: new Date().toISOString(),
+            grandfathered: true
+          });
+          await setConsent(recipient, sender, {
+            status: 'accepted',
+            requestedAt: new Date().toISOString(),
+            respondedAt: new Date().toISOString(),
+            grandfathered: true
+          });
+          consentStatus = 'accepted';
+        } else if (consentStatus === 'none') {
+          // First message to stranger - auto-request consent
+          await setConsent(sender, recipient, {
+            status: 'pending',
+            requestedAt: new Date().toISOString(),
+            message: text?.substring(0, 200) || null  // Include preview
+          });
+          consentStatus = 'pending';
+          consentAutoRequested = true;
+        }
+      }
+    }
+
     const message = {
       id: generateId(),
       from: sender,
-      to: to.toLowerCase().replace('@', ''),
+      to: recipient,
       text: text ? text.substring(0, 2000) : null,
       payload: payload || null,  // Structured data (game state, handoffs, etc.)
       createdAt: new Date().toISOString(),
-      read: false
+      read: false,
+      consent: consentStatus  // Track consent state at send time
     };
 
     // Store in per-user lists (atomic, no race conditions)
     await storeMessage(message);
 
-    return res.status(200).json({
+    // Build response
+    const response = {
       success: true,
       message,
-      display: `Message sent to @${message.to}`,
+      consent: consentStatus,
       storage: KV_CONFIGURED ? 'kv' : 'memory'
-    });
+    };
+
+    if (consentStatus === 'accepted') {
+      response.display = `Message sent to @${recipient}`;
+    } else if (consentStatus === 'pending') {
+      response.display = consentAutoRequested
+        ? `Connection request sent to @${recipient}. Message will be visible once they accept.`
+        : `Message sent (pending acceptance by @${recipient})`;
+    }
+
+    return res.status(200).json(response);
   }
 
   // DELETE - Disabled for Phase 1 alpha (security)

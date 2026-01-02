@@ -288,6 +288,56 @@ async function markThreadRead(myHandle, theirHandle) {
   // Reading thread via API already marks as read
 }
 
+// ============ CONSENT ============
+
+async function getConsentStatus(from, to) {
+  try {
+    const result = await request('GET', `/api/consent?from=${from}&to=${to}`);
+    return result;
+  } catch (e) {
+    console.error('Consent check failed:', e.message);
+    return { status: 'none' };
+  }
+}
+
+async function getPendingConsents(handle) {
+  try {
+    const result = await request('GET', '/api/consent');
+    return result.pending || [];
+  } catch (e) {
+    console.error('Pending consents failed:', e.message);
+    return [];
+  }
+}
+
+async function acceptConsent(from, to) {
+  try {
+    const result = await request('POST', '/api/consent', {
+      action: 'accept',
+      from,
+      to
+    });
+    return result;
+  } catch (e) {
+    console.error('Accept consent failed:', e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+async function blockUser(from, to) {
+  try {
+    const result = await request('POST', '/api/consent', {
+      action: 'block',
+      from,
+      to
+    });
+    return result;
+  } catch (e) {
+    console.error('Block failed:', e.message);
+    return { success: false, error: e.message };
+  }
+}
+
 // ============ HELPERS ============
 
 function formatTimeAgo(timestamp) {
@@ -319,6 +369,12 @@ module.exports = {
   getUnreadCount,
   getThread,
   markThreadRead,
+
+  // Consent
+  getConsentStatus,
+  getPendingConsents,
+  acceptConsent,
+  blockUser,
 
   // Helpers
   formatTimeAgo
