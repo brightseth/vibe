@@ -51,6 +51,8 @@ async function handler(args) {
   let keypairNote = '';
   if (!keypair) {
     keypair = crypto.generateKeypair();
+    // Save keypair to shared config (persists across MCP invocations)
+    config.saveKeypair(keypair);
     keypairNote = '\n🔐 _AIRC keypair generated for message signing_';
   }
 

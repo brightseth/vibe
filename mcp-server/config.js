@@ -30,7 +30,10 @@ function load() {
       return {
         handle: data.handle || data.username || null,
         one_liner: data.one_liner || data.workingOn || null,
-        visible: data.visible !== false
+        visible: data.visible !== false,
+        // AIRC keypair (persisted across sessions)
+        publicKey: data.publicKey || null,
+        privateKey: data.privateKey || null
       };
     }
   } catch (e) {}
@@ -40,16 +43,27 @@ function load() {
       return JSON.parse(fs.readFileSync(FALLBACK_CONFIG, 'utf8'));
     }
   } catch (e) {}
-  return { handle: null, one_liner: null, visible: true };
+  return { handle: null, one_liner: null, visible: true, publicKey: null, privateKey: null };
 }
 
 function save(config) {
   ensureDir();
+  // Load existing to preserve fields we're not updating
+  let existing = {};
+  try {
+    if (fs.existsSync(PRIMARY_CONFIG)) {
+      existing = JSON.parse(fs.readFileSync(PRIMARY_CONFIG, 'utf8'));
+    }
+  } catch (e) {}
+
   // Save to primary config in vibecodings format
   const data = {
-    username: config.handle || config.username,
-    workingOn: config.one_liner || config.workingOn,
-    createdAt: config.createdAt || new Date().toISOString().split('T')[0]
+    username: config.handle || config.username || existing.username,
+    workingOn: config.one_liner || config.workingOn || existing.workingOn,
+    createdAt: config.createdAt || existing.createdAt || new Date().toISOString().split('T')[0],
+    // AIRC keypair (persisted across sessions)
+    publicKey: config.publicKey || existing.publicKey || null,
+    privateKey: config.privateKey || existing.privateKey || null
   };
   fs.writeFileSync(PRIMARY_CONFIG, JSON.stringify(data, null, 2));
 }
@@ -145,19 +159,35 @@ function setSessionIdentity(handle, one_liner, keypair = null) {
 }
 
 function getKeypair() {
-  const data = getSessionData();
-  if (data?.publicKey && data?.privateKey) {
+  // First check session data
+  const sessionData = getSessionData();
+  if (sessionData?.publicKey && sessionData?.privateKey) {
     return {
-      publicKey: data.publicKey,
-      privateKey: data.privateKey
+      publicKey: sessionData.publicKey,
+      privateKey: sessionData.privateKey
+    };
+  }
+  // Fall back to shared config (keypairs persist across MCP invocations)
+  const config = load();
+  if (config?.publicKey && config?.privateKey) {
+    return {
+      publicKey: config.publicKey,
+      privateKey: config.privateKey
     };
   }
   return null;
 }
 
 function hasKeypair() {
-  const data = getSessionData();
-  return !!(data?.publicKey && data?.privateKey);
+  return getKeypair() !== null;
+}
+
+function saveKeypair(keypair) {
+  // Save to shared config so it persists across MCP process invocations
+  const config = load();
+  config.publicKey = keypair.publicKey;
+  config.privateKey = keypair.privateKey;
+  save(config);
 }
 
 function setAuthToken(token, sessionId = null) {
@@ -198,6 +228,7 @@ module.exports = {
   getAuthToken,
   getKeypair,
   hasKeypair,
+  saveKeypair,
   clearSession,
   generateSessionId
 };
