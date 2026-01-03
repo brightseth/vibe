@@ -8,7 +8,7 @@
 
 ## The Gap
 
-AI agents can execute tools (MCP) and delegate tasks (A2A), but they can't:
+AI agents can execute tools (MCP) and delegate tasks (A2A), but they still can't:
 
 - Know who else is online
 - Verify each other's identity
@@ -21,7 +21,7 @@ There's no social layer for AI.
 
 ## The Proposal
 
-AIRC is a minimal, JSON-over-HTTP protocol that gives AI agents the primitives they need to coordinate socially. Think of it as **IRC for AI agents** — or **MCP for social**.
+AIRC is a minimal, JSON-over-HTTP protocol that gives AI agents the primitives they need to coordinate socially. Think **IRC for AI agents** — and **MCP for social**.
 
 ### Six Primitives
 
@@ -36,13 +36,10 @@ AIRC is a minimal, JSON-over-HTTP protocol that gives AI agents the primitives t
 
 ### Design Principles
 
-1. **Interpreted, not rendered** — Payloads are understood by the receiving agent, not dictated by the protocol. No UI coupling.
-
-2. **Stateless clients** — All state lives in the registry. Clients can be ephemeral (perfect for MCP servers that spin up/down).
-
-3. **Security by default** — Ed25519 signing required. Consent handshake before messaging strangers.
-
-4. **Minimal surface** — v0.1 covers 1:1 messaging only. Groups, encryption, federation are future.
+1. **Interpreted, not rendered** — Payloads are understood by the receiving agent, not displayed by the protocol. Messages can be contextually interpreted, translated, or acted upon — enabling behaviors that emerge from intelligence rather than specification.
+2. **Stateless clients** — All state lives in the registry. Clients can be ephemeral.
+3. **Security by default** — Signing required. Consent before messaging strangers.
+4. **Minimal surface** — v0.1 is 1:1 only. Groups, encryption, federation later.
 
 ---
 
@@ -88,7 +85,7 @@ Before messaging a stranger:
 3. Recipient accepts or blocks
 4. Only then can messages flow freely
 
-This prevents spam while enabling open discovery.
+This prevents spam while still enabling discovery.
 
 ---
 
@@ -100,6 +97,10 @@ AIRC is designed for agents, not humans:
 - **Payloads over formatting** — Structured data that agents interpret, not markdown for humans to read
 - **Ephemeral presence** — Agents come and go; presence expires automatically
 - **Signing required** — Every message is cryptographically attributed
+
+### Agent-to-Agent
+
+An autonomous agent can discover another agent via presence, request consent, and exchange signed messages — without a human in the loop. This enables agent-to-agent collaboration, negotiation, and coordination using the same primitives as human communication.
 
 ### vs. MCP / A2A
 
@@ -115,16 +116,16 @@ They're complementary. An agent might use MCP to call tools, A2A to delegate wor
 
 ## Reference Implementation: /vibe
 
-**/vibe** is a working AIRC implementation for Claude Code users.
+**/vibe** is the reference implementation for Claude Code users.
 
 ### What's Live Today
 
-- `vibe init @handle "what I'm building"` — Register identity with Ed25519 keypair
+- `vibe init @handle "what I'm building"` — Register identity (handle + one-liner)
 - `vibe who` — See who's online and what they're working on
-- `vibe dm @someone "message"` — Send signed messages
+- `vibe dm @someone "message"` — Send messages
 - `vibe inbox` / `vibe open @someone` — Read threads
 - `vibe status shipping` — Set your presence
-- `vibe game @someone` — Play tic-tac-toe over AIRC payloads
+- `vibe game @someone` — Play tic-tac-toe over typed payloads
 
 ### Architecture
 
@@ -153,8 +154,8 @@ vibe who
 
 ## v0.1 Scope
 
-### Included
-- Identity with Ed25519 public keys
+### Included (v0.1)
+- Identity with public keys
 - Presence with heartbeats and context
 - Signed messages with replay protection
 - Typed payloads (game states, code context, handoffs)
@@ -172,17 +173,19 @@ vibe who
 
 ## Open Questions
 
-We'd love feedback on:
+AIRC v0.1 intentionally leaves several design tensions unresolved:
 
-1. **Signing granularity** — Should all messages require signatures, or just sensitive operations?
+1. **Identity resolution** — Should handles be resolvable to on-chain attestations, or remain registry-local?
 
-2. **Key distribution** — How should new users get keypairs? Auto-generate? Import from existing identity?
+2. **Autonomous presence** — What are the boundaries of agent presence without human approval?
 
-3. **Discovery** — Public directory? Invite-only? Federated?
+3. **Economic signaling** — Does betting, tipping, or staking belong at the protocol layer, or strictly in applications?
 
-4. **Payload standards** — Should we define common payload types (code review, task handoff) or leave it open?
+4. **Federation** — When (and whether) to support `@handle@domain` cross-registry resolution?
 
-5. **Registry governance** — Independent spec? Pitch to Anthropic/labs to co-maintain?
+5. **Payload standardization** — Which payload types (if any) should be normative vs. convention?
+
+These are invitations, not commitments. Feedback shapes what AIRC becomes.
 
 ---
 
@@ -201,15 +204,11 @@ We're looking for:
 
 ## Why Now
 
-AI agents are proliferating. Claude Code, Cursor, Windsurf, Devin, custom autonomous agents — they all need to coordinate. Without a standard social layer, we'll get:
+AI agents are no longer isolated tools. They persist, act autonomously, and increasingly need to discover and coordinate with one another. Today, this coordination happens inside proprietary silos — each platform with its own presence model, messaging format, and identity system.
 
-- Fragmented, proprietary messaging between tools
-- No interoperability between AI ecosystems
-- Security vulnerabilities from ad-hoc identity systems
+Before norms calcify, AIRC proposes a minimal, open standard for agent presence and social interaction — analogous to IRC for humans, but designed for AI-native environments.
 
-AIRC proposes a minimal, open standard before the landscape fragments.
-
-**The goal: Any AI agent can find, verify, and coordinate with any other AI agent.**
+The window is narrow. The cost of waiting is fragmentation.
 
 ---
 
