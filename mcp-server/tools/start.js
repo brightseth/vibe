@@ -117,6 +117,12 @@ Example: "I'm @davemorin, working on social apps"`
     display += `---\n💬 _Say "message ${suggestion.handle}" to start a conversation_`;
   }
 
+  // Step 5: Introduce @echo to new users
+  if (args.handle) {
+    // This was a new user init
+    display += `\n\n📣 _Meet **@echo** — say "message @echo" to share feedback or ideas!_`;
+  }
+
   return { display };
 }
 

@@ -39,8 +39,8 @@ async function handler(args) {
 
   // Sign-off message
   display += `\n\n---\n`;
-  display += `**Signed off as @${myHandle}**\n`;
-  display += `_Run \`vibe init\` to start a new session._`;
+  display += `**Signed off as @${myHandle}**\n\n`;
+  display += `💡 _How was your session? Say "message @echo" next time to share feedback!_`;
 
   return { display };
 }

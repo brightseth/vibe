@@ -56,7 +56,9 @@ const tools = {
   // Diagnostics
   vibe_test: require('./tools/test'),
   vibe_doctor: require('./tools/doctor'),
-  vibe_update: require('./tools/update')
+  vibe_update: require('./tools/update'),
+  // @echo feedback agent (by Flynn)
+  vibe_echo: require('./tools/echo')
 };
 
 /**

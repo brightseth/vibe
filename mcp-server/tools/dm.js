@@ -38,6 +38,12 @@ async function handler(args) {
   const myHandle = config.getHandle();
   const them = normalizeHandle(handle);
 
+  // Route @echo messages to the echo agent
+  if (them === 'echo') {
+    const echo = require('./echo');
+    return echo.handler({ message, anonymous: false });
+  }
+
   if (them === myHandle) {
     return { display: 'You can\'t DM yourself.' };
   }
