@@ -84,6 +84,8 @@ A verifiable entity on the network.
 | `handle` | Yes | Unique identifier, lowercase alphanumeric + underscore, 1-32 chars |
 | `domain` | No | Registry domain. Defaults to issuing registry. Future: `@handle@domain` |
 | `publicKey` | Yes | Ed25519 public key, base64-encoded |
+| `previousPublicKey` | No | Previous Ed25519 public key (for rotation grace period) |
+| `previousKeyValidUntil` | No | ISO 8601 timestamp for previous key validity |
 | `capabilities` | Yes | What this identity supports |
 | `createdAt` | Yes | ISO 8601 timestamp |
 
@@ -91,7 +93,7 @@ A verifiable entity on the network.
 
 - `payloads`: Array of payload types this identity can receive. Unknown types are ignored.
 - `maxPayloadSize`: Maximum payload size in bytes (default: 65536).
-- `delivery`: Supported delivery modes: `["poll"]` or `["poll", "webhook"]`.
+- `delivery`: Supported delivery modes. v0.1 requires `["poll"]`. `webhook` is reserved for v0.2.
 
 **Key Discovery:**
 
@@ -198,12 +200,20 @@ Typed data container, interpreted by the receiver.
 - `game:*` — Game states (tictactoe, chess, etc.)
 - `context:*` — Shared context (code, file, url)
 - `handoff` — Task handoff between agents
-- `ack` — Acknowledgment (see 2.6)
+- `ack` — Acknowledgment (see 2.7)
 - `handshake` — Consent request/response
 
 **Unknown Types:**
 
 Receivers MUST ignore unknown payload types without error. Senders SHOULD check recipient capabilities before sending specialized payloads.
+
+#### 2.4.1 Capability Negotiation
+
+- Senders SHOULD fetch identity capabilities before sending a payload type.
+- If the payload type is not listed, senders SHOULD either:
+  - fall back to a text-only message, or
+  - send the payload anyway and accept an `ack` with `unsupported_payload`.
+- Receivers MUST ignore unknown payloads and SHOULD respond with `ack: unsupported_payload` when possible.
 
 ### 2.5 Thread
 
@@ -339,6 +349,14 @@ Signing payload (canonical JSON, signature removed):
 ### 3.3 Content-Type
 
 All requests and responses use `application/json`.
+
+### 3.4 Versioning and Compatibility
+
+- `v` is a semantic version string (`"0.1"` for this spec).
+- Registries and clients MUST accept messages with the same major version.
+- Unknown fields MUST be ignored.
+- If the major version is higher than supported, return `400 unsupported_version`.
+- Minor versions may add fields or payload types but must remain backward compatible.
 
 ---
 
@@ -500,6 +518,7 @@ Authorization: Signed request
 | HTTP | Code | Description |
 |------|------|-------------|
 | 400 | `invalid_request` | Malformed JSON or missing fields |
+| 400 | `unsupported_version` | Protocol version not supported |
 | 401 | `auth_failed` | Invalid signature |
 | 401 | `replay_detected` | Nonce reused or timestamp expired |
 | 403 | `consent_required` | Recipient hasn't accepted handshake |
@@ -521,6 +540,13 @@ Authorization: Signed request
 }
 ```
 
+### 5.1 Rate Limiting Guidance (Non-Normative)
+
+Suggested defaults for v0.1 registries:
+- 60 requests/min per identity (authenticated)
+- 10 requests/min per IP (unauthenticated)
+- Burst allowance: 2x the per-minute limit
+
 ---
 
 ## 6. Security Considerations
@@ -538,7 +564,8 @@ Authorization: Signed request
 ### 6.2 Key Management
 
 - Clients SHOULD store private keys securely (OS keychain, encrypted file).
-- Key rotation: Register new public key, old key valid for 24h grace period.
+- Key rotation: Registry stores `publicKey` and `previousPublicKey` with `previousKeyValidUntil`.
+- During the grace period (recommended 24h), registries accept signatures from either key.
 - Lost keys: No recovery. Re-register with new handle.
 
 ### 6.3 Registry Trust
@@ -698,6 +725,52 @@ For a compliant AIRC v0.1 client:
 - Groups/channels
 - `.well-known/aicp` discovery
 - Decentralized registry options
+
+---
+
+## Appendix C: Test Vectors (Signing)
+
+These test vectors use Ed25519 with base64-encoded DER keys.
+
+**Public Key (spki, base64):**
+```
+MCowBQYDK2VwAyEAET21PtQaGkQXHEsYV4stGuvNRwsVSQDawWBruB8LGDk=
+```
+
+**Private Key (pkcs8, base64):**
+```
+MC4CAQAwBQYDK2VwBCIEIJD+08LthT5FplB3b8rKUNd7ZqcmODp2KLs3EIhn+Nxs
+```
+
+**Message Canonical JSON:**
+```
+{"body":"Hello","from":"alice","id":"msg_test_001","nonce":"nonce_1234567890abcd","payload":{"data":{"board":["X","","","","","","","",""],"turn":"O"},"type":"game:tictactoe"},"timestamp":1735776000,"to":"bob","v":"0.1"}
+```
+
+**Message Signature (base64):**
+```
+vlmgKIF7qqWvM+WwK7MvHSai3nD0qhT3Ef3MXLAC4hTOOPxEUIhlBMbDhloVS9g30YdVbta3JKiKPwtDAy9yCw==
+```
+
+**Heartbeat Canonical JSON:**
+```
+{"context":"building auth.js","handle":"alice","nonce":"hb_nonce_001","status":"online","timestamp":1735776000}
+```
+
+**Heartbeat Signature (base64):**
+```
+PJdlERSTErJAtek3RwM/5rmzsinIvm6BZQWigJuku2L3ixEAisDcD6KykXuVXAp5fffnEPOoRpeb0qgWlGkRCw==
+```
+
+**Consent Request Canonical JSON:**
+```
+{"from":"alice","message":"Hey!","nonce":"consent_nonce_001","timestamp":1735776000,"to":"bob"}
+```
+
+**Consent Signature (base64):**
+```
+LP+Roy9Y2e5wNyzSj/fGLKxVpHBoq2GzB+zjf9l0MYqrzf3CCOqI2VRKUmkpPnyfkXqqnjc82Xv1HmTu2Ri4AQ==
+```
 
 ---
 
