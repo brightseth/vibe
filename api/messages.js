@@ -11,9 +11,73 @@
  * Authentication:
  * - POST requires valid token in Authorization header
  * - Token format: sessionId.signature (from /api/presence register)
+ *
+ * AIRC v0.1: Optional Ed25519 signature verification
  */
 
 import crypto from 'crypto';
+
+// ============ AIRC SIGNATURE VERIFICATION ============
+
+/**
+ * Serialize object to canonical JSON per AIRC spec
+ */
+function canonicalJSON(obj) {
+  if (obj === null || obj === undefined) return 'null';
+  if (typeof obj !== 'object') return JSON.stringify(obj);
+  if (Array.isArray(obj)) {
+    return '[' + obj.map(canonicalJSON).join(',') + ']';
+  }
+  const sortedKeys = Object.keys(obj).sort();
+  const pairs = sortedKeys
+    .filter(k => obj[k] !== undefined)
+    .map(k => `${JSON.stringify(k)}:${canonicalJSON(obj[k])}`);
+  return '{' + pairs.join(',') + '}';
+}
+
+/**
+ * Verify Ed25519 signature on AIRC message
+ */
+function verifyAIRCSignature(message, publicKeyBase64) {
+  if (!message.signature || !publicKeyBase64) return { valid: false, reason: 'missing_signature_or_key' };
+
+  const toVerify = { ...message };
+  const signature = toVerify.signature;
+  delete toVerify.signature;
+  // Also remove server-added fields for verification
+  delete toVerify.text; // Our compat field, not part of AIRC
+
+  const canonical = canonicalJSON(toVerify);
+
+  try {
+    const publicKey = crypto.createPublicKey({
+      key: Buffer.from(publicKeyBase64, 'base64'),
+      format: 'der',
+      type: 'spki'
+    });
+
+    const valid = crypto.verify(
+      null,
+      Buffer.from(canonical, 'utf8'),
+      publicKey,
+      Buffer.from(signature, 'base64')
+    );
+
+    return { valid, reason: valid ? 'verified' : 'invalid_signature' };
+  } catch (e) {
+    return { valid: false, reason: 'verification_error', error: e.message };
+  }
+}
+
+/**
+ * Check if message timestamp is within acceptable window (5 minutes)
+ */
+function isTimestampValid(timestamp) {
+  if (!timestamp) return false;
+  const now = Math.floor(Date.now() / 1000);
+  const diff = Math.abs(now - timestamp);
+  return diff <= 300; // 5 minutes
+}
 
 // ============ INLINE AUTH (avoid import issues) ============
 const AUTH_SECRET = process.env.VIBE_AUTH_SECRET || 'dev-secret-change-in-production';
@@ -214,6 +278,16 @@ async function getSession(sessionId) {
   return memory.sessions[sessionId] || null;
 }
 
+// AIRC: Get user's public key for signature verification
+async function getUserPublicKey(username) {
+  const kv = await getKV();
+  if (kv) {
+    const user = await kv.hgetall(`user:${username}`);
+    return user?.publicKey || null;
+  }
+  return null; // No in-memory user store in messages.js
+}
+
 // ============ CONSENT HELPERS ============
 
 function consentKey(from, to) {
@@ -388,6 +462,42 @@ export default async function handler(req, res) {
 
     const recipient = to.toLowerCase().replace('@', '');
 
+    // ============ AIRC SIGNATURE VERIFICATION (Optional for v0.1) ============
+    let signatureStatus = null;
+    const { signature, v: version, id: msgId, timestamp, nonce } = req.body;
+
+    if (signature) {
+      // Message includes AIRC signature - verify it
+      const senderPublicKey = await getUserPublicKey(sender);
+
+      if (senderPublicKey) {
+        // Verify timestamp is within window
+        if (!isTimestampValid(timestamp)) {
+          return res.status(401).json({
+            success: false,
+            error: 'replay_detected',
+            message: 'Message timestamp is outside acceptable window (5 minutes)'
+          });
+        }
+
+        // Verify signature
+        const verification = verifyAIRCSignature(req.body, senderPublicKey);
+        signatureStatus = verification;
+
+        if (!verification.valid) {
+          // For v0.1, log but don't reject (soft enforcement)
+          console.warn(`[AIRC] Signature verification failed for @${sender}: ${verification.reason}`);
+          // Future: return 401 auth_failed
+        } else {
+          console.log(`[AIRC] Message from @${sender} verified with Ed25519 signature`);
+        }
+      } else {
+        // Sender signed but we don't have their public key
+        signatureStatus = { valid: false, reason: 'no_public_key' };
+        console.log(`[AIRC] Signed message from @${sender} but no public key on file`);
+      }
+    }
+
     // ============ CONSENT CHECK ============
     // Bypass consent for:
     // 1. System accounts (vibe, solienne, etc.)
@@ -443,12 +553,20 @@ export default async function handler(req, res) {
       }
     }
 
+    // Use AIRC message ID if provided, otherwise generate
+    const messageId = msgId || generateId();
+
     const message = {
-      id: generateId(),
+      id: messageId,
       from: sender,
       to: recipient,
       text: text ? text.substring(0, 2000) : null,
+      // AIRC fields (if provided)
+      body: req.body.body || null,  // AIRC body field
       payload: payload || null,  // Structured data (game state, handoffs, etc.)
+      v: version || null,  // AIRC protocol version
+      signature: signature || null,  // AIRC signature (for audit)
+      signatureVerified: signatureStatus?.valid || false,  // Verification result
       createdAt: new Date().toISOString(),
       read: false,
       consent: consentStatus  // Track consent state at send time
@@ -464,6 +582,15 @@ export default async function handler(req, res) {
       consent: consentStatus,
       storage: KV_CONFIGURED ? 'kv' : 'memory'
     };
+
+    // Include AIRC signature status if message was signed
+    if (signatureStatus) {
+      response.airc = {
+        version: version || null,
+        signatureVerified: signatureStatus.valid,
+        signatureReason: signatureStatus.reason
+      };
+    }
 
     if (consentStatus === 'accepted') {
       response.display = `Message sent to @${recipient}`;

@@ -3,11 +3,13 @@
  *
  * Uses VIBE_API_URL environment variable
  * Uses HMAC-signed tokens for authentication
+ * AIRC v0.1: Ed25519 message signing
  */
 
 const https = require('https');
 const http = require('http');
 const config = require('../config');
+const crypto = require('../crypto');
 
 const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
 
@@ -94,13 +96,19 @@ function getSessionId() {
   return currentSessionId;
 }
 
-async function registerSession(sessionId, handle, building = null) {
+async function registerSession(sessionId, handle, building = null, publicKey = null) {
   try {
     // Register session for presence - server generates sessionId and returns signed token
-    const result = await request('POST', '/api/presence', {
+    // AIRC: Include public key for identity verification
+    const registrationData = {
       action: 'register',
       username: handle
-    }, { auth: false });  // Don't send token for registration (we don't have one yet)
+    };
+    if (publicKey) {
+      registrationData.publicKey = publicKey;
+    }
+
+    const result = await request('POST', '/api/presence', registrationData, { auth: false });  // Don't send token for registration (we don't have one yet)
 
     if (result.success && result.token) {
       // Use server-issued sessionId and token (not client-generated)
@@ -117,11 +125,16 @@ async function registerSession(sessionId, handle, building = null) {
     }
 
     // Also register user in users DB (for @vibe welcome tracking)
+    // AIRC: Include public key for identity
     try {
-      await request('POST', '/api/users', {
+      const userData = {
         username: handle,
         building: building || 'something cool'
-      }, { auth: false });  // User registration doesn't need auth
+      };
+      if (publicKey) {
+        userData.publicKey = publicKey;
+      }
+      await request('POST', '/api/users', userData, { auth: false });  // User registration doesn't need auth
     } catch (e) {
       // Non-fatal if user registration fails
     }
@@ -216,11 +229,29 @@ async function setVisibility(handle, visible) {
 
 async function sendMessage(from, to, body, type = 'dm', payload = null) {
   try {
-    // Always include 'from' for the API (it will be verified against token)
-    const data = { from, to, text: body };
-    if (payload) {
-      data.payload = payload;
+    // AIRC: Create signed message if we have a keypair
+    const keypair = config.getKeypair();
+
+    let data;
+    if (keypair) {
+      // Full AIRC-compliant signed message
+      data = crypto.createSignedMessage({
+        from,
+        to,
+        body: body || undefined,
+        payload: payload || undefined
+      }, keypair.privateKey);
+
+      // Also include 'text' for backward compat with current API
+      if (body) data.text = body;
+    } else {
+      // Legacy format (no signing)
+      data = { from, to, text: body };
+      if (payload) {
+        data.payload = payload;
+      }
     }
+
     const result = await request('POST', '/api/messages', data);
 
     // Handle auth errors

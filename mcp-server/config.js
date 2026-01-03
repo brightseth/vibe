@@ -129,7 +129,7 @@ function getSessionOneLiner() {
   return data?.one_liner || null;
 }
 
-function setSessionIdentity(handle, one_liner) {
+function setSessionIdentity(handle, one_liner, keypair = null) {
   const sessionId = getSessionId();
   const existingData = getSessionData() || {};
   saveSessionData({
@@ -137,8 +137,27 @@ function setSessionIdentity(handle, one_liner) {
     handle,
     one_liner,
     // Preserve token if already set (from server registration)
-    token: existingData.token || null
+    token: existingData.token || null,
+    // AIRC keypair (generated on init)
+    publicKey: keypair?.publicKey || existingData.publicKey || null,
+    privateKey: keypair?.privateKey || existingData.privateKey || null
   });
+}
+
+function getKeypair() {
+  const data = getSessionData();
+  if (data?.publicKey && data?.privateKey) {
+    return {
+      publicKey: data.publicKey,
+      privateKey: data.privateKey
+    };
+  }
+  return null;
+}
+
+function hasKeypair() {
+  const data = getSessionData();
+  return !!(data?.publicKey && data?.privateKey);
 }
 
 function setAuthToken(token, sessionId = null) {
@@ -177,6 +196,8 @@ module.exports = {
   setSessionIdentity,
   setAuthToken,
   getAuthToken,
+  getKeypair,
+  hasKeypair,
   clearSession,
   generateSessionId
 };

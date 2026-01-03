@@ -128,7 +128,7 @@ export default async function handler(req, res) {
 
   // POST - Register or update user
   if (req.method === 'POST') {
-    const { username, building, invitedBy, inviteCode } = req.body;
+    const { username, building, invitedBy, inviteCode, publicKey } = req.body;
 
     if (!username) {
       return res.status(400).json({
@@ -141,13 +141,15 @@ export default async function handler(req, res) {
     const existing = await getUser(user);
     const now = new Date().toISOString();
 
+    // AIRC: Store public key for identity verification
     const userData = {
       username: user,
       building: building || existing?.building || 'something cool',
       createdAt: existing?.createdAt || now,
       updatedAt: now,
       invitedBy: invitedBy || existing?.invitedBy || null,
-      inviteCode: inviteCode || existing?.inviteCode || null
+      inviteCode: inviteCode || existing?.inviteCode || null,
+      publicKey: publicKey || existing?.publicKey || null  // AIRC: Ed25519 public key
     };
 
     await setUser(user, userData);

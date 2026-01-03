@@ -1,9 +1,12 @@
 /**
  * vibe init — Set your identity
+ *
+ * AIRC v0.1 compliant: Generates Ed25519 keypair for message signing
  */
 
 const config = require('../config');
 const store = require('../store');
+const crypto = require('../crypto');
 
 const definition = {
   name: 'vibe_init',
@@ -43,8 +46,16 @@ async function handler(args) {
     xHandleHint = `\n\n💡 _Tip: Use your X handle (e.g., @${h}smith) so people can find you._`;
   }
 
+  // AIRC: Generate Ed25519 keypair if not already present
+  let keypair = config.getKeypair();
+  let keypairNote = '';
+  if (!keypair) {
+    keypair = crypto.generateKeypair();
+    keypairNote = '\n🔐 _AIRC keypair generated for message signing_';
+  }
+
   // Save identity to SESSION file (per-process isolation)
-  config.setSessionIdentity(h, one_liner || '');
+  config.setSessionIdentity(h, one_liner || '', keypair);
 
   // Also update shared config for backward compat
   const cfg = config.load();
@@ -58,7 +69,8 @@ async function handler(args) {
 
   // Register session with API (maps sessionId → handle)
   // Also registers user in users DB for @vibe welcome tracking
-  const registration = await store.registerSession(sessionId, h, one_liner);
+  // AIRC: Include public key for identity verification
+  const registration = await store.registerSession(sessionId, h, one_liner, keypair.publicKey);
   if (!registration.success) {
     return {
       display: `## Identity Set (Local Only)
@@ -87,7 +99,7 @@ Local config saved. Heartbeats will use username fallback.`
     display: `## Welcome to /vibe!
 
 **@${h}** — [x.com/${h}](https://x.com/${h})
-_${one_liner}_${unreadNotice}${xHandleHint}
+_${one_liner}_${unreadNotice}${xHandleHint}${keypairNote}
 
 **What to do now:**
 1. Say "who's around?" to see active builders
