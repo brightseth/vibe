@@ -13,9 +13,9 @@ Not commands — conversation.
 
 In Claude Code, just say:
 
-> "install /vibe"
+> "go to slashvibe.dev and install /vibe"
 
-That's it. Claude reads slashvibe.dev and sets it up.
+That's it. Claude reads the page and sets it up.
 
 <details>
 <summary>Or install manually</summary>
