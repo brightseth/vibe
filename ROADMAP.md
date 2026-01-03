@@ -28,10 +28,10 @@
 - **UX:** First DM to stranger auto-creates pending consent, they accept/block
 - **Status:** Complete (Jan 2, 2026)
 
-### S3. Better Onboarding
+### S3. Better Onboarding ✅ DONE
 - **Problem:** New users don't know what to do
-- **Fix:** Improve welcome DM, add `vibe start` entry point
-- **Files:** `api/users.js`, `mcp-server/tools/start.js`
+- **Fix:** All prompts now use natural language ("say X" not `vibe X`)
+- **Files:** `api/users.js`, `mcp-server/tools/*.js`, `index.html`
 
 ### S4. Fix Known Bugs ✅ DONE
 - [x] Bridge crashes (exit -9) — added error backoff, global error handlers, health logging
