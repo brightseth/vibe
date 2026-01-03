@@ -65,11 +65,13 @@ async function addEntry(entry) {
 }
 
 async function getEntries(limit = 20, category = null) {
+  // Cap limit to prevent abuse
+  const cappedLimit = Math.min(Math.max(1, limit), 50);
   const kv = await getKV();
 
   if (kv) {
     // Get entry IDs
-    const ids = await kv.lrange(BOARD_LIST, 0, limit - 1);
+    const ids = await kv.lrange(BOARD_LIST, 0, cappedLimit - 1);
     if (!ids || ids.length === 0) return [];
 
     // Fetch all entries
@@ -84,7 +86,7 @@ async function getEntries(limit = 20, category = null) {
   }
 
   // Memory fallback
-  let results = memoryBoard.slice(0, limit);
+  let results = memoryBoard.slice(0, cappedLimit);
   if (category) {
     results = results.filter(e => e.category === category);
   }
@@ -171,24 +173,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // DELETE - Remove entry
+    // DELETE - Disabled until identity verification is implemented
     if (req.method === 'DELETE') {
-      const { id, author } = req.body;
-
-      if (!id || !author) {
-        return res.status(400).json({
-          success: false,
-          error: 'id and author required'
-        });
-      }
-
-      const result = await deleteEntry(id, author.toLowerCase().replace('@', ''));
-
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-
-      return res.status(200).json(result);
+      return res.status(403).json({
+        success: false,
+        error: 'Delete disabled until identity verification is implemented'
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
