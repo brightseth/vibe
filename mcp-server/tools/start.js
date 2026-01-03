@@ -10,6 +10,8 @@
 
 const config = require('../config');
 const store = require('../store');
+const memory = require('../memory');
+const notify = require('../notify');
 
 function formatTimeAgo(timestamp) {
   if (timestamp === undefined || timestamp === null || isNaN(timestamp)) return 'unknown';
@@ -78,8 +80,20 @@ Example: "I'm @davemorin, working on social apps"`
     myHandle = h;
     display += `**You're @${h}** — ${oneLiner}\n\n`;
   } else {
+    // ═══ RETURNING USER — Session Rehydration ═══
     const oneLiner = config.getOneLiner() || 'building something';
-    display += `**@${myHandle}** — ${oneLiner}\n\n`;
+    display += `## Welcome back, @${myHandle}\n\n`;
+    display += `_${oneLiner}_\n\n`;
+
+    // Show who remembers you (threads with memories)
+    try {
+      const threads = memory.listThreads();
+      if (threads.length > 0) {
+        const recentThreads = threads.slice(0, 3);
+        const names = recentThreads.map(t => `@${t.handle}`).join(', ');
+        display += `**${threads.length}** people in your memory · ${names}\n\n`;
+      }
+    } catch (e) {}
   }
 
   // Step 2: Get who's around
@@ -103,11 +117,17 @@ Example: "I'm @davemorin, working on social apps"`
     }
   }
 
-  // Step 3: Check inbox
+  // Step 3: Check inbox + trigger notifications for old unread
   try {
     const unreadCount = await store.getUnreadCount(myHandle);
     if (unreadCount > 0) {
       display += `---\n📬 **${unreadCount} unread** — say "check my messages"\n\n`;
+
+      // Check for messages needing desktop notification escalation
+      const rawInbox = await store.getRawInbox(myHandle).catch(() => []);
+      if (rawInbox.length > 0) {
+        notify.checkAndNotify(rawInbox);
+      }
     }
   } catch (e) {}
 

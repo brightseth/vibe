@@ -300,6 +300,16 @@ async function getUnreadCount(handle) {
   }
 }
 
+// Get raw inbox messages (for notification checks)
+async function getRawInbox(handle) {
+  try {
+    const result = await request('GET', `/api/messages?user=${handle}`);
+    return result.inbox || [];
+  } catch (e) {
+    return [];
+  }
+}
+
 async function getThread(myHandle, theirHandle) {
   try {
     const result = await request('GET', `/api/messages?user=${myHandle}&with=${theirHandle}`);
@@ -401,6 +411,7 @@ module.exports = {
   // Messages
   sendMessage,
   getInbox,
+  getRawInbox,
   getUnreadCount,
   getThread,
   markThreadRead,
