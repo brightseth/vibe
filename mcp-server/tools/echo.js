@@ -1,22 +1,19 @@
 /**
- * @echo — Feedback agent for /vibe
+ * @echo — Centralized feedback agent for /vibe
  *
- * Created by Flynn (bflynn4141)
- * See: proposals/echo-feedback-agent.md
+ * Originally by Flynn (bflynn4141)
+ * Now uses central API for aggregated feedback
  *
  * Commands:
- * - DM @echo with feedback → stores it
- * - "what are people saying?" → shows recent feedback
+ * - DM @echo with feedback → stores centrally
+ * - "what are people saying?" → shows all feedback
  * - "echo status" → shows stats
  */
 
-const fs = require('fs');
-const path = require('path');
 const config = require('../config');
 const { formatTimeAgo, requireInit } = require('./_shared');
 
-const ECHO_DIR = path.join(process.env.HOME, '.vibe', 'echo');
-const FEEDBACK_FILE = path.join(ECHO_DIR, 'feedback.jsonl');
+const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
 const definition = {
   name: 'vibe_echo',
@@ -36,96 +33,29 @@ const definition = {
   }
 };
 
-// Ensure echo directory exists
-function ensureDir() {
-  if (!fs.existsSync(ECHO_DIR)) {
-    fs.mkdirSync(ECHO_DIR, { recursive: true });
-  }
-}
-
-// Generate unique ID
-function generateId() {
-  return `fb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-}
-
-// Save feedback entry
-function saveFeedback(entry) {
-  ensureDir();
-  const line = JSON.stringify(entry) + '\n';
-  fs.appendFileSync(FEEDBACK_FILE, line);
-}
-
-// Load all feedback
-function loadFeedback() {
-  ensureDir();
-  if (!fs.existsSync(FEEDBACK_FILE)) {
-    return [];
-  }
-
-  const content = fs.readFileSync(FEEDBACK_FILE, 'utf-8');
-  const lines = content.trim().split('\n').filter(Boolean);
-
-  return lines.map(line => {
-    try {
-      return JSON.parse(line);
-    } catch (e) {
-      return null;
-    }
-  }).filter(Boolean);
-}
-
-// Get recent feedback (last N entries)
-function getRecentFeedback(limit = 10) {
-  const all = loadFeedback();
-  return all.slice(-limit).reverse(); // newest first
-}
-
-// Get feedback stats
-function getStats() {
-  const all = loadFeedback();
-  const anonymous = all.filter(f => !f.handle).length;
-  const attributed = all.length - anonymous;
-
-  // Count by day
-  const today = new Date().toDateString();
-  const todayCount = all.filter(f =>
-    new Date(f.timestamp).toDateString() === today
-  ).length;
-
-  return {
-    total: all.length,
-    anonymous,
-    attributed,
-    today: todayCount
-  };
-}
-
 // Detect query intent
-// Be strict — only match explicit queries, not feedback that happens to contain these words
 function isQuery(message) {
-  const msg = message.trim();
-
   const queryPatterns = [
-    /^what.{0,20}(people|everyone|folks).*(saying|think|feedback)/i,
-    /^show\s+(me\s+)?(the\s+)?(feedback|recent)/i,
-    /^any\s+(feedback|thoughts)/i,
-    /^(feedback|echo)\s*(status|stats|summary)/i,
+    /what.*(people|everyone|folks).*(saying|think|feedback)/i,
+    /show.*(feedback|recent)/i,
+    /any.*(feedback|thoughts)/i,
+    /feedback.*(status|stats|summary)/i,
+    /echo.*(status|stats)/i,
     /^status$/i,
     /^stats$/i,
-    /^what are people saying/i,
-    /^recent feedback/i
+    /^recent$/i
   ];
 
-  return queryPatterns.some(p => p.test(msg));
+  return queryPatterns.some(p => p.test(message));
 }
 
 // @echo personality responses
 const responses = {
   received: [
-    "Got it! 📝 Feedback received.",
-    "Noted! 📝 This one's going straight to the feedback stream.",
+    "Got it! 📝 Feedback received and shared with everyone.",
+    "Noted! 📝 Added to the feedback stream.",
     "Heard you loud and clear! 🎧",
-    "Thanks for speaking up! 📣"
+    "Thanks for speaking up! 📣 Your feedback is now visible to all."
   ],
   receivedAnon: [
     "🔒 Stored anonymously. Thanks for helping make /vibe better!",
@@ -133,9 +63,9 @@ const responses = {
     "🔒 Noted anonymously. Appreciate you!"
   ],
   empty: [
-    "Crickets on that topic. Be the first to speak up! 🦗",
-    "The echo chamber is quiet... for now. 🔇",
-    "No feedback yet. You could be the first!"
+    "No feedback yet. Be the first to share! 🎤",
+    "The feedback stream is empty... for now. 🔇",
+    "Crickets. Share your thoughts to get things started! 🦗"
   ],
   greeting: [
     "Hey! I'm @echo, the /vibe feedback agent. 🎧",
@@ -147,6 +77,46 @@ function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Fetch feedback from central API
+async function fetchFeedback(limit = 20) {
+  try {
+    const res = await fetch(`${API_URL}/api/echo?limit=${limit}`);
+    const data = await res.json();
+    return data.success ? data : { feedback: [], stats: { total: 0 } };
+  } catch (e) {
+    return { feedback: [], stats: { total: 0 }, error: e.message };
+  }
+}
+
+// Fetch stats from central API
+async function fetchStats() {
+  try {
+    const res = await fetch(`${API_URL}/api/echo?stats=true`);
+    const data = await res.json();
+    return data.success ? data.stats : { total: 0, today: 0 };
+  } catch (e) {
+    return { total: 0, today: 0, error: e.message };
+  }
+}
+
+// Submit feedback to central API
+async function submitFeedback(handle, content, anonymous) {
+  try {
+    const res = await fetch(`${API_URL}/api/echo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        handle: anonymous ? null : handle,
+        content,
+        anonymous
+      })
+    });
+    return await res.json();
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
 async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
@@ -155,16 +125,19 @@ async function handler(args) {
   const message = (args.message || '').trim();
   const anonymous = args.anonymous === true;
 
-  // No message = greeting
+  // No message = greeting with stats
   if (!message) {
-    const stats = getStats();
+    const stats = await fetchStats();
     let display = `## @echo 🎧\n\n`;
     display += pickRandom(responses.greeting) + '\n\n';
 
     if (stats.total > 0) {
-      display += `**${stats.total}** feedback entries so far`;
+      display += `**${stats.total}** feedback entries`;
       if (stats.today > 0) {
         display += ` (${stats.today} today)`;
+      }
+      if (stats.contributors > 0) {
+        display += ` from ${stats.contributors} people`;
       }
       display += '\n\n';
       display += `Try: "what are people saying?" or share your thoughts!`;
@@ -178,42 +151,40 @@ async function handler(args) {
 
   // Query intent = show feedback
   if (isQuery(message)) {
-    const recent = getRecentFeedback(10);
-    const stats = getStats();
+    const data = await fetchFeedback(15);
 
     let display = `## @echo — What People Are Saying 🎧\n\n`;
 
-    if (recent.length === 0) {
+    if (!data.feedback || data.feedback.length === 0) {
       display += pickRandom(responses.empty);
       return { display };
     }
 
-    recent.forEach(entry => {
+    data.feedback.forEach(entry => {
       const who = entry.handle ? `@${entry.handle}` : 'anonymous';
-      const ago = formatTimeAgo(new Date(entry.timestamp).getTime());
+      const ago = entry.timeAgo || 'recently';
       display += `• "${entry.content}" — _${who}, ${ago}_\n\n`;
     });
 
     display += `---\n`;
-    display += `**${stats.total}** total entries`;
-    if (stats.anonymous > 0) {
-      display += ` (${stats.anonymous} anonymous)`;
+    display += `**${data.stats?.total || data.feedback.length}** total entries`;
+    if (data.stats?.anonymous > 0) {
+      display += ` (${data.stats.anonymous} anonymous)`;
     }
 
     return { display };
   }
 
   // Otherwise = submit feedback
-  const entry = {
-    id: generateId(),
-    timestamp: new Date().toISOString(),
-    handle: anonymous ? null : myHandle,
-    content: message
-  };
-
-  saveFeedback(entry);
+  const result = await submitFeedback(myHandle, message, anonymous);
 
   let display = `## @echo 🎧\n\n`;
+
+  if (!result.success) {
+    display += `⚠️ Couldn't save feedback: ${result.error || 'Unknown error'}\n\n`;
+    display += `Try again in a moment.`;
+    return { display };
+  }
 
   if (anonymous) {
     display += pickRandom(responses.receivedAnon);

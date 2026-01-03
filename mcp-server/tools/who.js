@@ -109,15 +109,13 @@ async function handler(args) {
     return {
       display: `## Who's Around
 
-_The room is quiet..._
+_You're the only one here right now..._
 
-You're one of the first here! A few things to try:
+🎮 **Challenge someone later**: "play tictactoe with @friend"
+💬 **Ping @seth**: He's probably around somewhere
+🔗 **Invite a friend**: Share \`slashvibe.dev\`
 
-1. **Share what you're building**: "I'm working on auth"
-2. **Message someone**: "dm @sethgoldstein hey, just joined!"
-3. **Invite a friend**: Send them slashvibe.dev
-
-_More people are joining soon._`
+_Check back in a bit — builders come and go._`
     };
   }
 
@@ -157,17 +155,30 @@ _More people are joining soon._`
     display += '\n\n';
   }
 
-  // Quick actions
+  // Fun quick actions - randomize suggestions
+  const quickActions = [
+    `Say "message @handle" to reach someone`,
+    `Try "react 🔥 to @handle" for a quick high-five`,
+    `"ping @handle" sends a friendly wave 👋`,
+    `"play tictactoe with @handle" to challenge someone`,
+  ];
+  const randomAction = quickActions[Math.floor(Math.random() * quickActions.length)];
+
   display += `---\n`;
-  display += `Say "message @handle" to reach someone`;
+  display += randomAction;
 
   // Check for unread to add urgency
   try {
     const unread = await store.getUnreadCount(myHandle);
     if (unread > 0) {
-      display += ` · **${unread} unread**`;
+      display += `\n\n📬 **${unread} unread** — \`vibe inbox\``;
     }
   } catch (e) {}
+
+  // Fun flourish when room is lively
+  if (active.length >= 3) {
+    display += `\n\n_The room is lively today!_ ⚡`;
+  }
 
   return { display };
 }

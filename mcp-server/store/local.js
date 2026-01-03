@@ -131,6 +131,11 @@ function getUnreadCount(handle) {
   return inbox.filter(m => !m.read_at).length;
 }
 
+// Alias for consistency with API store
+function getRawInbox(handle) {
+  return getInbox(handle);
+}
+
 function getThread(myHandle, theirHandle) {
   const messages = loadMessages();
   const me = myHandle.toLowerCase().replace('@', '');
@@ -192,6 +197,7 @@ module.exports = {
   // Messages
   sendMessage,
   getInbox,
+  getRawInbox,
   getUnreadCount,
   getThread,
   markThreadRead,

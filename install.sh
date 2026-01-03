@@ -87,7 +87,7 @@ if [ ! -f "$CLAUDE_CONFIG" ]; then
       "command": "node",
       "args": ["$MCP_DIR/index.js"],
       "env": {
-        "VIBE_API_URL": "https://slashvibe.dev"
+        "VIBE_API_URL": "https://www.slashvibe.dev"
       }
     }
   }
@@ -103,7 +103,7 @@ else
     config.mcpServers.vibe = {
       command: 'node',
       args: ['$MCP_DIR/index.js'],
-      env: { VIBE_API_URL: 'https://slashvibe.dev' }
+      env: { VIBE_API_URL: 'https://www.slashvibe.dev' }
     };
     fs.writeFileSync('$CLAUDE_CONFIG', JSON.stringify(config, null, 2));
   "

@@ -13,7 +13,7 @@ const config = require('../config');
 const store = require('../store');
 const presence = require('../presence');
 
-const VIBE_API = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+const VIBE_API = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 const VIBE_DIR = path.join(process.env.HOME, '.vibe');
 const MCP_DIR = path.join(VIBE_DIR, 'mcp-server');
 

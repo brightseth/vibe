@@ -10,7 +10,7 @@ const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
 
-const VIBE_API = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+const VIBE_API = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
 const definition = {
   name: 'vibe_test',

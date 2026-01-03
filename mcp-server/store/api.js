@@ -11,7 +11,7 @@ const http = require('http');
 const config = require('../config');
 const crypto = require('../crypto');
 
-const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
 // Default timeout for API requests (10 seconds)
 const REQUEST_TIMEOUT = 10000;
@@ -300,6 +300,16 @@ async function getUnreadCount(handle) {
   }
 }
 
+// Get raw inbox messages (for notification checks)
+async function getRawInbox(handle) {
+  try {
+    const result = await request('GET', `/api/messages?user=${handle}`);
+    return result.inbox || [];
+  } catch (e) {
+    return [];
+  }
+}
+
 async function getThread(myHandle, theirHandle) {
   try {
     const result = await request('GET', `/api/messages?user=${myHandle}&with=${theirHandle}`);
@@ -401,6 +411,7 @@ module.exports = {
   // Messages
   sendMessage,
   getInbox,
+  getRawInbox,
   getUnreadCount,
   getThread,
   markThreadRead,
