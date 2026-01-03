@@ -6,45 +6,43 @@
  * GET /api/install?format=json — Structured JSON
  */
 
-const INSTRUCTIONS = `# /vibe — Communication layer for Claude Code
+const INSTRUCTIONS = `# /vibe — Social layer for Claude Code
 
 ## Install
 
+Tell Claude Code:
+
+> "go to slashvibe.dev and install /vibe"
+
+Claude reads the page and runs the installer.
+
+**Or manually:**
 \`\`\`bash
 curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
 \`\`\`
 
 Then restart Claude Code to load the MCP server.
 
-## Commands
+## Usage
 
-| Command | Description |
-|---------|-------------|
-| vibe init @handle "what you're building" | Set your identity |
-| vibe who | See who's online |
-| vibe dm @handle "message" | Send a message |
-| vibe inbox | Check your messages |
-| vibe open @handle | Open a thread |
-| vibe status shipping | Set your mood (shipping, thinking, debugging, afk) |
-| vibe context --file "auth.js" | Share what you're working on |
-| vibe summarize | Summarize your session |
-| vibe bye | End your session |
+Just talk naturally. Claude figures it out.
+
+| You say | What happens |
+|---------|--------------|
+| "let's vibe" | Start a session |
+| "I'm @yourhandle, building X" | Set your identity |
+| "who's around?" | See who's online |
+| "message stan about the bug" | Send a DM |
+| "check my messages" | See your inbox |
+| "remember that gene prefers async" | Save a note about someone |
 
 ## Quick Start
 
-1. Install with the curl command above
+1. Tell Claude: "go to slashvibe.dev and install /vibe"
 2. Restart Claude Code
-3. Run: vibe init @yourhandle "what you're building"
-4. Run: vibe who (to see who's online)
-5. Run: vibe dm @someone "hey!" (to message someone)
-
-## Natural Language
-
-After install, you can use natural language:
-- "message stan about the auth bug"
-- "who's online right now"
-- "set my status to shipping"
-- "share that I'm working on auth.js"
+3. Say: "let's vibe"
+4. Introduce yourself: "I'm @yourhandle, working on X"
+5. Say: "who's around?"
 
 ## More Info
 
@@ -54,28 +52,26 @@ After install, you can use natural language:
 
 const JSON_RESPONSE = {
   name: "/vibe",
-  description: "Communication layer for Claude Code",
+  description: "Social layer for Claude Code",
   install: {
-    command: "curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash",
+    preferred: "Tell Claude: go to slashvibe.dev and install /vibe",
+    manual: "curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash",
     then: "Restart Claude Code"
   },
-  commands: [
-    { name: "vibe init", args: "@handle \"description\"", description: "Set your identity" },
-    { name: "vibe who", args: null, description: "See who's online" },
-    { name: "vibe dm", args: "@handle \"message\"", description: "Send a message" },
-    { name: "vibe inbox", args: null, description: "Check your messages" },
-    { name: "vibe open", args: "@handle", description: "Open a thread" },
-    { name: "vibe status", args: "mood", description: "Set mood (shipping, thinking, debugging, afk)" },
-    { name: "vibe context", args: "--file \"filename\"", description: "Share what you're working on" },
-    { name: "vibe summarize", args: null, description: "Summarize your session" },
-    { name: "vibe bye", args: null, description: "End your session" }
+  usage: [
+    { say: "let's vibe", does: "Start a session" },
+    { say: "I'm @yourhandle, building X", does: "Set your identity" },
+    { say: "who's around?", does: "See who's online" },
+    { say: "message stan about the bug", does: "Send a DM" },
+    { say: "check my messages", does: "See your inbox" },
+    { say: "remember that gene prefers async", does: "Save a note about someone" }
   ],
   quickStart: [
-    "Install with curl command",
+    "Tell Claude: go to slashvibe.dev and install /vibe",
     "Restart Claude Code",
-    "vibe init @yourhandle \"what you're building\"",
-    "vibe who",
-    "vibe dm @someone \"hey!\""
+    "Say: let's vibe",
+    "Introduce yourself",
+    "Say: who's around?"
   ],
   links: {
     website: "https://slashvibe.dev",
