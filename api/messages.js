@@ -445,11 +445,19 @@ export default async function handler(req, res) {
     }
 
     // Require authentication for sending messages
+    // System accounts (solienne, vibe) can bypass token auth if they provide a valid sender
     if (!authenticatedHandle) {
-      return res.status(401).json({
-        success: false,
-        error: "Authentication required. Register via POST /api/presence with action='register', then include token in Authorization header."
-      });
+      if (SYSTEM_ACCOUNTS.includes(sender)) {
+        // Allow system accounts to send without full token verification
+        // This enables the Solienne bridge to respond to messages
+        authenticatedHandle = sender;
+        console.log(`[messages] System account bypass: @${sender}`);
+      } else {
+        return res.status(401).json({
+          success: false,
+          error: "Authentication required. Register via POST /api/presence with action='register', then include token in Authorization header."
+        });
+      }
     }
 
     // Verify sender matches authenticated handle
