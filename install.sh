@@ -110,6 +110,45 @@ else
   echo "Updated $CLAUDE_CONFIG"
 fi
 
+# Install dashboard skill
+SKILL_DIR="$HOME/.claude/skills"
+DASHBOARD_DIR="$REPO_DIR/dashboard"
+
+if [ -d "$DASHBOARD_DIR" ]; then
+  echo ""
+  echo "Installing dashboard UX..."
+
+  # Create skills directory if needed
+  mkdir -p "$SKILL_DIR"
+
+  # Copy skill file
+  if [ -f "$DASHBOARD_DIR/vibe-dashboard.md" ]; then
+    cp "$DASHBOARD_DIR/vibe-dashboard.md" "$SKILL_DIR/"
+    echo "Installed skill: $SKILL_DIR/vibe-dashboard.md"
+  fi
+
+  # Inject CLAUDE.md content
+  CLAUDE_MD="$HOME/.claude/CLAUDE.md"
+  VIBE_MARKER="## /vibe - Terminal-Native Social"
+
+  if [ -f "$CLAUDE_MD" ]; then
+    if ! grep -q "$VIBE_MARKER" "$CLAUDE_MD"; then
+      echo "" >> "$CLAUDE_MD"
+      cat "$DASHBOARD_DIR/VIBE_CLAUDE_MD_TEMPLATE.md" >> "$CLAUDE_MD"
+      echo "Added dashboard mode to CLAUDE.md"
+    else
+      echo "Dashboard mode already in CLAUDE.md"
+    fi
+  else
+    mkdir -p "$(dirname "$CLAUDE_MD")"
+    cp "$DASHBOARD_DIR/VIBE_CLAUDE_MD_TEMPLATE.md" "$CLAUDE_MD"
+    echo "Created CLAUDE.md with dashboard mode"
+  fi
+
+  echo "Dashboard UX enabled (structured mode by default)"
+  echo "Say 'vibe freeform' to disable structured navigation"
+fi
+
 # Done
 echo ""
 echo "==============="
@@ -118,6 +157,9 @@ echo ""
 echo "Restart Claude Code, then say:"
 echo ""
 echo '  "let'"'"'s vibe"'
+echo ""
+echo "Dashboard mode is ON by default."
+echo "Use 'vibe freeform' for raw commands."
 echo ""
 echo "To update later:"
 echo "  cd ~/.vibe/vibe-repo && git pull"
