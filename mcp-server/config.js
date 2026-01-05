@@ -28,6 +28,7 @@ function load() {
       const data = JSON.parse(fs.readFileSync(PRIMARY_CONFIG, 'utf8'));
       // Normalize: support both 'handle' and 'username' field names
       return {
+        ...data, // Pass through all fields (including x_credentials, etc.)
         handle: data.handle || data.username || null,
         one_liner: data.one_liner || data.workingOn || null,
         visible: data.visible !== false,
@@ -37,7 +38,7 @@ function load() {
       };
     }
   } catch (e) {}
-  // Fallback to legacy config
+  // Fallback to legacy config (returns full object)
   try {
     if (fs.existsSync(FALLBACK_CONFIG)) {
       return JSON.parse(fs.readFileSync(FALLBACK_CONFIG, 'utf8'));

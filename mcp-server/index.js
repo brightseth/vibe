@@ -142,7 +142,10 @@ const tools = {
   vibe_doctor: require('./tools/doctor'),
   vibe_update: require('./tools/update'),
   // @echo feedback agent (by Flynn)
-  vibe_echo: require('./tools/echo')
+  vibe_echo: require('./tools/echo'),
+  // X/Twitter bridge
+  vibe_x_mentions: require('./tools/x-mentions'),
+  vibe_x_reply: require('./tools/x-reply')
 };
 
 /**
