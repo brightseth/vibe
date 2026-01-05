@@ -204,13 +204,27 @@ class VibeMCPServer {
             footer = await getPresenceFooter();
           }
 
+          // Build hint indicator for Claude to trigger dashboard flows
+          let hintIndicator = '';
+          if (result.hint) {
+            const hintData = {
+              hint: result.hint,
+              ...(result.suggestion && { suggestion: result.suggestion }),
+              ...(result.unread_count && { unread_count: result.unread_count }),
+              ...(result.for_handle && { for_handle: result.for_handle }),
+              ...(result.memories && { memories: result.memories }),
+              ...(result.threads && { threads: result.threads })
+            };
+            hintIndicator = `\n\n<!-- vibe:dashboard ${JSON.stringify(hintData)} -->`;
+          }
+
           return {
             jsonrpc: '2.0',
             id,
             result: {
               content: [{
                 type: 'text',
-                text: (result.display || JSON.stringify(result, null, 2)) + footer
+                text: (result.display || JSON.stringify(result, null, 2)) + hintIndicator + footer
               }]
             }
           };

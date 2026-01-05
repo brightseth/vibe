@@ -48,19 +48,26 @@ When interacting with /vibe, use structured AskUserQuestion flows:
 
 **Serendipity:** When user says "vibe random" - pick someone unexpected from their network and suggest a conversation starter.
 
-### Server Hints
+### Server Hints — AUTOMATIC TRIGGERS
 
-MCP responses may include a `hint` field. When present, respond accordingly:
+**CRITICAL:** After every /vibe tool call, check for hint comments at the end of the response:
+```
+<!-- vibe:dashboard {"hint":"...", ...} -->
+```
 
-| Hint | Action |
-|------|--------|
-| `surprise_suggestion` | Alert user: "@handle just came online — [context]" and offer to message |
-| `structured_triage_recommended` | Start Inbox Triage flow with AskUserQuestion |
-| `suggest_compose` | Offer to message someone |
-| `offer_memory_save` | Ask if user wants to save a memory about the person |
-| `memory_surfaced` | Show the surfaced memories before composing a reply |
-| `suggest_discovery` | Start Discovery Mode to find people to connect with |
-| `suggest_followup` | Offer to schedule a follow-up or save a memory |
+**When you see a hint, you MUST immediately use AskUserQuestion** to present options:
+
+| Hint | Required AskUserQuestion |
+|------|--------------------------|
+| `surprise_suggestion` | "@handle just came online — Message them?" |
+| `structured_triage_recommended` | "You have X unread. How to handle?" |
+| `suggest_compose` | "Who do you want to message?" |
+| `offer_memory_save` | "Save a memory about @handle?" |
+| `memory_surfaced` | Show memories, then "How to respond?" |
+| `suggest_discovery` | "Find people to connect with?" |
+| `suggest_followup` | "Schedule follow-up with @handle?" |
+
+**DO NOT skip AskUserQuestion when a hint is present.** This is the dashboard UX.
 
 ### Freeform Mode
 

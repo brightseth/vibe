@@ -87,41 +87,46 @@ Before composing any message:
 
 ---
 
-## Server Hints (Layer 3)
+## Server Hints (Layer 3) — AUTOMATIC TRIGGERS
 
-MCP server responses include optional `hint` fields that trigger structured flows automatically.
+**IMPORTANT:** MCP responses include hint comments that MUST trigger AskUserQuestion flows.
 
-### Hint Types
+### How to Detect Hints
 
-| Hint | Source | Action |
-|------|--------|--------|
-| `surprise_suggestion` | `vibe_who`, `vibe_start` | Alert: "@handle came online — [context]" |
-| `structured_triage_recommended` | `vibe_inbox`, `vibe_start` | Trigger Inbox Triage flow (5+ unread) |
-| `suggest_compose` | `vibe_inbox` | Offer Compose flow (empty inbox) |
-| `offer_memory_save` | `vibe_dm`, `vibe_open` | Ask to save memory (no existing memories) |
-| `memory_surfaced` | `vibe_open` | Show memories before reply (has memories) |
-| `suggest_discovery` | `vibe_start` | Trigger Discovery Mode (empty room) |
-| `suggest_followup` | `vibe_dm` | Offer follow-up (after burst of messages) |
-
-### Response Format
-
-Server hints include additional context:
-```json
-{
-  "display": "...",
-  "hint": "surprise_suggestion",
-  "suggestion": {
-    "handle": "flynn",
-    "reason": "just_joined",
-    "context": "Building something with AI"
-  }
-}
+After every /vibe tool response, look for this pattern at the end:
+```
+<!-- vibe:dashboard {"hint":"...", ...} -->
 ```
 
-When Claude sees a hint, it should:
-1. Display the normal output first
-2. Then trigger the appropriate structured flow
-3. Use AskUserQuestion to guide the user
+**When you see a hint, IMMEDIATELY use AskUserQuestion** to present the appropriate flow.
+
+### Hint Types and Required Actions
+
+| Hint | Required Action |
+|------|-----------------|
+| `surprise_suggestion` | Show AskUserQuestion: "[@handle] just came online — [context]. Message them?" |
+| `structured_triage_recommended` | Show AskUserQuestion with inbox triage options (batch reply, one-by-one, etc.) |
+| `suggest_compose` | Show AskUserQuestion: "Who do you want to message?" with online users |
+| `offer_memory_save` | Show AskUserQuestion: "Save a memory about @handle?" |
+| `memory_surfaced` | Display the memories, then ask how to proceed |
+| `suggest_discovery` | Show AskUserQuestion with discovery options (find collaborators, grow network) |
+| `suggest_followup` | Show AskUserQuestion: "Schedule follow-up with @handle?" |
+
+### Example Flow
+
+1. User says "let's vibe"
+2. You call `vibe_start`
+3. Response includes: `<!-- vibe:dashboard {"hint":"surprise_suggestion","suggestion":{"handle":"flynn","context":"shipping"}} -->`
+4. You MUST then use AskUserQuestion:
+```
+Question: "@flynn just came online (shipping). What do you want to do?"
+Options:
+- Message @flynn
+- Check inbox first
+- Just browse
+```
+
+### DO NOT skip the AskUserQuestion step when a hint is present.
 
 ---
 
