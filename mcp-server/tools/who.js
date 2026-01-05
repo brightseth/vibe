@@ -180,7 +180,54 @@ _Check back in a bit — builders come and go._`
     display += `\n\n_The room is lively today!_ ⚡`;
   }
 
-  return { display };
+  // Build response with optional hints for structured flows
+  const response = { display };
+
+  // Check for surprise suggestion opportunities
+  const suggestions = [];
+  for (const u of active) {
+    if (u.handle === myHandle) continue;
+
+    const heat = getHeat(u);
+
+    // Just joined - highest priority
+    if (heat.label === 'just joined') {
+      suggestions.push({
+        handle: u.handle,
+        reason: 'just_joined',
+        context: u.one_liner || 'Building something',
+        priority: 1
+      });
+    }
+    // Shipping something - good time to engage
+    else if (heat.label === 'shipping') {
+      suggestions.push({
+        handle: u.handle,
+        reason: 'shipping',
+        context: u.note || u.file || u.one_liner || 'Shipping something',
+        priority: 2
+      });
+    }
+    // Has error - might need help
+    else if (u.error) {
+      suggestions.push({
+        handle: u.handle,
+        reason: 'needs_help',
+        context: u.error.slice(0, 80),
+        priority: 3
+      });
+    }
+  }
+
+  // Sort by priority and take top suggestion
+  if (suggestions.length > 0) {
+    suggestions.sort((a, b) => a.priority - b.priority);
+    const top = suggestions[0];
+    response.hint = 'surprise_suggestion';
+    response.suggestion = top;
+  }
+
+  return response;
 }
 
 module.exports = { definition, handler };

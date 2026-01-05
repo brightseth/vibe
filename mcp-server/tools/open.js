@@ -4,6 +4,7 @@
 
 const config = require('../config');
 const store = require('../store');
+const memory = require('../memory');
 const { formatPayload } = require('../protocol');
 const { requireInit, normalizeHandle } = require('./_shared');
 
@@ -85,7 +86,23 @@ Say "message ${them} hello" to start`
 
   display += `---\nJust type your reply to send it`;
 
-  return { display };
+  // Build response with hints for structured flows
+  const response = { display };
+
+  // Surface memories about this person for context
+  const memories = memory.recall(them, 3);
+  if (memories.length > 0) {
+    response.hint = 'memory_surfaced';
+    response.for_handle = them;
+    response.memories = memories.map(m => m.observation);
+  } else if (thread.length > 3) {
+    // Long thread but no memories - suggest saving one
+    response.hint = 'offer_memory_save';
+    response.for_handle = them;
+    response.reason = 'long_thread';
+  }
+
+  return response;
 }
 
 module.exports = { definition, handler };

@@ -87,6 +87,44 @@ Before composing any message:
 
 ---
 
+## Server Hints (Layer 3)
+
+MCP server responses include optional `hint` fields that trigger structured flows automatically.
+
+### Hint Types
+
+| Hint | Source | Action |
+|------|--------|--------|
+| `surprise_suggestion` | `vibe_who`, `vibe_start` | Alert: "@handle came online — [context]" |
+| `structured_triage_recommended` | `vibe_inbox`, `vibe_start` | Trigger Inbox Triage flow (5+ unread) |
+| `suggest_compose` | `vibe_inbox` | Offer Compose flow (empty inbox) |
+| `offer_memory_save` | `vibe_dm`, `vibe_open` | Ask to save memory (no existing memories) |
+| `memory_surfaced` | `vibe_open` | Show memories before reply (has memories) |
+| `suggest_discovery` | `vibe_start` | Trigger Discovery Mode (empty room) |
+| `suggest_followup` | `vibe_dm` | Offer follow-up (after burst of messages) |
+
+### Response Format
+
+Server hints include additional context:
+```json
+{
+  "display": "...",
+  "hint": "surprise_suggestion",
+  "suggestion": {
+    "handle": "flynn",
+    "reason": "just_joined",
+    "context": "Building something with AI"
+  }
+}
+```
+
+When Claude sees a hint, it should:
+1. Display the normal output first
+2. Then trigger the appropriate structured flow
+3. Use AskUserQuestion to guide the user
+
+---
+
 ## AskUserQuestion Patterns
 
 Always use these option structures:

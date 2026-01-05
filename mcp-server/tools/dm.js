@@ -4,6 +4,7 @@
 
 const config = require('../config');
 const store = require('../store');
+const memory = require('../memory');
 const { trackMessage, checkBurst } = require('./summarize');
 const { requireInit, normalizeHandle, truncate, warning } = require('./_shared');
 
@@ -85,7 +86,26 @@ async function handler(args) {
     display += `\n\n💬 _${burst.count} messages with @${them} — say "summarize" when done_`;
   }
 
-  return { display };
+  // Build response with optional hints for structured flows
+  const response = { display };
+
+  // Check if we have any memories for this person
+  const memoryCount = memory.count(them);
+
+  // Suggest saving a memory if we don't have any
+  if (memoryCount === 0) {
+    response.hint = 'offer_memory_save';
+    response.for_handle = them;
+    response.suggestion = `Remember something about @${them} for next time?`;
+  }
+  // Suggest a follow-up after burst of messages
+  else if (burst.triggered && burst.thread === them) {
+    response.hint = 'suggest_followup';
+    response.for_handle = them;
+    response.message_count = burst.count;
+  }
+
+  return response;
 }
 
 module.exports = { definition, handler };

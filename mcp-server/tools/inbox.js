@@ -56,7 +56,25 @@ async function handler(args) {
 
   display += `${divider()}Say "open thread with @handle" to read more`;
 
-  return { display };
+  // Build response with optional hints for structured flows
+  const response = { display };
+
+  // Trigger triage flow when 5+ unread messages
+  if (totalUnread >= 5) {
+    response.hint = 'structured_triage_recommended';
+    response.unread_count = totalUnread;
+    response.threads = sorted.filter(t => t.unread > 0).map(t => ({
+      handle: t.handle,
+      unread: t.unread,
+      preview: truncate(t.lastMessage || '', 40)
+    }));
+  }
+  // Suggest compose when inbox is empty or fully read
+  else if (threads.length === 0 || totalUnread === 0) {
+    response.hint = 'suggest_compose';
+  }
+
+  return response;
 }
 
 module.exports = { definition, handler };

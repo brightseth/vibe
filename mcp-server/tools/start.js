@@ -143,7 +143,37 @@ Example: "I'm @davemorin, working on social apps"`
     display += `\n\n📣 _Meet **@echo** — say "message @echo" to share feedback or ideas!_`;
   }
 
-  return { display };
+  // Build response with hints for structured dashboard flow
+  const response = { display };
+
+  // Determine session state and suggest appropriate flow
+  const unreadCount = await store.getUnreadCount(myHandle).catch(() => 0);
+
+  if (unreadCount >= 5) {
+    // Many unread - suggest triage
+    response.hint = 'structured_triage_recommended';
+    response.unread_count = unreadCount;
+  } else if (others.length === 0 && unreadCount === 0) {
+    // Empty room - suggest discovery or invite
+    response.hint = 'suggest_discovery';
+    response.reason = 'empty_room';
+  } else if (others.length > 0) {
+    // People around - check for interesting ones
+    const interesting = others.find(u => {
+      const age = Date.now() - u.lastSeen;
+      return age < 5 * 60 * 1000; // Active in last 5 min
+    });
+    if (interesting) {
+      response.hint = 'surprise_suggestion';
+      response.suggestion = {
+        handle: interesting.handle,
+        reason: 'active_now',
+        context: interesting.note || interesting.one_liner || 'Building something'
+      };
+    }
+  }
+
+  return response;
 }
 
 module.exports = { definition, handler };
