@@ -48,8 +48,29 @@ An MCP server (~15 files) copied locally to:
 
 - `~/.vibe/mcp-server/` — the local MCP server
 - `~/.vibe/memory/` — your memories, stored as inspectable JSONL
+- `~/.vibe/statusline.sh` — optional statusline script (shows unread count)
 
 **Local-first by design:** your memory stays on disk; presence/DMs go through the hosted API.
+
+---
+
+## Statusline (Optional)
+
+Show unread message count at the bottom of Claude Code:
+
+Add to your `.claude/settings.json`:
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.vibe/statusline.sh"
+  }
+}
+```
+
+Displays:
+- `💬 /vibe` — no unread messages
+- `💬 /vibe (3 new)` — 3 unread messages
 
 ---
 

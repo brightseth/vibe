@@ -67,6 +67,13 @@ rm -f "$MCP_DIR"
 ln -sf "$REPO_DIR/mcp-server" "$MCP_DIR"
 echo "Linked $MCP_DIR → $REPO_DIR/mcp-server"
 
+# Install statusline script
+if [ -f "$REPO_DIR/scripts/statusline.sh" ]; then
+  cp "$REPO_DIR/scripts/statusline.sh" "$VIBE_DIR/statusline.sh"
+  chmod +x "$VIBE_DIR/statusline.sh"
+  echo "Installed statusline script to $VIBE_DIR/statusline.sh"
+fi
+
 # Show version
 if [ -f "$MCP_DIR/version.json" ]; then
   VERSION=$(node -e "console.log(require('$MCP_DIR/version.json').version)")
@@ -160,6 +167,10 @@ echo '  "let'"'"'s vibe"'
 echo ""
 echo "Dashboard mode is ON by default."
 echo "Use 'vibe freeform' for raw commands."
+echo ""
+echo "Optional: Enable statusline to show unread messages"
+echo "  Add to your .claude/settings.json:"
+echo '  { "statusLine": { "type": "command", "command": "~/.vibe/statusline.sh" } }'
 echo ""
 echo "To update later:"
 echo "  cd ~/.vibe/vibe-repo && git pull"
