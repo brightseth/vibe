@@ -2,8 +2,14 @@
  * Echo API - Centralized feedback collection for /vibe
  *
  * POST /api/echo - Submit feedback
- * GET /api/echo - Get recent feedback (optional: ?limit=20)
+ * GET /api/echo - Get recent feedback (optional: ?limit=20, ?category=idea|bug|pain)
  * GET /api/echo?stats=true - Get feedback stats
+ * GET /api/echo?top=ideas - Get top ideas (most recent ideas)
+ *
+ * Virtuous Cycle:
+ * - Ideas get surfaced and built fast
+ * - Bugs get logged and fixed
+ * - Pains get smoothed away
  */
 
 // Check if KV is configured
@@ -11,7 +17,22 @@ const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_
 
 // Limits
 const MAX_FEEDBACK_LENGTH = 1000;
-const FEEDBACK_LIMIT = 500;
+const FEEDBACK_LIMIT = 1000; // Increased to keep more history
+
+// Auto-detect category from content
+function detectCategory(content) {
+  const lower = content.toLowerCase();
+  if (lower.startsWith('idea:') || lower.startsWith('idea -') || lower.includes('what if') || lower.includes('we should')) {
+    return 'idea';
+  }
+  if (lower.startsWith('bug:') || lower.startsWith('bug -') || lower.includes('broken') || lower.includes('error') || lower.includes('crash')) {
+    return 'bug';
+  }
+  if (lower.startsWith('pain:') || lower.startsWith('pain -') || lower.includes('frustrat') || lower.includes('annoying') || lower.includes('wish')) {
+    return 'pain';
+  }
+  return 'general';
+}
 
 // In-memory fallback
 const memory = {
@@ -92,13 +113,33 @@ async function getStats() {
   // Get unique contributors
   const contributors = new Set(all.filter(f => f.handle).map(f => f.handle));
 
+  // Category counts
+  const ideas = all.filter(f => f.category === 'idea').length;
+  const bugs = all.filter(f => f.category === 'bug').length;
+  const pains = all.filter(f => f.category === 'pain').length;
+
   return {
     total: all.length,
     anonymous,
     attributed,
     today: todayCount,
-    contributors: contributors.size
+    contributors: contributors.size,
+    categories: { ideas, bugs, pains, general: all.length - ideas - bugs - pains }
   };
+}
+
+// Get feedback filtered by category
+async function getFeedbackByCategory(category, limit = 20) {
+  const kv = await getKV();
+  let all = [];
+
+  if (kv) {
+    all = await kv.lrange('echo:feedback', 0, FEEDBACK_LIMIT - 1);
+  } else {
+    all = memory.feedback;
+  }
+
+  return all.filter(f => f.category === category).slice(0, limit);
 }
 
 export default async function handler(req, res) {
@@ -131,14 +172,38 @@ export default async function handler(req, res) {
       });
     }
 
+    const category = detectCategory(trimmed);
+
     const entry = {
       id: generateId(),
       timestamp: new Date().toISOString(),
       handle: anonymous ? null : (handle?.toLowerCase().replace('@', '') || null),
-      content: trimmed
+      content: trimmed,
+      category
     };
 
     await storeFeedback(entry);
+
+    // If it's an idea, also post to board so it gets visibility
+    if (category === 'idea') {
+      try {
+        const boardContent = entry.handle
+          ? `@${entry.handle} has an idea: ${trimmed.substring(0, 200)}`
+          : `New idea: ${trimmed.substring(0, 200)}`;
+
+        await fetch(`${process.env.VIBE_API_URL || 'https://slashvibe.dev'}/api/board`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            author: 'echo',
+            content: boardContent,
+            category: 'idea'
+          })
+        });
+      } catch (e) {
+        console.error('Failed to post idea to board:', e);
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -155,7 +220,7 @@ export default async function handler(req, res) {
 
   // GET - Fetch feedback or stats
   if (req.method === 'GET') {
-    const { stats, limit } = req.query;
+    const { stats, limit, category, top } = req.query;
 
     // Stats only
     if (stats === 'true') {
@@ -166,7 +231,37 @@ export default async function handler(req, res) {
       });
     }
 
-    // Recent feedback
+    // Top ideas (shortcut for category=idea)
+    if (top === 'ideas') {
+      const ideas = await getFeedbackByCategory('idea', 20);
+      const formatted = ideas.map(entry => ({
+        ...entry,
+        timeAgo: timeAgo(entry.timestamp)
+      }));
+      return res.status(200).json({
+        success: true,
+        ideas: formatted,
+        count: formatted.length,
+        message: 'These ideas are ready to be built!'
+      });
+    }
+
+    // Filter by category
+    if (category && ['idea', 'bug', 'pain', 'general'].includes(category)) {
+      const filtered = await getFeedbackByCategory(category, Math.min(parseInt(limit) || 20, 100));
+      const formatted = filtered.map(entry => ({
+        ...entry,
+        timeAgo: timeAgo(entry.timestamp)
+      }));
+      return res.status(200).json({
+        success: true,
+        feedback: formatted,
+        count: formatted.length,
+        category
+      });
+    }
+
+    // Recent feedback (all categories)
     const feedbackLimit = Math.min(parseInt(limit) || 20, 100);
     const recent = await getRecentFeedback(feedbackLimit);
 
