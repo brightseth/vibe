@@ -34,8 +34,8 @@ class FarcasterAdapter extends BaseAdapter {
     }
 
     try {
-      // Test the API with a simple request
-      await this.neynarRequest('/user', { fid: process.env.FARCASTER_FID });
+      // Test the API with a simple request (v2 uses /user/bulk)
+      await this.neynarRequest('/user/bulk', { fids: process.env.FARCASTER_FID });
       return { status: 'connected', lastSync: new Date().toISOString() };
     } catch (e) {
       if (e.message.includes('429')) {
