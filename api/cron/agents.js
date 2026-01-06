@@ -143,7 +143,7 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
     return response.choices[0].message.content;
   } else if (config.model === 'gemini') {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
     const result = await model.generateContent(prompt);
     return result.response.text();
   } else {
