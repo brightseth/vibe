@@ -64,7 +64,9 @@ function save(config) {
     createdAt: config.createdAt || existing.createdAt || new Date().toISOString().split('T')[0],
     // AIRC keypair (persisted across sessions)
     publicKey: config.publicKey || existing.publicKey || null,
-    privateKey: config.privateKey || existing.privateKey || null
+    privateKey: config.privateKey || existing.privateKey || null,
+    // Guided mode (AskUserQuestion menus)
+    guided_mode: config.guided_mode !== undefined ? config.guided_mode : existing.guided_mode
   };
   fs.writeFileSync(PRIMARY_CONFIG, JSON.stringify(data, null, 2));
 }
@@ -213,6 +215,19 @@ function clearSession() {
   } catch (e) {}
 }
 
+// Guided mode — show AskUserQuestion menus (default: true for new users)
+function getGuidedMode() {
+  const config = load();
+  // Default to true (guided mode on) if not set
+  return config.guided_mode !== false;
+}
+
+function setGuidedMode(enabled) {
+  const config = load();
+  config.guided_mode = enabled;
+  save(config);
+}
+
 module.exports = {
   VIBE_DIR,
   CONFIG_FILE,
@@ -231,5 +246,7 @@ module.exports = {
   hasKeypair,
   saveKeypair,
   clearSession,
-  generateSessionId
+  generateSessionId,
+  getGuidedMode,
+  setGuidedMode
 };

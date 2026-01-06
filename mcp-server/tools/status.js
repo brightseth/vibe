@@ -19,6 +19,9 @@ const MOODS = {
   'clear': null
 };
 
+// Special modes that toggle settings
+const SPECIAL_MODES = ['guided', 'freeform'];
+
 const definition = {
   name: 'vibe_status',
   description: 'Set your mood/status. Options: shipping, thinking, afk, debugging, pairing, deep, celebrating, struggling, clear',
@@ -43,6 +46,31 @@ async function handler(args) {
 
   const { mood } = args;
   const moodKey = mood.toLowerCase().replace(/[^a-z]/g, '');
+
+  // Handle special modes (guided/freeform)
+  if (moodKey === 'guided') {
+    config.setGuidedMode(true);
+    return {
+      display: `**Guided mode enabled** ✨
+
+You'll now see interactive option menus after each /vibe action.
+Perfect for learning the commands.
+
+_Say "set status freeform" to switch to text-only mode._`
+    };
+  }
+
+  if (moodKey === 'freeform') {
+    config.setGuidedMode(false);
+    return {
+      display: `**Free form mode enabled** ⚡
+
+Option menus disabled. Just type what you want.
+Commands: message, react, ping, status, context, etc.
+
+_Say "set status guided" to re-enable interactive menus._`
+    };
+  }
 
   if (!MOODS.hasOwnProperty(moodKey)) {
     const options = Object.entries(MOODS)

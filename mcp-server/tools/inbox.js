@@ -6,6 +6,7 @@ const config = require('../config');
 const store = require('../store');
 const notify = require('../notify');
 const { requireInit, header, emptyState, formatTimeAgo, truncate, divider } = require('./_shared');
+const { actions, formatActions } = require('./_actions');
 
 const definition = {
   name: 'vibe_inbox',
@@ -77,6 +78,10 @@ async function handler(args) {
   else if (threads.length === 0 || totalUnread === 0) {
     response.hint = 'suggest_compose';
   }
+
+  // Add guided mode actions
+  const threadSummaries = sorted.slice(0, 4).map(t => ({ handle: t.handle, unread: t.unread || 0 }));
+  response.actions = formatActions(actions.afterInbox(threadSummaries));
 
   return response;
 }

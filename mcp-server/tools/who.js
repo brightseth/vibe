@@ -11,6 +11,7 @@ const config = require('../config');
 const store = require('../store');
 const notify = require('../notify');
 const { formatTimeAgo, requireInit } = require('./_shared');
+const { actions, formatActions } = require('./_actions');
 
 const definition = {
   name: 'vibe_who',
@@ -224,11 +225,28 @@ _Check back in a bit — builders come and go._`
   }
 
   // Sort by priority and take top suggestion
+  let topSuggestion = null;
   if (suggestions.length > 0) {
     suggestions.sort((a, b) => a.priority - b.priority);
-    const top = suggestions[0];
+    topSuggestion = suggestions[0];
     response.hint = 'surprise_suggestion';
-    response.suggestion = top;
+    response.suggestion = topSuggestion;
+  }
+
+  // Add guided mode actions
+  const onlineHandles = active.filter(u => u.handle !== myHandle).map(u => u.handle);
+  const unreadCount = await store.getUnreadCount(myHandle).catch(() => 0);
+
+  if (active.length === 0 || (active.length === 1 && active[0].handle === myHandle)) {
+    // Empty room
+    response.actions = formatActions(actions.emptyRoom());
+  } else {
+    // People are here
+    response.actions = formatActions(actions.dashboard({
+      unreadCount,
+      onlineUsers: onlineHandles,
+      suggestion: topSuggestion
+    }));
   }
 
   return response;

@@ -12,6 +12,7 @@ const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
 const notify = require('../notify');
+const { actions, formatActions } = require('./_actions');
 
 function formatTimeAgo(timestamp) {
   if (timestamp === undefined || timestamp === null || isNaN(timestamp)) return 'unknown';
@@ -148,6 +149,7 @@ Example: "I'm @davemorin, working on social apps"`
 
   // Determine session state and suggest appropriate flow
   const unreadCount = await store.getUnreadCount(myHandle).catch(() => 0);
+  let suggestion = null;
 
   if (unreadCount >= 5) {
     // Many unread - suggest triage
@@ -164,14 +166,33 @@ Example: "I'm @davemorin, working on social apps"`
       return age < 5 * 60 * 1000; // Active in last 5 min
     });
     if (interesting) {
-      response.hint = 'surprise_suggestion';
-      response.suggestion = {
+      suggestion = {
         handle: interesting.handle,
         reason: 'active_now',
         context: interesting.note || interesting.one_liner || 'Building something'
       };
+      response.hint = 'surprise_suggestion';
+      response.suggestion = suggestion;
     }
   }
+
+  // Add guided mode actions for AskUserQuestion rendering
+  const onlineHandles = others.map(u => u.handle);
+  let actionList;
+
+  if (others.length === 0 && unreadCount === 0) {
+    // Empty room
+    actionList = actions.emptyRoom();
+  } else {
+    // Normal dashboard
+    actionList = actions.dashboard({
+      unreadCount,
+      onlineUsers: onlineHandles,
+      suggestion
+    });
+  }
+
+  response.actions = formatActions(actionList);
 
   return response;
 }

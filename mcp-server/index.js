@@ -206,14 +206,15 @@ class VibeMCPServer {
 
           // Build hint indicator for Claude to trigger dashboard flows
           let hintIndicator = '';
-          if (result.hint) {
+          if (result.hint || result.actions) {
             const hintData = {
-              hint: result.hint,
+              ...(result.hint && { hint: result.hint }),
               ...(result.suggestion && { suggestion: result.suggestion }),
               ...(result.unread_count && { unread_count: result.unread_count }),
               ...(result.for_handle && { for_handle: result.for_handle }),
               ...(result.memories && { memories: result.memories }),
-              ...(result.threads && { threads: result.threads })
+              ...(result.threads && { threads: result.threads }),
+              ...(result.actions && { actions: result.actions })
             };
             hintIndicator = `\n\n<!-- vibe:dashboard ${JSON.stringify(hintData)} -->`;
           }

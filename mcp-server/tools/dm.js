@@ -7,6 +7,7 @@ const store = require('../store');
 const memory = require('../memory');
 const { trackMessage, checkBurst } = require('./summarize');
 const { requireInit, normalizeHandle, truncate, warning } = require('./_shared');
+const { actions, formatActions } = require('./_actions');
 
 const definition = {
   name: 'vibe_dm',
@@ -104,6 +105,9 @@ async function handler(args) {
     response.for_handle = them;
     response.message_count = burst.count;
   }
+
+  // Add guided mode actions
+  response.actions = formatActions(actions.afterDm(them));
 
   return response;
 }
