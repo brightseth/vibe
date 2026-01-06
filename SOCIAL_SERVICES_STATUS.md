@@ -1,7 +1,7 @@
 # /vibe Social Services — Current Status
 
 **Last Updated:** January 5, 2026
-**Status:** Phase 1a Complete, X Live
+**Status:** Phase 1b Complete, X Read+Write Live
 **Last Successful Sync:** 2026-01-06T02:28:29Z (X: 20 messages)
 
 ---
@@ -14,7 +14,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    CURRENT STATE                             │
 ├─────────────────────────────────────────────────────────────┤
-│  X (Twitter)     ✅ READ    ❌ WRITE (needs $100/mo tier)   │
+│  X (Twitter)     ✅ READ    ✅ WRITE (Basic tier active)    │
 │  Farcaster       ❌ READ    ❌ WRITE (needs credentials)    │
 │  Discord         ❌ READ    ✅ WRITE (webhook only)         │
 │  WhatsApp        ❌         ❌       (Phase 2)              │
