@@ -219,14 +219,6 @@ async function runAgent(agent) {
 }
 
 module.exports = async function handler(req, res) {
-  // Debug: check if env vars are set
-  const envCheck = {
-    anthropic: !!process.env.ANTHROPIC_API_KEY,
-    openai: !!process.env.OPENAI_API_KEY,
-    anthropicLen: process.env.ANTHROPIC_API_KEY?.length || 0,
-    openaiLen: process.env.OPENAI_API_KEY?.length || 0
-  };
-
   // Verify cron secret
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -238,7 +230,6 @@ module.exports = async function handler(req, res) {
 
   try {
     const results = [];
-    results.push({ type: 'envCheck', ...envCheck });
 
     // Run each agent
     for (const agent of Object.keys(AGENTS)) {
