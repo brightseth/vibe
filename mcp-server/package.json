@@ -1,0 +1,49 @@
+{
+  "name": "slashvibe-mcp",
+  "version": "0.2.0",
+  "description": "Social layer for Claude Code - DMs, presence, and connection between AI-assisted developers",
+  "main": "index.js",
+  "bin": {
+    "slashvibe-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "claude-code",
+    "vibe",
+    "social",
+    "developer-tools",
+    "ai",
+    "anthropic"
+  ],
+  "author": "Seth Goldstein <seth@slashvibe.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spirit-protocol/vibe-mcp.git"
+  },
+  "homepage": "https://slashvibe.dev",
+  "bugs": {
+    "url": "https://github.com/spirit-protocol/vibe-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "index.js",
+    "config.js",
+    "crypto.js",
+    "discord.js",
+    "memory.js",
+    "notify.js",
+    "presence.js",
+    "twitter.js",
+    "version.json",
+    "tools/",
+    "store/",
+    "protocol/",
+    "README.md"
+  ]
+}
