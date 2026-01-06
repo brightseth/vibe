@@ -137,13 +137,14 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
     });
     const response = await openai.chat.completions.create({
       model: 'gpt-5.2',
-      max_tokens: 200,
+      max_completion_tokens: 200,
       messages: [{ role: 'user', content: prompt }]
     });
     return response.choices[0].message.content;
   } else if (config.model === 'gemini') {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash' });
+    // gemini-2.5-pro is the latest as of Jan 2026
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro-preview-06-05' });
     const result = await model.generateContent(prompt);
     return result.response.text();
   } else {
