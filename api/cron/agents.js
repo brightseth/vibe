@@ -12,6 +12,7 @@
 const { kv } = require('@vercel/kv');
 const Anthropic = require('@anthropic-ai/sdk');
 const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Agent configs with personalities
 const AGENTS = {
@@ -140,8 +141,12 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
       messages: [{ role: 'user', content: prompt }]
     });
     return response.choices[0].message.content;
+  } else if (config.model === 'gemini') {
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const result = await model.generateContent(prompt);
+    return result.response.text();
   } else {
-    // Gemini - skip for now if no key
     return null;
   }
 }
