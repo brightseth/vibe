@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/echo",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/social-sync",
+      "schedule": "*/5 * * * *"
     }
   ],
   "cleanUrls": true,
@@ -56,6 +60,8 @@
     { "source": "/api/gigabrain/backfill", "destination": "/api/gigabrain/backfill.js" },
     { "source": "/api/board", "destination": "/api/board.js" },
     { "source": "/api/cron/echo", "destination": "/api/cron/echo.js" },
-    { "source": "/api/discord-bridge", "destination": "/api/discord-bridge.js" }
+    { "source": "/api/discord-bridge", "destination": "/api/discord-bridge.js" },
+    { "source": "/api/social", "destination": "/api/social/index.js" },
+    { "source": "/api/cron/social-sync", "destination": "/api/cron/social-sync.js" }
   ]
 }

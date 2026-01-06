@@ -180,6 +180,9 @@ const tools = {
   // X/Twitter bridge
   vibe_x_mentions: require('./tools/x-mentions'),
   vibe_x_reply: require('./tools/x-reply'),
+  // Unified social inbox (Phase 1a)
+  vibe_social_inbox: require('./tools/social-inbox'),
+  vibe_social_post: require('./tools/social-post'),
   // Language evolution
   vibe_patterns: require('./tools/patterns')
 };
