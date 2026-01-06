@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/social-sync",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/agents",
+      "schedule": "*/5 * * * *"
     }
   ],
   "cleanUrls": true,
@@ -63,6 +67,7 @@
     { "source": "/api/discord-bridge", "destination": "/api/discord-bridge.js" },
     { "source": "/api/social", "destination": "/api/social/index.js" },
     { "source": "/api/cron/social-sync", "destination": "/api/cron/social-sync.js" },
-    { "source": "/api/register", "destination": "/api/register.js" }
+    { "source": "/api/register", "destination": "/api/register.js" },
+    { "source": "/api/cron/agents", "destination": "/api/cron/agents.js" }
   ]
 }
