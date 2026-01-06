@@ -43,6 +43,7 @@ function inferPromptFromArgs(toolName, args) {
     case 'echo': return 'send feedback';
     case 'x_mentions': return 'check x mentions';
     case 'x_reply': return 'reply on x';
+    case 'handoff': return `handoff task to ${handle}`;
     default: return `${action} ${handle}`.trim() || null;
   }
 }
@@ -161,6 +162,8 @@ const tools = {
   vibe_summarize: require('./tools/summarize'),
   vibe_bye: require('./tools/bye'),
   vibe_game: require('./tools/game'),
+  // AIRC Handoff (v1) — context portability
+  vibe_handoff: require('./tools/handoff'),
   // Memory tools (Tier 1 — Collaborative Memory)
   vibe_remember: require('./tools/remember'),
   vibe_recall: require('./tools/recall'),
