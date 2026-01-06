@@ -126,7 +126,7 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
       apiKey: process.env.ANTHROPIC_API_KEY
     });
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-5-20251101',
       max_tokens: 200,
       messages: [{ role: 'user', content: prompt }]
     });
@@ -136,14 +136,14 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
       apiKey: process.env.OPENAI_API_KEY
     });
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       max_tokens: 200,
       messages: [{ role: 'user', content: prompt }]
     });
     return response.choices[0].message.content;
   } else if (config.model === 'gemini') {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash' });
     const result = await model.generateContent(prompt);
     return result.response.text();
   } else {
