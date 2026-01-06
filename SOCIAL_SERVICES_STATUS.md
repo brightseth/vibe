@@ -15,7 +15,7 @@
 │                    CURRENT STATE                             │
 ├─────────────────────────────────────────────────────────────┤
 │  X (Twitter)     ✅ READ    ✅ WRITE (Basic tier active)    │
-│  Farcaster       ✅ READ    ❌ WRITE (needs signer)         │
+│  Farcaster       ✅ READ    ✅ WRITE (signer active)        │
 │  Discord         ❌ READ    ✅ WRITE (webhook only)         │
 │  WhatsApp        ❌         ❌       (Phase 2)              │
 │  Telegram        ❌         ❌       (Phase 2)              │
@@ -159,7 +159,7 @@ X_ACCESS_TOKEN    ✅ Set
 X_ACCESS_SECRET   ✅ Set
 ```
 
-### Farcaster — ✅ READ ONLY
+### Farcaster — ✅ LIVE (READ + WRITE)
 
 **Configured:** Yes
 **Syncing:** Every 5 minutes
@@ -177,11 +177,8 @@ X_ACCESS_SECRET   ✅ Set
 ```
 NEYNAR_API_KEY        ✅ Set
 FARCASTER_FID         ✅ Set
-FARCASTER_SIGNER_UUID ❌ Missing (for write)
+FARCASTER_SIGNER_UUID ✅ Set
 ```
-
-**For Write Access:**
-Create a signer in Neynar dashboard (Apps → loancast → Signers), approve via Warpcast.
 
 ### Discord — ✅ WRITE ONLY
 
