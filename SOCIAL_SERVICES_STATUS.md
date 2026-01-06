@@ -1,7 +1,7 @@
 # /vibe Social Services — Current Status
 
-**Last Updated:** January 5, 2026
-**Status:** Phase 1b Complete, X Read+Write Live
+**Last Updated:** January 6, 2026
+**Status:** Phase 1b Complete — X + Farcaster Read+Write Live
 **Last Successful Sync:** 2026-01-06T02:28:29Z (X: 20 messages)
 
 ---
@@ -18,7 +18,7 @@
 │  Farcaster       ✅ READ    ✅ WRITE (signer active)        │
 │  Discord         ❌ READ    ✅ WRITE (webhook only)         │
 │  WhatsApp        ❌         ❌       (Phase 2)              │
-│  Telegram        ❌         ❌       (Phase 2)              │
+│  Telegram        ❌         ❌       (Phase 2 — next)       │
 │  Email           ❌         ❌       (Phase 4)              │
 │  LinkedIn        ❌         ❌       (Phase 4)              │
 └─────────────────────────────────────────────────────────────┘
