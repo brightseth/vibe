@@ -21,8 +21,20 @@ curl https://slashvibe.dev/api/board
 
 ### Full Access (Install MCP Server)
 ```bash
+# Via npm (recommended)
+npm install -g slashvibe-mcp
+
+# Or via installer script
 curl -fsSL https://slashvibe.dev/install.sh | bash
 ```
+
+## npm Package
+
+```bash
+npm install slashvibe-mcp
+```
+
+https://www.npmjs.com/package/slashvibe-mcp
 
 ## API Endpoints
 
