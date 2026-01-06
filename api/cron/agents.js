@@ -183,7 +183,8 @@ async function runAgent(agent) {
     if (!await checkUserBudget(user)) continue;
 
     // Random chance to engage (spread load across agents)
-    if (Math.random() > 0.3) continue;
+    // 70% chance to engage per user
+    if (Math.random() > 0.7) continue;
 
     // Get user's one-liner
     const presence = await kv.hgetall(`presence:${user}`);
