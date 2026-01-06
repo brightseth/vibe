@@ -9,9 +9,43 @@
 const presence = require('./presence');
 const config = require('./config');
 const store = require('./store');
+const prompts = require('./prompts');
 
 // Tools that shouldn't show presence footer (would be redundant/noisy)
 const SKIP_FOOTER_TOOLS = ['vibe_init', 'vibe_doctor', 'vibe_test', 'vibe_update'];
+
+// Infer user prompt from tool arguments (for pattern logging)
+function inferPromptFromArgs(toolName, args) {
+  const action = toolName.replace('vibe_', '');
+  const handle = args.handle ? `@${args.handle.replace('@', '')}` : '';
+  const message = args.message ? `"${args.message.slice(0, 50)}..."` : '';
+  const note = args.note || '';
+  const mood = args.mood || '';
+  const reaction = args.reaction || '';
+
+  switch (action) {
+    case 'start': return 'start vibing';
+    case 'who': return 'who is online';
+    case 'ping': return `ping ${handle} ${note}`.trim();
+    case 'react': return `react ${reaction} to ${handle}`.trim();
+    case 'dm': return `message ${handle} ${message}`.trim();
+    case 'inbox': return 'check inbox';
+    case 'open': return `open thread with ${handle}`;
+    case 'status': return `set status to ${mood}`;
+    case 'context': return 'share context';
+    case 'summarize': return 'summarize session';
+    case 'bye': return 'end session';
+    case 'remember': return `remember about ${handle}`;
+    case 'recall': return `recall ${handle}`;
+    case 'forget': return `forget ${handle}`;
+    case 'board': return args.content ? 'post to board' : 'view board';
+    case 'invite': return 'generate invite';
+    case 'echo': return 'send feedback';
+    case 'x_mentions': return 'check x mentions';
+    case 'x_reply': return 'reply on x';
+    default: return `${action} ${handle}`.trim() || null;
+  }
+}
 
 // Generate terminal title escape sequence (OSC 0)
 function getTerminalTitle(onlineCount, unreadCount, lastActivity) {
@@ -145,7 +179,9 @@ const tools = {
   vibe_echo: require('./tools/echo'),
   // X/Twitter bridge
   vibe_x_mentions: require('./tools/x-mentions'),
-  vibe_x_reply: require('./tools/x-reply')
+  vibe_x_reply: require('./tools/x-reply'),
+  // Language evolution
+  vibe_patterns: require('./tools/patterns')
 };
 
 /**
@@ -196,7 +232,19 @@ class VibeMCPServer {
         }
 
         try {
-          const result = await tool.handler(params.arguments || {});
+          // Log prompt pattern (if _prompt passed) or infer from args
+          const args = params.arguments || {};
+          const inferredPrompt = args._prompt || inferPromptFromArgs(params.name, args);
+          if (inferredPrompt) {
+            prompts.log(inferredPrompt, {
+              tool: params.name,
+              action: params.name.replace('vibe_', ''),
+              target: args.handle || args.to || null,
+              transform: args.format || args.category || null
+            });
+          }
+
+          const result = await tool.handler(args);
 
           // Add ambient presence footer (unless tool is in skip list)
           let footer = '';

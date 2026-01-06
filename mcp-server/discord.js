@@ -117,6 +117,24 @@ async function postAnnouncement(message) {
 }
 
 /**
+ * Post a conversation highlight
+ */
+async function postHighlight(handle, title, summary, threads = []) {
+  const threadList = threads.length > 0
+    ? '\n\n**Open threads:**\n' + threads.map(t => `• ${t}`).join('\n')
+    : '';
+
+  const embed = {
+    color: 0xF39C12, // Gold/amber for highlights
+    title: `💬 ${title}`,
+    description: summary + threadList,
+    footer: { text: `shared by @${handle} · slashvibe.dev` },
+    timestamp: new Date().toISOString()
+  };
+  return post(null, { embed });
+}
+
+/**
  * Post who's currently online
  */
 async function postOnlineList(users) {
@@ -147,5 +165,6 @@ module.exports = {
   postActivity,
   postStatus,
   postAnnouncement,
+  postHighlight,
   postOnlineList
 };
