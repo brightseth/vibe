@@ -183,6 +183,7 @@ const tools = {
   vibe_report: require('./tools/report'),
   // Support
   vibe_help: require('./tools/help'),
+  vibe_agents: require('./tools/agents'),
   // Community
   vibe_invite: require('./tools/invite'),
   vibe_board: require('./tools/board'),
