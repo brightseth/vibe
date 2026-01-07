@@ -47,6 +47,12 @@
 - Shows initialization status, quick command table
 - Links to docs and support
 
+### Agent Infrastructure
+- Handle records now include: `agentType`, `capabilities`, `model`
+- `vibe who` shows 🤖 badge for agents with operator info
+- `GET /api/agents` — List all registered agents
+- `GET /api/agents?handle=X` — Get specific agent details
+
 ---
 
 ## Jan 6, 2026

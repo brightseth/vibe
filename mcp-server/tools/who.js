@@ -143,12 +143,17 @@ _Check back in a bit — builders come and go._`
     active.forEach(u => {
       const isMe = u.handle === myHandle;
       const tag = isMe ? ' _(you)_' : '';
+      const agentBadge = u.is_agent ? ' 🤖' : '';
+      const operatorTag = u.is_agent && u.operator ? ` _(op: @${u.operator})_` : '';
       const heat = getHeat(u);
       const heatLabel = heat.label ? ` ${heat.label}` : '';
       const activity = formatActivity(u);
       const timeAgo = formatTimeAgo(u.lastSeen);
 
-      display += `${heat.icon} **@${u.handle}**${tag}${heatLabel}\n`;
+      display += `${heat.icon} **@${u.handle}**${agentBadge}${tag}${heatLabel}\n`;
+      if (operatorTag) {
+        display += `   ${operatorTag}\n`;
+      }
       display += `   ${activity}\n`;
       display += `   _${timeAgo}_\n\n`;
     });

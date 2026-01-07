@@ -192,6 +192,9 @@ export async function claimHandle(kv, handle, data) {
     // Agent/operator info
     isAgent: data.isAgent || false,
     operator: data.operator || null,
+    agentType: data.agentType || null,         // autonomous | assistant | bot | null
+    capabilities: data.capabilities || [],      // ['chat', 'create', 'remember', 'build']
+    model: data.model || null,                  // claude-opus-4-5, gpt-5.2, etc.
     status: 'active',          // active | dormant | suspended
     ...data
   };
