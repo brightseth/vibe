@@ -46,6 +46,8 @@ module.exports = async function handler(req, res) {
     // Try Postgres first (primary storage)
     let stored = false;
     let storage = 'none';
+    let pgError = null;
+    let kvError = null;
     const payload = JSON.stringify({ type });
 
     if (isPostgresEnabled() && sql) {
@@ -57,6 +59,7 @@ module.exports = async function handler(req, res) {
         stored = true;
         storage = 'postgres';
       } catch (pgErr) {
+        pgError = pgErr.message;
         console.error('[SEND] Postgres failed:', pgErr.message);
       }
     }
@@ -71,12 +74,21 @@ module.exports = async function handler(req, res) {
         stored = true;
         storage = 'kv';
       } catch (kvErr) {
+        kvError = kvErr.message;
         console.error('[SEND] KV failed:', kvErr.message);
       }
     }
 
     if (!stored) {
-      return res.status(503).json({ error: 'All storage backends unavailable' });
+      return res.status(503).json({
+        error: 'All storage backends unavailable',
+        _debug: {
+          pgEnabled: isPostgresEnabled(),
+          sqlAvailable: !!sql,
+          pgError,
+          kvError
+        }
+      });
     }
 
     return res.status(200).json({
