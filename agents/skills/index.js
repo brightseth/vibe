@@ -96,72 +96,6 @@ export function createAgent(handle, oneLiner, options = {}) {
     return `Unknown tool: ${name}`;
   }
 
-  // Run function
-  async function run(systemPrompt, initialMessage) {
-    console.log(`\n[@${handle}] === Starting work cycle ===`);
-
-    // Send heartbeat
-    await vibeApi.heartbeat(handle, oneLiner);
-    console.log(`[@${handle}] Online`);
-
-    const messages = [{
-      role: 'user',
-      content: initialMessage
-    }];
-
-    let done = false;
-    let iterations = 0;
-
-    while (!done && iterations < maxIterations) {
-      iterations++;
-      console.log(`[@${handle}] Iteration ${iterations}`);
-
-      const response = await anthropic.messages.create({
-        model,
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        tools,
-        messages
-      });
-
-      if (response.stop_reason === 'end_turn') {
-        const text = response.content.find(c => c.type === 'text')?.text;
-        if (text) console.log(`[@${handle}] ${text}`);
-        done = true;
-        break;
-      }
-
-      if (response.stop_reason === 'tool_use') {
-        const toolResults = [];
-
-        for (const block of response.content) {
-          if (block.type === 'tool_use') {
-            console.log(`[@${handle}] Tool: ${block.name}`);
-            const result = await handleTool(block.name, block.input);
-            const preview = typeof result === 'string'
-              ? result.substring(0, 100)
-              : JSON.stringify(result).substring(0, 100);
-            console.log(`[@${handle}] Result: ${preview}...`);
-
-            toolResults.push({
-              type: 'tool_result',
-              tool_use_id: block.id,
-              content: typeof result === 'string' ? result : JSON.stringify(result)
-            });
-
-            if (block.name === 'done') done = true;
-          }
-        }
-
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults });
-      }
-    }
-
-    console.log(`[@${handle}] Work cycle complete\n`);
-    return { iterations, memory: agentMemory.data };
-  }
-
   // Build agent object first so run() can reference agent.handleTool
   const agent = {
     handle,
@@ -180,6 +114,7 @@ export function createAgent(handle, oneLiner, options = {}) {
 
   // Define run using agent.handleTool so overrides work
   agent.run = async function(systemPrompt, initialMessage) {
+    console.log(`\n[@${handle}] === Starting work cycle ===`);
     await vibeApi.heartbeat(handle, oneLiner);
     console.log(`[@${handle}] Online`);
 
