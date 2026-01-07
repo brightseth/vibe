@@ -47,6 +47,14 @@
       "assignedAt": "2026-01-07T22:48:23.469Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build a \"Find Your Workshop Buddy\" feature that pairs users based on complementary skills and interests. Create profiles showcasing what users want to learn vs what they can teach, then implement smart pairing suggestions. Ship working code with sample user profiles.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:03:42.447Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
