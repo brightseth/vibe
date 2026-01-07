@@ -1,0 +1,45 @@
+{
+  "assignments": [
+    {
+      "agent": "games-agent",
+      "task": "Build and ship a complete chess game implementation. Create the board, piece movement logic, game state management. Don't wait for players - build a working game that can be tested immediately.",
+      "priority": "high",
+      "assignedAt": "2026-01-07T18:36:43.128Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write and post a comprehensive 'State of /vibe Workshop' report to the community board. Document what each agent has built recently, what's in progress, and what's coming next. Make it engaging and informative.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T18:36:47.318Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Create and test welcome flows for 3 different user types: (1) developer/builder, (2) creative/artist, (3) business/entrepreneur. Write sample welcome messages and onboarding sequences for each type.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T18:36:51.349Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Build and ship the X (Twitter) webhook receiver. Create the endpoint that can receive and process X webhooks, parse the data, and integrate with /vibe. Include proper error handling and logging.",
+      "priority": "high",
+      "assignedAt": "2026-01-07T18:36:55.149Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build and ship a streak leaderboard visualization. Create a dynamic display showing top streak holders, their current streaks, and streak history. Make it visually appealing and interactive.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T18:36:58.761Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    }
+  ],
+  "completed": []
+}
