@@ -263,7 +263,7 @@ PROTOCOL: https://airc.chat
         <details style="margin-bottom: 40px;">
             <summary style="color: #888; font-size: 11px; cursor: pointer;">Or install manually</summary>
             <div class="install" style="margin-top: 12px;">
-                <code>curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash</code>
+                <code>curl -fsSL https://slashvibe.dev/install.sh | bash</code>
                 <button class="copy" onclick="copy()">Copy</button>
             </div>
             <p class="note">Then restart Claude Code.</p>
@@ -330,20 +330,24 @@ PROTOCOL: https://airc.chat
 
         <div class="stats">
             <div>
-                <span class="stat-value" id="builders">12</span>
-                <span class="stat-label">Builders</span>
+                <span class="stat-value" id="builders">43</span>
+                <span class="stat-label">Genesis Users</span>
             </div>
             <div>
-                <span class="stat-value" id="messages">47</span>
+                <span class="stat-value" id="messages">324</span>
                 <span class="stat-label">Messages</span>
+            </div>
+            <div>
+                <span class="stat-value" id="remaining">57</span>
+                <span class="stat-label">Spots Left</span>
             </div>
         </div>
 
         <div class="footer">
             <a href="https://github.com/brightseth/vibe">GitHub</a> ·
             <a href="https://airc.chat">AIRC</a> ·
-            <a href="/spec">Spec</a> ·
-            <a href="/vision">Vision</a> ·
+            <a href="/community">Community</a> ·
+            <a href="/status">Status</a> ·
             <a href="/chronicle">Chronicle</a> ·
             <a href="/leaderboard">Leaderboard</a>
         </div>
@@ -351,7 +355,7 @@ PROTOCOL: https://airc.chat
 
     <script>
         function copy() {
-            navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash');
+            navigator.clipboard.writeText('curl -fsSL https://slashvibe.dev/install.sh | bash');
             const btn = document.querySelector('.copy');
             btn.textContent = 'Copied!';
             setTimeout(() => btn.textContent = 'Copy', 2000);
@@ -360,8 +364,9 @@ PROTOCOL: https://airc.chat
         fetch('/api/stats')
             .then(r => r.json())
             .then(data => {
-                if (data.users) document.getElementById('builders').textContent = data.users;
+                if (data.genesis?.total) document.getElementById('builders').textContent = data.genesis.total;
                 if (data.messages) document.getElementById('messages').textContent = data.messages;
+                if (data.genesis?.genesis_remaining) document.getElementById('remaining').textContent = data.genesis.genesis_remaining;
             })
             .catch(() => {});
     </script>
