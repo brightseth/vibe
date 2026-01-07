@@ -306,14 +306,13 @@ async function handleTool(name, input) {
     case 'check_backlog': {
       const backlogPath = path.join(VIBE_REPO, 'agents/.backlog.json');
       if (!fs.existsSync(backlogPath)) return 'No backlog file found';
-      const backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
-      const myTasks = backlog.filter(t =>
-        t.status === 'pending' &&
-        (t.assignee === HANDLE || t.assignee === 'unassigned' || !t.assignee) &&
-        (t.domain === 'streaks' || t.domain === 'gamification' || t.tags?.includes('streaks'))
+      const data = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+      const assignments = data.assignments || [];
+      const myTasks = assignments.filter(t =>
+        t.status === 'assigned' && t.agent === HANDLE
       );
-      if (myTasks.length === 0) return 'No pending tasks in backlog for streaks domain';
-      return myTasks.map(t => `[${t.id}] ${t.title} (${t.priority || 'normal'})`).join('\n');
+      if (myTasks.length === 0) return 'No pending tasks assigned to streaks-agent';
+      return myTasks.map(t => `[${t.priority}] ${t.task.substring(0, 100)}...`).join('\n');
     }
 
     case 'read_board': {
