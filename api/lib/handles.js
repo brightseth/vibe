@@ -164,7 +164,8 @@ export async function claimHandle(kv, handle, data) {
     return {
       success: false,
       error: 'genesis_full',
-      message: `Genesis registration is full (${GENESIS_CAP}/${GENESIS_CAP}). Follow @seth on X for updates.`,
+      message: `Genesis is full (${GENESIS_CAP}/${GENESIS_CAP}). Join the waitlist: slashvibe.dev/waitlist`,
+      waitlist_url: 'https://slashvibe.dev/waitlist',
       claimed: handleCount,
       cap: GENESIS_CAP
     };

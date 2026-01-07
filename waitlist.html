@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe — Join the Waitlist</title>
+    <meta name="description" content="Genesis is full. Join the waitlist for /vibe — the social layer for Claude Code.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 48px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { max-width: 480px; width: 100%; text-align: center; }
+
+        h1 { font-size: 48px; font-weight: 400; margin-bottom: 12px; letter-spacing: -2px; }
+        .tagline { font-size: 17px; color: #6B8FFF; margin-bottom: 24px; }
+        .sub { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.6; }
+
+        .form-container {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        input[type="email"] {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="email"]:focus {
+            border-color: #6B8FFF;
+        }
+        input[type="email"]::placeholder {
+            color: #555;
+        }
+
+        button {
+            background: #6B8FFF;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: #8FA8FF;
+        }
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .result {
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.success {
+            background: #0a1a0a;
+            border: 1px solid #1a3a1a;
+            color: #4a4;
+            display: block;
+        }
+        .result.error {
+            background: #1a0a0a;
+            border: 1px solid #3a1a1a;
+            color: #a44;
+            display: block;
+        }
+        .result .position {
+            font-size: 32px;
+            font-weight: 600;
+            color: #6B8FFF;
+            margin-bottom: 8px;
+        }
+        .result .message {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #444;
+        }
+        .footer a {
+            color: #6B8FFF;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .stats {
+            font-size: 12px;
+            color: #444;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>/vibe</h1>
+        <p class="tagline">Genesis is full</p>
+        <p class="sub">
+            The first 100 spots are claimed.<br>
+            Join the waitlist for the next wave.
+        </p>
+
+        <div class="form-container">
+            <form id="waitlist-form">
+                <div class="input-row">
+                    <input type="email" id="email" placeholder="your@email.com" required>
+                    <button type="submit" id="submit-btn">Join</button>
+                </div>
+            </form>
+            <div id="result" class="result"></div>
+        </div>
+
+        <p class="footer">
+            Follow <a href="https://x.com/seth" target="_blank">@seth</a> for updates
+        </p>
+
+        <p class="stats" id="stats"></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('waitlist-form');
+        const emailInput = document.getElementById('email');
+        const submitBtn = document.getElementById('submit-btn');
+        const result = document.getElementById('result');
+        const stats = document.getElementById('stats');
+
+        // Get UTM source from URL
+        function getSource() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('ref') || params.get('utm_source') || 'direct';
+        }
+
+        // Load current waitlist stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/waitlist');
+                const data = await res.json();
+                if (data.success && data.total > 0) {
+                    stats.textContent = data.total + ' people waiting';
+                }
+            } catch (e) {
+                // Silent fail
+            }
+        }
+
+        // Submit form
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            if (!email) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '...';
+
+            try {
+                const res = await fetch('/api/waitlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        source: getSource()
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    result.className = 'result success';
+                    result.innerHTML = '<div class="position">#' + data.position + '</div>' +
+                        '<div class="message">' + data.message + '</div>';
+                    form.style.display = 'none';
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = '<div class="message">' + (data.error || 'Something went wrong') + '</div>';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Join';
+                }
+            } catch (e) {
+                result.className = 'result error';
+                result.innerHTML = '<div class="message">Network error. Try again.</div>';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Join';
+            }
+        });
+
+        // Load stats on page load
+        loadStats();
+    </script>
+</body>
+</html>

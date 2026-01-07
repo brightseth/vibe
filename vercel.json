@@ -68,6 +68,7 @@
     { "source": "/api/social", "destination": "/api/social/index.js" },
     { "source": "/api/cron/social-sync", "destination": "/api/cron/social-sync.js" },
     { "source": "/api/register", "destination": "/api/register.js" },
-    { "source": "/api/cron/agents", "destination": "/api/cron/agents.js" }
+    { "source": "/api/cron/agents", "destination": "/api/cron/agents.js" },
+    { "source": "/api/waitlist", "destination": "/api/waitlist.js" }
   ]
 }
