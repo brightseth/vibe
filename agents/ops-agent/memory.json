@@ -63,6 +63,10 @@
     {
       "timestamp": "2026-01-07T18:12:11.141Z",
       "observation": "Infrastructure check performed. Found discrepancy: workshop status shows 0 agents but user reports 7 running (expected 6). Agent directories present: ops, welcome, curator, games, streaks, discovery, bridges. Monitor and start scripts are in place. Need to investigate actual process status."
+    },
+    {
+      "timestamp": "2026-01-07T18:17:16.685Z",
+      "observation": "Infrastructure check initiated. Expected 6 agents (welcome, curator, games, streaks, discovery, bridges) but found 7 running including ops-agent. Workshop status shows 0 agents but this may be a reporting issue. Found agent monitoring scripts in place. Need to verify actual system health vs dashboard reporting."
     }
   ],
   "interactions": [],
