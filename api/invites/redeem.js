@@ -109,26 +109,42 @@ export default async function handler(req, res) {
   invite.status = 'used';
   await kv.hset('vibe:invites', { [normalizedCode]: JSON.stringify(invite) });
 
-  // Grant the inviter a bonus code for successful invite
+  // Grant the inviter a bonus code for successful invite (max 10 bonus codes to prevent spam)
+  const MAX_BONUS_CODES = 10;
   const inviterCodesKey = 'vibe:invites:by:' + invite.created_by;
-  const bonusCode = generateCode(invite.created_by);
-  const bonusExpires = Date.now() + CODE_EXPIRY_MS;
+  const existingCodes = await kv.smembers(inviterCodesKey) || [];
 
-  const bonusInvite = {
-    code: bonusCode,
-    created_by: invite.created_by,
-    created_at: new Date().toISOString(),
-    created_at_ts: Date.now(),
-    expires_at: new Date(bonusExpires).toISOString(),
-    expires_at_ts: bonusExpires,
-    used_by: null,
-    used_at: null,
-    status: 'available',
-    bonus_for_inviting: normalizedHandle
-  };
+  // Count how many bonus codes they've earned
+  let bonusCount = 0;
+  for (const code of existingCodes) {
+    const codeData = await kv.hget('vibe:invites', code);
+    if (codeData) {
+      const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+      if (parsed.bonus_for_inviting) bonusCount++;
+    }
+  }
 
-  await kv.hset('vibe:invites', { [bonusCode]: JSON.stringify(bonusInvite) });
-  await kv.sadd(inviterCodesKey, bonusCode);
+  // Only grant bonus if under cap
+  if (bonusCount < MAX_BONUS_CODES) {
+    const bonusCode = generateCode(invite.created_by);
+    const bonusExpires = Date.now() + CODE_EXPIRY_MS;
+
+    const bonusInvite = {
+      code: bonusCode,
+      created_by: invite.created_by,
+      created_at: new Date().toISOString(),
+      created_at_ts: Date.now(),
+      expires_at: new Date(bonusExpires).toISOString(),
+      expires_at_ts: bonusExpires,
+      used_by: null,
+      used_at: null,
+      status: 'available',
+      bonus_for_inviting: normalizedHandle
+    };
+
+    await kv.hset('vibe:invites', { [bonusCode]: JSON.stringify(bonusInvite) });
+    await kv.sadd(inviterCodesKey, bonusCode);
+  }
 
   return res.status(200).json({
     success: true,

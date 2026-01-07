@@ -42,11 +42,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Simple auth check (can be enhanced later)
-  // For now, just require a secret query param
-  const adminSecret = process.env.ADMIN_SECRET || 'vibe-admin-2026';
-  if (req.query.secret !== adminSecret && req.headers.authorization !== `Bearer ${adminSecret}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  // Auth check - prefer Authorization header, query param for convenience
+  // TODO: Move to proper auth tokens before scaling
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) {
+    return res.status(503).json({ error: 'Admin endpoint not configured' });
+  }
+
+  const authHeader = req.headers.authorization;
+  const querySecret = req.query.secret;
+
+  if (authHeader === `Bearer ${adminSecret}` || querySecret === adminSecret) {
+    // Authorized
+  } else {
+    return res.status(401).json({
+      error: 'Unauthorized',
+      hint: 'Use Authorization: Bearer <secret> header'
+    });
   }
 
   const kv = await getKV();
@@ -146,10 +158,12 @@ export default async function handler(req, res) {
     };
 
     // ===== HEALTH =====
+    const GENESIS_CAP = 100;
     const health = {
       kv: 'ok',
-      genesis_open: handles.total < 100,
-      genesis_remaining: Math.max(0, 100 - handles.total)
+      genesis_open: handles.total < GENESIS_CAP,
+      genesis_remaining: Math.max(0, GENESIS_CAP - handles.total),
+      genesis_definition: 'First 100 users. Genesis status is permanent, grants 3 invite codes, and exempts from future inactivity policies.'
     };
 
     // ===== TOP INVITERS =====

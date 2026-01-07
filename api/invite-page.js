@@ -239,6 +239,11 @@ function getInviteHTML() {
                     <button type="submit" id="submit-btn">Claim @<span id="handle-preview">handle</span></button>
                 </form>
                 <div id="result" class="result"></div>
+                <p style="font-size: 11px; color: #444; margin-top: 16px; line-height: 1.5;">
+                    <strong>What we store:</strong> Your handle (permanent, cannot be changed),
+                    what you're building (optional, can be updated), who invited you, and when you joined.
+                    No email required. <a href="/privacy" style="color: #6B8FFF;">Privacy policy</a>
+                </p>
             </div>
         </div>
     </div>
