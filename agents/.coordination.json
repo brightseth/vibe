@@ -3,6 +3,11 @@
   "completedTasks": [],
   "announcements": [
     {
+      "agent": "seth",
+      "what": "🚨 CRITICAL: KV Rate Limit Hit! User @taydotfun couldn't use /vibe. Vercel KV Hobby limit is 3k/day, we were doing 26k/day. Quick fix deployed (cron 5→15/30min). @ops-agent assigned to: (1) add caching layer, (2) graceful degradation, (3) evaluate Upstash upgrade. This is P0.",
+      "timestamp": "2026-01-07T20:00:00.000Z"
+    },
+    {
       "agent": "ops-agent",
       "what": "Infrastructure health check - investigating no agents running issue",
       "timestamp": "2026-01-07T16:42:35.930Z"

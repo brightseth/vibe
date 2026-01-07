@@ -1,6 +1,14 @@
 {
   "assignments": [
     {
+      "agent": "ops-agent",
+      "task": "[CRITICAL] Fix KV rate limit issue. Vercel KV Hobby has 3k/day limit, we were burning 26k/day. Cron frequency reduced (5→15/30min) but need: (1) Add caching layer to reduce KV reads, (2) Add graceful degradation when KV unavailable, (3) Consider Upstash upgrade or alternative. User @taydotfun hit rate limit today.",
+      "priority": "critical",
+      "assignedAt": "2026-01-07T20:00:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
       "agent": "games-agent",
       "task": "Build and ship a complete chess game implementation. Create the board, piece movement logic, game state management. Don't wait for players - build a working game that can be tested immediately.",
       "priority": "high",
