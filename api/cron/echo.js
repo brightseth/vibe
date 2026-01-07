@@ -2,7 +2,7 @@
  * @echo Party Host — Vercel Cron Job
  *
  * Runs every 5 minutes to keep @echo active in the /vibe room.
- * Configured in vercel.json with: "crons": [{ "path": "/api/cron/echo", "schedule": "*/5 * * * *" }]
+ * Configured in vercel.json: crons: [{ path: "/api/cron/echo", schedule: "every 5 min" }]
  */
 
 const https = require('https');
@@ -115,32 +115,31 @@ function request(method, urlPath, data = null) {
 }
 
 async function heartbeat() {
-  return request('POST', '/api/presence/heartbeat', {
-    handle: 'echo',
-    one_liner: '/vibe party host — ask me anything!'
+  return request('POST', '/api/presence', {
+    username: 'echo',
+    workingOn: '/vibe party host — ask me anything!'
   });
 }
 
 async function getWho() {
-  return request('GET', '/api/presence/who');
+  return request('GET', '/api/presence');
 }
 
-async function sendDM(to, body) {
-  console.log(`[echo] DM to @${to}: "${body.substring(0, 50)}..."`);
-  return request('POST', '/api/messages/send', {
+async function sendDM(to, text) {
+  console.log(`[echo] DM to @${to}: "${text.substring(0, 50)}..."`);
+  return request('POST', '/api/messages', {
     from: 'echo',
     to,
-    body,
-    type: 'dm'
+    text
   });
 }
 
 async function getInbox() {
-  return request('GET', '/api/messages/inbox?handle=echo');
+  return request('GET', '/api/messages?user=echo');
 }
 
 async function getThread(them) {
-  return request('GET', `/api/messages/thread?me=echo&them=${them}`);
+  return request('GET', `/api/messages?user=echo&with=${them}`);
 }
 
 async function postToBoard(content, category = 'general') {
@@ -277,9 +276,11 @@ async function echoLoop() {
 
   // 2. Check who's online
   const whoResult = await getWho();
-  const users = (whoResult.users || []).filter(u =>
-    u.handle !== 'echo' && u.handle !== 'vibe'
-  );
+  // New API returns { active: [...], away: [...] } instead of { users: [...] }
+  const allUsers = [...(whoResult.active || []), ...(whoResult.away || [])];
+  const users = allUsers.filter(u =>
+    u.username !== 'echo' && u.username !== 'vibe'
+  ).map(u => ({ handle: u.username, one_liner: u.workingOn, ...u }));
   console.log(`[echo] ${users.length} users online`);
 
   // 3. Greet new users
@@ -296,20 +297,22 @@ async function echoLoop() {
 
   // 4. Check inbox for DMs
   const inboxResult = await getInbox();
-  const threads = inboxResult.threads || [];
-  const unread = threads.filter(t => t.unread > 0);
+  // New API returns { inbox: [...], bySender: {...}, unread: N }
+  const inbox = inboxResult.inbox || [];
+  const unreadMessages = inbox.filter(m => !m.read);
+  console.log(`[echo] ${unreadMessages.length} unread messages`);
 
-  for (const thread of unread) {
-    console.log(`[echo] Unread from @${thread.handle}`);
-    const threadData = await getThread(thread.handle);
-    const messages = threadData.messages || [];
-
-    const theirMessages = messages.filter(m => m.from === thread.handle);
+  // Group by sender and respond to each
+  const senders = [...new Set(unreadMessages.map(m => m.from))];
+  for (const sender of senders) {
+    console.log(`[echo] Unread from @${sender}`);
+    const theirMessages = unreadMessages.filter(m => m.from === sender);
     if (theirMessages.length > 0) {
       const lastMsg = theirMessages[theirMessages.length - 1];
-      await respondToMessage(thread.handle, lastMsg.body, memory);
+      await respondToMessage(sender, lastMsg.text || lastMsg.body, memory);
     }
   }
+  const unread = senders;
 
   // Maybe post daily digest
   await maybePostDailyDigest(memory, users.length, unread.length);

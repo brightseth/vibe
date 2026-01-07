@@ -13,6 +13,14 @@
  */
 
 import crypto from 'crypto';
+import { normalizeHandle, claimHandle, getHandleRecord, isHandleAvailable, recordActivity, incrementMessageCount } from './lib/handles.js';
+import {
+  checkRateLimit,
+  setRateLimitHeaders,
+  rateLimitResponse,
+  hashIP,
+  getClientIP
+} from './lib/ratelimit.js';
 
 // ============ INLINE AUTH (avoid import issues) ============
 const AUTH_SECRET = process.env.VIBE_AUTH_SECRET || 'dev-secret-change-in-production';
@@ -375,6 +383,46 @@ export default async function handler(req, res) {
     try {
       const { username, workingOn, project, location, typingTo, context, sessionId, action } = req.body;
 
+      // Handle availability check - no auth required, but rate limited
+      if (action === 'check') {
+        if (!username) {
+          return res.status(400).json({
+            success: false,
+            error: "Handle check requires username"
+          });
+        }
+
+        const handle = normalizeHandle(username);
+        const kv = await getKV();
+
+        // Rate limit handle checks to prevent enumeration
+        if (kv) {
+          const ipHash = hashIP(getClientIP(req));
+          const rateResult = await checkRateLimit(kv, 'check', ipHash);
+          setRateLimitHeaders(res, rateResult);
+
+          if (!rateResult.success) {
+            return rateLimitResponse(res, rateResult);
+          }
+
+          const availability = await isHandleAvailable(kv, handle);
+          return res.status(200).json({
+            success: true,
+            handle,
+            available: availability.available,
+            reason: availability.reason || null
+          });
+        }
+
+        // Dev mode - always available
+        return res.status(200).json({
+          success: true,
+          handle,
+          available: true,
+          reason: null
+        });
+      }
+
       // Session registration - generate server-side sessionId and signed token
       if (action === 'register') {
         if (!username) {
@@ -383,25 +431,79 @@ export default async function handler(req, res) {
             error: "Session registration requires username (handle)"
           });
         }
-        const handle = username.toLowerCase().replace('@', '');
 
-        // Generate server-side session ID (ignore client-provided one)
+        const handle = normalizeHandle(username);
+        const kv = await getKV();
+
+        // ============ RATE LIMITING ============
+        if (kv) {
+          const ipHash = hashIP(getClientIP(req));
+          const rateResult = await checkRateLimit(kv, 'register', ipHash);
+          setRateLimitHeaders(res, rateResult);
+
+          if (!rateResult.success) {
+            console.warn(`[presence] Registration rate limit exceeded for IP hash ${ipHash}`);
+            return rateLimitResponse(res, rateResult);
+          }
+        }
+
+        // ============ HANDLE AVAILABILITY CHECK ============
+        // Check if this is a new registration or existing user
+        if (kv) {
+          const existingHandle = await getHandleRecord(kv, handle);
+
+          if (existingHandle) {
+            // Handle exists - create new session for existing user
+            const serverSessionId = generateServerSessionId();
+            const token = generateToken(serverSessionId, handle);
+            await registerSession(serverSessionId, handle);
+
+            console.log(`[presence] Existing handle @${handle} logged in with new session`);
+            return res.status(200).json({
+              success: true,
+              action: 'login',
+              sessionId: serverSessionId,
+              handle,
+              token,
+              expiresIn: `${SESSION_TTL}s`,
+              message: `Welcome back, @${handle}!`,
+              registered: false
+            });
+          }
+
+          // ============ ATOMIC HANDLE CLAIM ============
+          const claimResult = await claimHandle(kv, handle, {
+            isAgent: false,
+            operator: null
+          });
+
+          if (!claimResult.success) {
+            const statusCode = claimResult.error === 'handle_taken' ? 409 : 400;
+            return res.status(statusCode).json({
+              success: false,
+              error: claimResult.error,
+              message: claimResult.message,
+              suggestions: claimResult.suggestions || []
+            });
+          }
+
+          console.log(`[presence] New handle @${handle} registered`);
+        }
+
+        // Generate session for new or dev-mode registration
         const serverSessionId = generateServerSessionId();
-
-        // Create signed token
         const token = generateToken(serverSessionId, handle);
-
-        // Store session
         await registerSession(serverSessionId, handle);
 
-        return res.status(200).json({
+        return res.status(201).json({
           success: true,
           action: 'register',
           sessionId: serverSessionId,
           handle,
-          token,  // Client must store and use this for all requests
+          token,
           expiresIn: `${SESSION_TTL}s`,
-          message: `Session registered: ${serverSessionId} → @${handle}`
+          message: `Welcome to /vibe, @${handle}!`,
+          registered: true
         });
       }
 
@@ -450,6 +552,22 @@ export default async function handler(req, res) {
 
       const user = finalUsername;
 
+      // ============ PRESENCE RATE LIMITING ============
+      // Prevent heartbeat spam (5 updates per 10 seconds)
+      const kv = await getKV();
+      if (kv && authenticatedHandle) {
+        const rateResult = await checkRateLimit(kv, 'presence', authenticatedHandle);
+        // Don't set headers for heartbeats (they're frequent and expected)
+        if (!rateResult.success) {
+          // Silently drop excessive heartbeats - don't error
+          return res.status(200).json({
+            success: true,
+            message: 'Heartbeat throttled',
+            throttled: true
+          });
+        }
+      }
+
       // Typing indicator - requires auth
       if (typingTo) {
         if (!authenticatedHandle) {
@@ -459,7 +577,7 @@ export default async function handler(req, res) {
           });
         }
         const recipient = typingTo.toLowerCase().replace('@', '');
-        const kv = await getKV();
+        // kv already available from rate limit check above
         if (kv) {
           await kv.set(`typing:${user}:${recipient}`, Date.now(), { ex: 5 }); // 5 second TTL
         }
@@ -528,6 +646,12 @@ export default async function handler(req, res) {
 
       // Set with TTL for KV, or just update memory
       await setPresence(user, presenceData, { ex: PRESENCE_TTL });
+
+      // Record activity in handle registry (for namespace management)
+      // Note: kv already declared above in rate limiting section
+      if (kv) {
+        await recordActivity(kv, user).catch(() => {}); // Best-effort, don't fail heartbeat
+      }
 
       return res.status(200).json({
         success: true,

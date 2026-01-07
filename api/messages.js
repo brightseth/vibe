@@ -16,6 +16,14 @@
  */
 
 import crypto from 'crypto';
+import {
+  checkRateLimit,
+  setRateLimitHeaders,
+  rateLimitResponse,
+  hashIP,
+  getClientIP
+} from './lib/ratelimit.js';
+import { incrementMessageCount } from './lib/handles.js';
 
 // ============ AIRC SIGNATURE VERIFICATION ============
 
@@ -469,6 +477,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // ============ RATE LIMITING ============
+    // System accounts get high limits (not bypass - prevent accidental floods)
+    const kv = await getKV();
+    const isSystem = SYSTEM_ACCOUNTS.includes(sender);
+    const rateType = isSystem ? 'system_message' : (authenticatedHandle ? 'message_auth' : 'message_unauth');
+    const rateIdentifier = authenticatedHandle || hashIP(getClientIP(req));
+    const rateResult = await checkRateLimit(kv, rateType, rateIdentifier);
+
+    setRateLimitHeaders(res, rateResult);
+
+    if (!rateResult.success) {
+      console.log(`[messages] Rate limited @${sender}: ${rateResult.message}`);
+      return rateLimitResponse(res, rateResult);
+    }
+
     const recipient = to.toLowerCase().replace('@', '');
 
     // ============ AIRC SIGNATURE VERIFICATION (Optional for v0.1) ============
@@ -583,6 +606,11 @@ export default async function handler(req, res) {
 
     // Store in per-user lists (atomic, no race conditions)
     await storeMessage(message);
+
+    // Increment sender's message count in handle registry (for namespace retention)
+    if (kv) {
+      await incrementMessageCount(kv, sender).catch(() => {}); // Best-effort
+    }
 
     // Build response
     const response = {

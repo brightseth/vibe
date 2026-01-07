@@ -80,18 +80,23 @@ function formatActivity(user) {
     parts.push(`(${user.branch})`);
   }
 
-  // Error they're stuck on
+  // Error they're stuck on (highest priority - they might need help)
   if (user.error) {
     const shortError = user.error.slice(0, 50) + (user.error.length > 50 ? '...' : '');
     return `⚠️ _stuck on: ${shortError}_`;
   }
 
-  // Note about what they're doing
+  // Combine file + note if both present
+  if (user.note && parts.length > 0) {
+    return `${parts.join(' ')} — _"${user.note}"_`;
+  }
+
+  // Just note
   if (user.note) {
     return `_"${user.note}"_`;
   }
 
-  // File context
+  // Just file context
   if (parts.length > 0) {
     return parts.join(' ');
   }
@@ -176,7 +181,7 @@ _Check back in a bit — builders come and go._`
   try {
     const unread = await store.getUnreadCount(myHandle);
     if (unread > 0) {
-      display += `\n\n📬 **${unread} unread** — \`vibe inbox\``;
+      display += `\n\n📬 **NEW MESSAGE — ${unread} UNREAD** — \`vibe inbox\``;
     }
   } catch (e) {}
 

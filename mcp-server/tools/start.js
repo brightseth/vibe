@@ -122,7 +122,7 @@ Example: "I'm @davemorin, working on social apps"`
   try {
     const unreadCount = await store.getUnreadCount(myHandle);
     if (unreadCount > 0) {
-      display += `---\n📬 **${unreadCount} unread** — say "check my messages"\n\n`;
+      display += `---\n📬 **NEW MESSAGE — ${unreadCount} UNREAD** — say "check my messages"\n\n`;
 
       // Check for messages needing desktop notification escalation
       const rawInbox = await store.getRawInbox(myHandle).catch(() => []);

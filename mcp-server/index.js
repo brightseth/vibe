@@ -44,6 +44,9 @@ function inferPromptFromArgs(toolName, args) {
     case 'x_mentions': return 'check x mentions';
     case 'x_reply': return 'reply on x';
     case 'handoff': return `handoff task to ${handle}`;
+    case 'reserve': return args.paths ? `reserve ${args.paths.join(', ')}` : 'reserve files';
+    case 'release': return `release ${args.reservation_id || 'reservation'}`;
+    case 'reservations': return 'list reservations';
     default: return `${action} ${handle}`.trim() || null;
   }
 }
@@ -164,6 +167,10 @@ const tools = {
   vibe_game: require('./tools/game'),
   // AIRC Handoff (v1) — context portability
   vibe_handoff: require('./tools/handoff'),
+  // File reservations (advisory locks)
+  vibe_reserve: require('./tools/reserve'),
+  vibe_release: require('./tools/release'),
+  vibe_reservations: require('./tools/reservations'),
   // Memory tools (Tier 1 — Collaborative Memory)
   vibe_remember: require('./tools/remember'),
   vibe_recall: require('./tools/recall'),

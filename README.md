@@ -116,6 +116,25 @@ Displays:
 
 ---
 
+## Known Limitations (Alpha)
+
+**Presence is always visible** — When you're online, others can see you. There's no invisible mode yet. If you need privacy, close Claude Code or unregister.
+
+**Messages are retained indefinitely** — We keep message history for continuity. There's no user-initiated delete yet. If you need a message removed, contact @sethgoldstein.
+
+**No abuse reporting UI** — You can block users (`vibe consent --block @handle`), but there's no formal report flow. DM @sethgoldstein or @echo with concerns.
+
+---
+
+## Safety
+
+- **Block users**: Say "block @handle" to stop receiving their messages
+- **Report issues**: DM @sethgoldstein or use `vibe echo "your concern"`
+- **Rate limits**: Messages are rate-limited to prevent spam (60/min authenticated)
+- **Handle protection**: Reserved handles prevent impersonation of brands/influencers
+
+---
+
 ## Troubleshooting
 
 **"Nothing happens after install"**

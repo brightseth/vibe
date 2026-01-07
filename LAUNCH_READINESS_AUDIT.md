@@ -1,50 +1,41 @@
 # /vibe Launch Readiness Audit
 
-**Date**: January 6, 2026
+**Date**: January 7, 2026 (Updated)
 **Auditor**: Claude Code
-**Grade**: B- for trusted friends | C+ for open internet
+**Grade**: B+ for trusted friends | B- for open internet
 
 ---
 
 ## Executive Summary
 
-/vibe has a working HMAC auth system and partial consent enforcement. The agent subsystem has rate limiting. However, the public APIs lack rate limiting, handles aren't verified for uniqueness, presence is always-on, and there's no abuse reporting. Ready for a controlled alpha (50-100 builders, approval-only) but not for public launch.
+/vibe has working HMAC auth, consent enforcement, **rate limiting on all APIs**, and **atomic handle uniqueness verification**. Presence is always-on (documented as known limitation) and there's no formal abuse reporting UI (users can block + DM @sethgoldstein). Ready for controlled sharing (50-100 builders) and demo recording.
 
 ---
 
 ## Blockers (Must Fix Before Strangers)
 
-### 1. No Rate Limiting on Public APIs
-**Risk**: Harassment + API cost spikes. A bad actor can send 1000s of messages per minute.
+### 1. ~~No Rate Limiting on Public APIs~~ ✅ FIXED
+**Status**: Implemented in `api/lib/ratelimit.js`
 
-**What exists**: Agent subsystem has `rate-limiter.js` with hourly/daily limits per action type. Social sync respects rate limits.
-
-**What's missing**: `api/messages.js` and `api/presence.js` have no rate limiting. Any authenticated user can spam freely.
-
-**Bad outcome**: Someone scripts mass DMs. Your KV costs spike. Users get flooded.
-
-**Fix**: Add per-identity rate limits to messages API (60/min auth, 10/min unauth - matches AIRC spec §7.4)
-
-**Time**: 2-4 hours
+- 60 messages/min (authenticated)
+- 10 messages/min (unauthenticated)
+- 5 registrations/hour per IP
+- 5 presence updates/10 seconds
+- Sliding window with atomic Redis INCR + EXPIRE
 
 ---
 
-### 2. No Handle Uniqueness Verification
-**Risk**: Impersonation. Two people can claim `@naval` and send messages as that handle.
+### 2. ~~No Handle Uniqueness Verification~~ ✅ FIXED
+**Status**: Implemented in `api/lib/handles.js`
 
-**What exists**: HMAC token auth proves you own a session. Sessions are tied to handles.
-
-**What's missing**: No check that a handle is available before registration. `POST /api/presence?action=register` just creates `session:X → handle` without checking if that handle is already registered.
-
-**Bad outcome**: Someone registers `@sethgoldstein` and messages your friends as you.
-
-**Fix**: Add handle registry check on registration. Return 409 if handle taken. Consider X/Twitter verification for high-value handles.
-
-**Time**: 1-2 hours
+- Atomic claim via Redis HSETNX (race-condition proof)
+- Reserved handles: system (admin, root, etc.), brands (openai, anthropic, etc.), influencers (elon, naval, etc.)
+- Returns 409 with suggestions if handle taken
+- Validation: 3-20 chars, alphanumeric + underscore
 
 ---
 
-### 3. Presence is Always-On (No Opt-In)
+### 3. Presence is Always-On (No Opt-In) — DOCUMENTED
 **Risk**: Stalking. Anyone can see who's online and what they're working on.
 
 **What exists**: Presence with rich context (file, mood, builderMode).
@@ -108,26 +99,27 @@
 
 ## Launch Recommendation
 
-### Option A: Fix Blockers First (Recommended)
-- Fix #1 (rate limiting) and #2 (handle uniqueness) - 3-6 hours
-- Document #3 (presence) and #5 (retention) as known limitations
-- Defer #4 (abuse reporting) to post-launch
-- Launch to 50-100 builders with approval-on-request
+### ✅ Ready for Controlled Sharing
 
-### Option B: Hard Cap Alpha
-- Keep current code
-- Manual approval for all installs (no public link)
-- Hard cap at 50 users
-- Kill switch ready (revoke all sessions via KV flush)
-- Accept risk and learn fast
+All critical blockers resolved:
+- [x] Rate limiting on all APIs (implemented)
+- [x] Handle uniqueness verification (implemented)
+- [x] Known limitations documented in README
+- [x] Block functionality + @echo for reports
 
-### Pre-Launch Checklist (Either Option)
+### Next Steps
 
+1. **Record demo** — Demo script ready at `DEMO_PROMPTS.md`
+2. **Share to 50-100 builders** — Approval-on-request via DM
+3. **Monitor** — Watch for abuse patterns, iterate
+
+### Pre-Launch Checklist
+
+- [x] Rate limiting on messages API
+- [x] Handle uniqueness check
+- [x] Retention policy documented
+- [x] "How to report abuse" in README
 - [ ] Kill switch documented and tested
-- [ ] Rate limiting on messages API (Option A only)
-- [ ] Handle uniqueness check (Option A only)
-- [ ] Retention policy documented
-- [ ] "How to report abuse" in README
 - [ ] Monitoring: alert on >100 messages/hour from single user
 
 ---

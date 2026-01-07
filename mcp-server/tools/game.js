@@ -1,24 +1,26 @@
 /**
  * vibe game — Start or continue a game with someone
  *
- * First implementation: tic-tac-toe
- * More games can be added later following the same pattern.
+ * Supports: tic-tac-toe, chess
  */
 
 const config = require('../config');
 const store = require('../store');
-const { createTicTacToePayload, formatPayload } = require('../protocol');
+const { createTicTacToePayload, createGamePayload, formatPayload } = require('../protocol');
 const { requireInit, normalizeHandle } = require('./_shared');
 
+// Chess game implementation
+const chess = require('../games/chess');
+
 // Post game results to board and Discord
-async function postGameResult(winner, loser, isDraw) {
+async function postGameResult(winner, loser, isDraw, game = 'tic-tac-toe') {
   const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
 
   // Post to board
   try {
     const content = isDraw
-      ? `@${winner} and @${loser} tied at tic-tac-toe`
-      : `@${winner} beat @${loser} at tic-tac-toe`;
+      ? `@${winner} and @${loser} tied at ${game}`
+      : `@${winner} beat @${loser} at ${game}`;
 
     await fetch(`${API_URL}/api/board`, {
       method: 'POST',
@@ -41,7 +43,7 @@ async function postGameResult(winner, loser, isDraw) {
       body: JSON.stringify({
         type: 'game',
         data: {
-          game: 'tic-tac-toe',
+          game: game,
           winner: isDraw ? winner : winner,
           loser: isDraw ? loser : loser,
           player1: winner,
@@ -57,7 +59,7 @@ async function postGameResult(winner, loser, isDraw) {
 
 const definition = {
   name: 'vibe_game',
-  description: 'Start or continue a game with someone. Currently supports: tictactoe',
+  description: 'Start or continue a game with someone. Supports: tictactoe, chess',
   inputSchema: {
     type: 'object',
     properties: {
@@ -68,11 +70,11 @@ const definition = {
       game: {
         type: 'string',
         description: 'Game to play (default: tictactoe)',
-        enum: ['tictactoe']
+        enum: ['tictactoe', 'chess']
       },
       move: {
-        type: 'number',
-        description: 'Position to play (1-9, left-to-right, top-to-bottom)'
+        type: ['number', 'string'],
+        description: 'Move to make (tictactoe: 1-9, chess: algebraic notation like e4, Nf3)'
       }
     },
     required: ['handle']
@@ -87,22 +89,16 @@ function getGameState(thread, game) {
   for (let i = thread.length - 1; i >= 0; i--) {
     const msg = thread[i];
     if (msg.payload?.type === 'game' && msg.payload?.game === game) {
-      return {
-        board: msg.payload.state?.board || Array(9).fill(''),
-        turn: msg.payload.state?.turn || 'X',
-        moves: msg.payload.state?.moves || 0,
-        winner: msg.payload.state?.winner || null,
-        lastPlayer: msg.from
-      };
+      return msg.payload.state;
     }
   }
   return null;
 }
 
 /**
- * Check for winner
+ * Check for winner in tic-tac-toe
  */
-function checkWinner(board) {
+function checkTicTacToeWinner(board) {
   const lines = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
     [0, 3, 6], [1, 4, 7], [2, 5, 8], // cols
@@ -116,6 +112,57 @@ function checkWinner(board) {
   }
 
   return null;
+}
+
+/**
+ * Format chess board for display
+ */
+function formatChessPayload(payload) {
+  const state = payload.state || {};
+  const board = state.board || [];
+  
+  if (!board.length) return '♟️ **Chess** (setting up...)';
+
+  const files = '  a b c d e f g h';
+  let display = '♟️ **Chess** ' + (state.moves ? `(move ${state.moves})` : '(new game)') + '\n```\n' + files + '\n';
+  
+  for (let rank = 0; rank < 8; rank++) {
+    let row = (8 - rank) + ' ';
+    for (let file = 0; file < 8; file++) {
+      const piece = board[rank] && board[rank][file];
+      // Use chess piece Unicode symbols
+      const pieceSymbols = {
+        'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+        'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+      };
+      const symbol = piece ? (pieceSymbols[piece] || piece) : ((rank + file) % 2 === 0 ? '·' : ' ');
+      row += symbol + ' ';
+    }
+    row += (8 - rank);
+    display += row + '\n';
+  }
+  
+  display += files + '\n```\n';
+  
+  if (state.winner) {
+    display += `**Winner: ${state.winner}**`;
+  } else if (state.checkmate) {
+    display += '**Checkmate!**';
+  } else if (state.stalemate) {
+    display += '**Stalemate!**';
+  } else if (state.check) {
+    display += '**Check!** ';
+  }
+  
+  if (!state.winner && !state.checkmate && !state.stalemate) {
+    display += `Turn: **${state.turn || 'white'}**`;
+  }
+  
+  if (state.lastMove) {
+    display += `\nLast move: ${state.lastMove.notation}`;
+  }
+
+  return display;
 }
 
 async function handler(args) {
@@ -139,113 +186,174 @@ async function handler(args) {
   if (!move) {
     if (!gameState) {
       // Start new game
-      const newBoard = Array(9).fill('');
-      const payload = createTicTacToePayload(newBoard, 'X', 0);
+      if (game === 'chess') {
+        const newState = chess.createInitialChessState();
+        const payload = createGamePayload('chess', newState);
+        
+        await store.sendMessage(myHandle, them, 'Starting a new chess game! You can play white and go first.', 'dm', payload);
 
-      await store.sendMessage(myHandle, them, 'Starting a new game! You can go first.', 'dm', payload);
+        return {
+          display: `## New Chess Game with @${them}\n\n${formatChessPayload(payload)}\n\nUse \`vibe game @${them} --move e4\` to make moves in algebraic notation`
+        };
+      } else {
+        // Default to tic-tac-toe
+        const newBoard = Array(9).fill('');
+        const payload = createTicTacToePayload(newBoard, 'X', 0);
 
-      return {
-        display: `## New Game with @${them}
+        await store.sendMessage(myHandle, them, 'Starting a new game! You can go first.', 'dm', payload);
 
-${formatPayload(payload)}
-
-Use \`vibe game @${them} --move 5\` to play center (positions 1-9)`
-      };
+        return {
+          display: `## New Game with @${them}\n\n${formatPayload(payload)}\n\nUse \`vibe game @${them} --move 5\` to play center (positions 1-9)`
+        };
+      }
     }
 
     // Show existing game
-    const payload = createTicTacToePayload(
-      gameState.board,
-      gameState.turn,
-      gameState.moves,
-      gameState.winner
-    );
-
-    let display = `## Game with @${them}\n\n${formatPayload(payload)}\n`;
-
-    if (gameState.winner) {
-      display += `\nGame over! Use \`vibe game @${them}\` with no move to start a new game.`;
-    } else if (gameState.board.every(c => c)) {
-      display += `\nDraw! Use \`vibe game @${them}\` with no move to start a new game.`;
+    let payload;
+    let displayText;
+    
+    if (game === 'chess') {
+      payload = createGamePayload('chess', gameState);
+      displayText = `## Chess Game with @${them}\n\n${formatChessPayload(payload)}\n`;
+      
+      if (gameState.winner || gameState.checkmate) {
+        displayText += `\nGame over! Use \`vibe game @${them}\` with no move to start a new game.`;
+      } else {
+        displayText += `\nUse \`vibe game @${them} --move e4\` to make moves in algebraic notation`;
+      }
     } else {
-      display += `\nUse \`vibe game @${them} --move N\` to play (1-9)`;
+      payload = createTicTacToePayload(
+        gameState.board,
+        gameState.turn,
+        gameState.moves,
+        gameState.winner
+      );
+      displayText = `## Game with @${them}\n\n${formatPayload(payload)}\n`;
+
+      if (gameState.winner) {
+        displayText += `\nGame over! Use \`vibe game @${them}\` with no move to start a new game.`;
+      } else if (gameState.board.every(c => c)) {
+        displayText += `\nDraw! Use \`vibe game @${them}\` with no move to start a new game.`;
+      } else {
+        displayText += `\nUse \`vibe game @${them} --move N\` to play (1-9)`;
+      }
     }
 
-    return { display };
+    return { display: displayText };
   }
 
   // Make a move
-  const position = move - 1; // Convert 1-9 to 0-8
+  if (game === 'chess') {
+    // Initialize game if needed
+    if (!gameState) {
+      gameState = chess.createInitialChessState();
+    }
 
-  if (position < 0 || position > 8) {
-    return { display: 'Invalid position. Use 1-9 (left-to-right, top-to-bottom).' };
-  }
+    // Check if game is over
+    if (gameState.winner || gameState.checkmate || gameState.stalemate) {
+      return { display: 'This game is over. Start a new game with `vibe game @' + them + '` (no move).' };
+    }
 
-  // Initialize game if needed
-  if (!gameState) {
-    gameState = {
-      board: Array(9).fill(''),
-      turn: 'X',
-      moves: 0,
-      winner: null,
-      lastPlayer: null
+    // Make chess move
+    const result = chess.makeMove(gameState, move);
+    if (result.error) {
+      return { display: `Invalid move: ${result.error}` };
+    }
+
+    const newGameState = result.gameState;
+    const payload = createGamePayload('chess', newGameState);
+
+    // Send message with game state
+    let message = `Played ${move}.`;
+    if (newGameState.check) message += ' Check!';
+    if (newGameState.checkmate) {
+      message += ' Checkmate! I win! 🎉';
+      postGameResult(myHandle, them, false, 'chess');
+    } else if (newGameState.stalemate) {
+      message += ' Stalemate! 🤝';
+      postGameResult(myHandle, them, true, 'chess');
+    } else {
+      message += ' Your turn!';
+    }
+
+    await store.sendMessage(myHandle, them, message, 'dm', payload);
+
+    return {
+      display: `## Chess Game with @${them}\n\n${formatChessPayload(payload)}\n\n${newGameState.checkmate ? '🎉 You win!' : newGameState.stalemate ? '🤝 Stalemate!' : `Waiting for @${them}...`}`
+    };
+
+  } else {
+    // Tic-tac-toe logic
+    const position = move - 1; // Convert 1-9 to 0-8
+
+    if (position < 0 || position > 8) {
+      return { display: 'Invalid position. Use 1-9 (left-to-right, top-to-bottom).' };
+    }
+
+    // Initialize game if needed
+    if (!gameState) {
+      gameState = {
+        board: Array(9).fill(''),
+        turn: 'X',
+        moves: 0,
+        winner: null
+      };
+    }
+
+    // Check if game is over
+    if (gameState.winner || gameState.board.every(c => c)) {
+      return { display: 'This game is over. Start a new game with `vibe game @' + them + '` (no move).' };
+    }
+
+    // Check if position is taken
+    if (gameState.board[position]) {
+      return { display: `Position ${move} is already taken. Choose an empty spot.` };
+    }
+
+    // Determine my symbol (X goes first, alternate based on moves)
+    let mySymbol;
+    if (gameState.moves === 0) {
+      mySymbol = 'X';
+    } else {
+      // If last player used X, I use O (and vice versa)
+      mySymbol = gameState.turn;
+    }
+
+    // Make the move
+    const newBoard = [...gameState.board];
+    newBoard[position] = mySymbol;
+    const newMoves = gameState.moves + 1;
+    const winner = checkTicTacToeWinner(newBoard);
+    const nextTurn = mySymbol === 'X' ? 'O' : 'X';
+
+    // Create payload
+    const payload = createTicTacToePayload(
+      newBoard,
+      winner ? mySymbol : nextTurn,
+      newMoves,
+      winner
+    );
+
+    // Send message with game state
+    let message = '';
+    if (winner) {
+      message = winner === mySymbol ? 'I win! 🎉' : 'Good game!';
+      // Post to board
+      postGameResult(myHandle, them, false, 'tic-tac-toe');
+    } else if (newBoard.every(c => c)) {
+      message = 'Draw! 🤝';
+      // Post to board
+      postGameResult(myHandle, them, true, 'tic-tac-toe');
+    } else {
+      message = `Played ${mySymbol} at position ${move}. Your turn!`;
+    }
+
+    await store.sendMessage(myHandle, them, message, 'dm', payload);
+
+    return {
+      display: `## Game with @${them}\n\n${formatPayload(payload)}\n\n${winner ? '🎉 You win!' : newBoard.every(c => c) ? '🤝 Draw!' : `Waiting for @${them}...`}`
     };
   }
-
-  // Check if game is over
-  if (gameState.winner || gameState.board.every(c => c)) {
-    return { display: 'This game is over. Start a new game with `vibe game @' + them + '` (no move).' };
-  }
-
-  // Check if position is taken
-  if (gameState.board[position]) {
-    return { display: `Position ${move} is already taken. Choose an empty spot.` };
-  }
-
-  // Determine my symbol (X goes first, alternate based on moves)
-  // If I'm starting fresh, I'm X. Otherwise, alternate.
-  let mySymbol;
-  if (gameState.moves === 0) {
-    mySymbol = 'X';
-  } else {
-    // If last player used X, I use O (and vice versa)
-    mySymbol = gameState.turn;
-  }
-
-  // Make the move
-  const newBoard = [...gameState.board];
-  newBoard[position] = mySymbol;
-  const newMoves = gameState.moves + 1;
-  const winner = checkWinner(newBoard);
-  const nextTurn = mySymbol === 'X' ? 'O' : 'X';
-
-  // Create payload
-  const payload = createTicTacToePayload(
-    newBoard,
-    winner ? mySymbol : nextTurn,
-    newMoves,
-    winner
-  );
-
-  // Send message with game state
-  let message = '';
-  if (winner) {
-    message = winner === mySymbol ? 'I win! 🎉' : 'Good game!';
-    // Post to board
-    postGameResult(myHandle, them, false);
-  } else if (newBoard.every(c => c)) {
-    message = 'Draw! 🤝';
-    // Post to board
-    postGameResult(myHandle, them, true);
-  } else {
-    message = `Played ${mySymbol} at position ${move}. Your turn!`;
-  }
-
-  await store.sendMessage(myHandle, them, message, 'dm', payload);
-
-  return {
-    display: `## Game with @${them}\n\n${formatPayload(payload)}\n\n${winner ? '🎉 You win!' : newBoard.every(c => c) ? '🤝 Draw!' : `Waiting for @${them}...`}`
-  };
 }
 
 module.exports = { definition, handler };

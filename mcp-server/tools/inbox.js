@@ -41,11 +41,11 @@ async function handler(args) {
   });
 
   const totalUnread = sorted.reduce((sum, t) => sum + (t.unread || 0), 0);
-  let display = header(`Inbox${totalUnread > 0 ? ` (${totalUnread} unread)` : ''}`);
+  let display = header(`Inbox${totalUnread > 0 ? ` — ${totalUnread} UNREAD` : ''}`);
   display += '\n\n';
 
   sorted.forEach(thread => {
-    const unreadBadge = thread.unread > 0 ? ` 📬 ${thread.unread} new` : '';
+    const unreadBadge = thread.unread > 0 ? ` 📬 NEW MESSAGE` : '';
     const preview = truncate(thread.lastMessage || '', 60);
     const timeAgo = formatTimeAgo(thread.lastTimestamp);
 
