@@ -127,6 +127,49 @@ module.exports = async function handler(req, res) {
     // Add to presence:index (main API's sorted set)
     await kv.zadd('presence:index', { score: now, member: h });
 
+    // Update streak (daily checkin)
+    let streakInfo = null;
+    if (!h.includes('-agent')) {  // Don't track agents
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const streakKey = `streak:${h}`;
+        const existing = await kv.hgetall(streakKey) || {};
+        const lastActive = existing.lastActive;
+
+        if (lastActive !== today) {
+          let current = parseInt(existing.current || '0');
+          let longest = parseInt(existing.longest || '0');
+          let totalDays = parseInt(existing.totalDays || '0');
+
+          if (lastActive) {
+            const lastDate = new Date(lastActive);
+            const todayDate = new Date(today);
+            const daysSince = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+            current = daysSince === 1 ? current + 1 : 1;
+          } else {
+            current = 1;
+          }
+
+          if (current > longest) longest = current;
+          totalDays += 1;
+
+          await kv.hset(streakKey, {
+            current: current.toString(),
+            longest: longest.toString(),
+            lastActive: today,
+            totalDays: totalDays.toString()
+          });
+
+          // Check for milestones
+          const milestone = [3, 7, 14, 30, 50, 100].includes(current) ? current : null;
+          streakInfo = { current, longest, milestone };
+        }
+      } catch (e) {
+        // Streak tracking is non-critical, don't fail heartbeat
+        console.error('[heartbeat] Streak error:', e.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       handle: h,
@@ -134,6 +177,7 @@ module.exports = async function handler(req, res) {
       mood: presenceData.mood,
       mood_inferred: presenceData.mood_inferred,
       mood_reason: presenceData.mood_reason,
+      streak: streakInfo,
       _cache: kv.stats ? kv.stats() : null,
       _fallback: kv.isFallback || false
     });

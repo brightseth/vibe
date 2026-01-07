@@ -82,6 +82,8 @@
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/docs", "destination": "/docs.html" },
     { "source": "/chronicle", "destination": "/chronicle.html" },
-    { "source": "/api/chronicle", "destination": "/api/chronicle.js" }
+    { "source": "/api/chronicle", "destination": "/api/chronicle.js" },
+    { "source": "/leaderboard", "destination": "/leaderboard.html" },
+    { "source": "/api/streaks", "destination": "/api/streaks.js" }
   ]
 }

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+/vibe Leaderboard — Streak tracking and gamification
+
+Tracked by @streaks-agent
+See slashvibe.dev/api/streaks for raw data
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe Leaderboard — Who's Shipping</title>
+    <meta name="description" content="Daily streak leaderboard for /vibe builders. Track consistency, celebrate wins.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 48px 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+
+        header {
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #222;
+        }
+        h1 { font-size: 32px; font-weight: 400; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { font-size: 14px; color: #6B8FFF; margin-bottom: 8px; }
+        .meta { font-size: 12px; color: #666; }
+        .meta a { color: #888; text-decoration: none; }
+        .meta a:hover { color: #6B8FFF; }
+
+        .ascii-header {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 32px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #6B8FFF;
+            overflow-x: auto;
+        }
+
+        .leaderboard {
+            margin-bottom: 32px;
+        }
+
+        .entry {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #0a0a0a;
+            border: 1px solid #181818;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        .entry:hover { border-color: #333; }
+        .entry.top-3 { border-color: #6B8FFF33; }
+        .entry.rank-1 { border-color: #FFD70044; background: linear-gradient(135deg, #1a1a0a 0%, #0a0a0a 100%); }
+        .entry.rank-2 { border-color: #C0C0C044; }
+        .entry.rank-3 { border-color: #CD7F3244; }
+
+        .rank {
+            font-size: 20px;
+            font-weight: 400;
+            color: #666;
+            min-width: 32px;
+            text-align: center;
+        }
+        .rank-1 .rank { color: #FFD700; }
+        .rank-2 .rank { color: #C0C0C0; }
+        .rank-3 .rank { color: #CD7F32; }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .info { flex: 1; }
+        .handle { font-size: 15px; color: #fff; margin-bottom: 4px; }
+        .handle a { color: #fff; text-decoration: none; }
+        .handle a:hover { color: #6B8FFF; }
+        .stats { font-size: 11px; color: #888; }
+
+        .streak {
+            text-align: right;
+        }
+        .streak-current {
+            font-size: 24px;
+            font-weight: 400;
+            color: #6B8FFF;
+        }
+        .streak-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: #6B8FFF22;
+            color: #6B8FFF;
+            margin-left: 8px;
+        }
+        .badge-legend { background: #FFD70022; color: #FFD700; }
+        .badge-master { background: #9B6BFF22; color: #9B6BFF; }
+        .badge-champion { background: #4CAF5022; color: #4CAF50; }
+        .badge-committed { background: #FF980022; color: #FF9800; }
+
+        .flame-chart {
+            display: flex;
+            gap: 2px;
+            margin-top: 4px;
+        }
+        .flame {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 2px;
+        }
+        .flame.active { background: #FF6B35; }
+        .flame.hot { background: #FFD700; }
+
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 48px;
+        }
+
+        .how-it-works {
+            background: #0a0a0a;
+            border: 1px solid #181818;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+        .how-it-works h3 {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+        .how-it-works ul {
+            list-style: none;
+            font-size: 12px;
+            color: #666;
+        }
+        .how-it-works li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .how-it-works li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #6B8FFF;
+        }
+
+        .footer {
+            font-size: 11px;
+            color: #666;
+            padding-top: 24px;
+            border-top: 1px solid #222;
+        }
+        .footer a { color: #888; text-decoration: none; }
+        .footer a:hover { color: #6B8FFF; }
+
+        .loading { text-align: center; color: #666; padding: 48px; }
+
+        @media (max-width: 520px) {
+            body { padding: 32px 16px; }
+            h1 { font-size: 24px; }
+            .entry { padding: 12px; gap: 12px; }
+            .avatar { width: 32px; height: 32px; font-size: 14px; }
+            .streak-current { font-size: 20px; }
+            .ascii-header { font-size: 9px; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Leaderboard</h1>
+            <p class="subtitle">Daily streaks — consistency is the game</p>
+            <p class="meta">Tracked by @streaks-agent · <a href="/">Back to /vibe</a></p>
+        </header>
+
+        <pre class="ascii-header">
+╔═══════════════════════════════════════════════════════════╗
+║  🔥 STREAK LEADERBOARD 🔥                                 ║
+║                                                           ║
+║  Come back every day to build your streak.                ║
+║  The flame grows. The legend builds.                      ║
+╚═══════════════════════════════════════════════════════════╝
+        </pre>
+
+        <div id="leaderboard" class="leaderboard">
+            <div class="loading">Loading leaderboard...</div>
+        </div>
+
+        <div class="how-it-works">
+            <h3>How Streaks Work</h3>
+            <ul>
+                <li>Come online on /vibe each day to extend your streak</li>
+                <li>Miss a day? Your streak resets to 0</li>
+                <li>Your longest streak is always remembered</li>
+                <li>Milestones: 3, 7, 14, 30, 50, 100 days unlock badges</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <a href="/">Home</a> ·
+            <a href="/api/streaks">API</a> ·
+            <a href="/chronicle">Chronicle</a>
+        </div>
+    </div>
+
+    <script>
+        const badgeEmojis = {
+            'Legend': '👑',
+            'Master': '🏆',
+            'Champion': '🥇',
+            'Committed': '🔥',
+            'Strong': '💪',
+            'Growing': '🌱',
+            'Started': '✨',
+            'Inactive': '💤'
+        };
+
+        const badgeClasses = {
+            'Legend': 'badge-legend',
+            'Master': 'badge-master',
+            'Champion': 'badge-champion',
+            'Committed': 'badge-committed'
+        };
+
+        function renderFlameChart(current, max = 7) {
+            const flames = [];
+            for (let i = 0; i < max; i++) {
+                const isActive = i < current;
+                const isHot = i < current && current >= 7;
+                flames.push(`<div class="flame ${isActive ? (isHot ? 'hot' : 'active') : ''}"></div>`);
+            }
+            return `<div class="flame-chart">${flames.join('')}</div>`;
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/api/streaks?limit=20');
+                const data = await res.json();
+
+                if (!data.leaderboard || data.leaderboard.length === 0) {
+                    document.getElementById('leaderboard').innerHTML = `
+                        <div class="empty">
+                            <p>No streaks yet!</p>
+                            <p style="margin-top: 8px; font-size: 12px;">Be the first to start your journey.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = data.leaderboard.map(entry => {
+                    const emoji = badgeEmojis[entry.badge] || '🔥';
+                    const badgeClass = badgeClasses[entry.badge] || '';
+                    const rankClass = entry.rank <= 3 ? `top-3 rank-${entry.rank}` : '';
+
+                    return `
+                        <div class="entry ${rankClass}">
+                            <div class="rank">${entry.rank}</div>
+                            <div class="avatar">${emoji}</div>
+                            <div class="info">
+                                <div class="handle">
+                                    <a href="https://x.com/${entry.handle}" target="_blank">@${entry.handle}</a>
+                                    <span class="badge ${badgeClass}">${entry.badge}</span>
+                                </div>
+                                <div class="stats">
+                                    Longest: ${entry.longestStreak} days
+                                    ${renderFlameChart(Math.min(entry.currentStreak, 7))}
+                                </div>
+                            </div>
+                            <div class="streak">
+                                <div class="streak-current">${entry.currentStreak}</div>
+                                <div class="streak-label">day${entry.currentStreak !== 1 ? 's' : ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('leaderboard').innerHTML = html;
+
+            } catch (e) {
+                document.getElementById('leaderboard').innerHTML = `
+                    <div class="empty">
+                        <p>Failed to load leaderboard</p>
+                        <p style="margin-top: 8px; font-size: 12px;"><a href="/api/streaks" style="color: #6B8FFF;">Try API directly</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        loadLeaderboard();
+        // Auto-refresh every 2 minutes
+        setInterval(loadLeaderboard, 120000);
+    </script>
+</body>
+</html>
