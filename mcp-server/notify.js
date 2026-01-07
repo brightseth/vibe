@@ -35,12 +35,25 @@ function saveNotifyState(state) {
 }
 
 /**
+ * Ring terminal bell (BEL character)
+ * Ambient, non-intrusive alert
+ */
+function ringBell() {
+  process.stderr.write('\x07');
+}
+
+/**
  * Show a macOS notification
  */
-function showNotification(title, message, sound = false) {
+function showNotification(title, message, sound = false, bell = true) {
   if (os.platform() !== 'darwin') {
     // Only macOS supported for now
     return;
+  }
+
+  // Ring terminal bell for all notifications
+  if (bell) {
+    ringBell();
   }
 
   // Escape quotes for osascript
@@ -240,5 +253,6 @@ module.exports = {
   checkAndNotify,
   checkPresence,
   checkAll,
-  notify
+  notify,
+  ringBell
 };

@@ -8,6 +8,7 @@
 
 const config = require('./config');
 const store = require('./store');
+const notify = require('./notify');
 
 let heartbeatInterval = null;
 let sessionInitialized = false;
@@ -52,7 +53,7 @@ async function initSession() {
   sendHeartbeat();
 }
 
-function sendHeartbeat() {
+async function sendHeartbeat() {
   if (!config.isInitialized()) return;
 
   // Use session-aware getters (prefer session identity over shared config)
@@ -60,6 +61,9 @@ function sendHeartbeat() {
   const one_liner = config.getOneLiner();
   if (handle) {
     store.heartbeat(handle, one_liner || '');
+
+    // Check for notifications (runs in background, non-blocking)
+    notify.checkAll(store).catch(() => {});
   }
 }
 
