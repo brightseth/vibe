@@ -70,21 +70,19 @@ module.exports = async function handler(req, res) {
     const h = handle.toLowerCase().replace('@', '');
     const now = Date.now();
 
-    // Get previous state for inference
-    const previous = await kv.hgetall(`presence:${h}`);
+    // Get previous state for inference (using main API's key pattern)
+    const previous = await kv.get(`presence:data:${h}`);
 
     // Track file changes for burst detection
     let fileChanges = [];
     if (previous && previous.file_changes) {
-      try {
-        fileChanges = JSON.parse(previous.file_changes);
-      } catch (e) {
-        fileChanges = [];
-      }
+      // file_changes is now stored as array directly
+      fileChanges = Array.isArray(previous.file_changes) ? previous.file_changes : [];
     }
 
     // If file changed, record the timestamp
-    if (file && (!previous || file !== previous.file)) {
+    const prevFile = previous?.context?.file;
+    if (file && (!previous || file !== prevFile)) {
       fileChanges.push(now);
       // Keep only last 10 changes
       fileChanges = fileChanges.slice(-10);
@@ -102,27 +100,29 @@ module.exports = async function handler(req, res) {
     // Infer mood if not explicitly set
     const inferred = inferMood(current, previous, now);
 
-    // Build presence data
+    // Build presence data (matching main presence.js format)
     const presenceData = {
-      handle: h,
-      one_liner: one_liner || '',
-      last_heartbeat: now,
-      visible: true,
-      file: current.file,
-      branch: current.branch,
-      error: current.error,
-      note: current.note,
+      username: h,
+      workingOn: one_liner || '',
+      lastSeen: new Date(now).toISOString(),
+      context: {
+        file: current.file,
+        branch: current.branch,
+        error: current.error,
+        note: current.note
+      },
       mood: current.mood || (inferred ? inferred.mood : null),
       mood_inferred: inferred ? true : false,
       mood_reason: inferred ? inferred.reason : null,
-      file_changes: JSON.stringify(fileChanges)
+      file_changes: fileChanges  // Keep array format
     };
 
-    // Store in KV
-    await kv.hset(`presence:${h}`, presenceData);
+    // Store in KV using main API's key pattern (JSON format)
+    const PRESENCE_TTL = 300; // 5 minutes
+    await kv.set(`presence:data:${h}`, presenceData, { ex: PRESENCE_TTL });
 
-    // Add to active users set with timestamp as score
-    await kv.zadd('presence:active', { score: now, member: h });
+    // Add to presence:index (main API's sorted set)
+    await kv.zadd('presence:index', { score: now, member: h });
 
     return res.status(200).json({
       success: true,
