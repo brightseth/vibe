@@ -6,8 +6,7 @@
  */
 
 const { kv } = require('@vercel/kv');
-// TODO: Re-enable after fixing JSON parsing issue
-// const { sql, isPostgresEnabled } = require('../lib/db.js');
+const { sql, isPostgresEnabled } = require('../lib/db.js');
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -44,19 +43,45 @@ module.exports = async function handler(req, res) {
       read_at: null
     };
 
-    // Store message in list for recipient
-    await kv.lpush(`messages:${toHandle}`, JSON.stringify(message));
+    // Try Postgres first (primary storage)
+    let stored = false;
+    let storage = 'none';
 
-    // Store in thread (both directions)
-    const threadKey = [fromHandle, toHandle].sort().join(':');
-    await kv.lpush(`thread:${threadKey}`, JSON.stringify(message));
+    if (isPostgresEnabled() && sql) {
+      try {
+        await sql`
+          INSERT INTO messages (id, from_user, to_user, text, read, payload, created_at)
+          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${{ type }}::jsonb, NOW())
+        `;
+        stored = true;
+        storage = 'postgres';
+      } catch (pgErr) {
+        console.error('[SEND] Postgres failed:', pgErr.message);
+      }
+    }
 
-    // Increment unread count for recipient
-    await kv.hincrby(`unread:${toHandle}`, fromHandle, 1);
+    // Try KV as backup (may fail if rate limited)
+    if (!stored) {
+      try {
+        await kv.lpush(`messages:${toHandle}`, JSON.stringify(message));
+        const threadKey = [fromHandle, toHandle].sort().join(':');
+        await kv.lpush(`thread:${threadKey}`, JSON.stringify(message));
+        await kv.hincrby(`unread:${toHandle}`, fromHandle, 1);
+        stored = true;
+        storage = 'kv';
+      } catch (kvErr) {
+        console.error('[SEND] KV failed:', kvErr.message);
+      }
+    }
+
+    if (!stored) {
+      return res.status(503).json({ error: 'All storage backends unavailable' });
+    }
 
     return res.status(200).json({
       success: true,
-      message
+      message,
+      _storage: storage
     });
 
   } catch (error) {
