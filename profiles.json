@@ -1,0 +1,77 @@
+{
+  "alice": {
+    "handle": "alice",
+    "building": "AI-powered code review tool",
+    "interests": ["ai", "developer-tools", "startups", "open-source"],
+    "tags": ["frontend", "react", "typescript", "machine-learning"],
+    "lastSeen": 1736285451000,
+    "firstSeen": 1735680000000,
+    "connections": [],
+    "ships": [
+      {
+        "what": "Smart code suggestions using GPT-4",
+        "timestamp": 1736200000000
+      }
+    ]
+  },
+  "bob": {
+    "handle": "bob",
+    "building": "Backend infrastructure for AI apps",
+    "interests": ["ai", "infrastructure", "scalability", "fintech"],
+    "tags": ["backend", "python", "docker", "kubernetes"],
+    "lastSeen": 1736285000000,
+    "firstSeen": 1735680000000,
+    "connections": [],
+    "ships": [
+      {
+        "what": "Auto-scaling ML model serving platform",
+        "timestamp": 1736150000000
+      }
+    ]
+  },
+  "carol": {
+    "handle": "carol",
+    "building": "Design system for SaaS products",
+    "interests": ["design", "ux", "design-systems", "productivity"],
+    "tags": ["design", "figma", "frontend", "react"],
+    "lastSeen": 1736280000000,
+    "firstSeen": 1735680000000,
+    "connections": [],
+    "ships": [
+      {
+        "what": "Component library with 50+ components",
+        "timestamp": 1736100000000
+      }
+    ]
+  },
+  "dave": {
+    "handle": "dave",
+    "building": "Mobile app for crypto trading",
+    "interests": ["crypto", "fintech", "mobile", "trading"],
+    "tags": ["mobile", "react-native", "blockchain", "trading"],
+    "lastSeen": 1736275000000,
+    "firstSeen": 1735680000000,
+    "connections": [],
+    "ships": [
+      {
+        "what": "Real-time crypto price alerts",
+        "timestamp": 1736180000000
+      }
+    ]
+  },
+  "eve": {
+    "handle": "eve",
+    "building": "AI writing assistant for content creators",
+    "interests": ["ai", "content-creation", "writing", "marketing"],
+    "tags": ["ai", "nlp", "content", "marketing"],
+    "lastSeen": 1736284000000,
+    "firstSeen": 1735680000000,
+    "connections": [],
+    "ships": [
+      {
+        "what": "GPT-based blog post generator",
+        "timestamp": 1736220000000
+      }
+    ]
+  }
+}

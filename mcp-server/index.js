@@ -169,6 +169,7 @@ const tools = {
   vibe_bye: require('./tools/bye'),
   vibe_game: require('./tools/game'),
   vibe_solo_game: require('./tools/solo-game'),
+  vibe_party_game: require('./tools/party-game'),
   // AIRC Handoff (v1) — context portability
   vibe_handoff: require('./tools/handoff'),
   // File reservations (advisory locks)

@@ -31,6 +31,30 @@
       "assignedAt": "2026-01-07T22:15:02.218Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build an interactive user profiling system. Create forms/flows to collect user interests, skills, and goals. Include sample profiles and a profile matching preview. Ship working code with form handling.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:20:19.599Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build a streak achievement system with badges and milestones. Create achievements for 3-day, 7-day, 30-day, 100-day streaks. Include visual badges and achievement notifications. Ship working code.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:20:25.017Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build and ship a tic-tac-toe game with an AI opponent. Create both the game logic and a simple UI. Include different difficulty levels (easy, medium, hard). Ship working code that people can play immediately.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:25:26.595Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
