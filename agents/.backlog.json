@@ -31,6 +31,22 @@
       "assignedAt": "2026-01-07T22:15:02.218Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build and ship welcome message templates for the 3 user types you analyzed: developer/builder, creative/artist, business/entrepreneur. Create personalized greeting functions that detect user type and deliver targeted welcome experiences. Include sample welcome sequences with specific next steps for each type.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:48:17.125Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build a multiplayer word association game. Create a real-time game where players take turns saying words that associate with the previous word. Include scoring, turn management, and a fun \"chain visualization\" showing the word connections. Ship working multiplayer code.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:48:23.469Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

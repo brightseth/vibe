@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streak Analytics Dashboard - /vibe workshop</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px; background: #0f1419; color: #c9d1d9;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #58a6ff; margin: 0; }
+        .header p { color: #7d8590; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { 
+            background: #161b22; border: 1px solid #30363d; border-radius: 8px; 
+            padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .card h3 { color: #f0f6fc; margin-top: 0; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; }
+        .stat-item { text-align: center; padding: 15px; background: #21262d; border-radius: 6px; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #58a6ff; }
+        .stat-label { font-size: 0.9em; color: #7d8590; margin-top: 5px; }
+        .chart-container { height: 300px; position: relative; }
+        .user-row { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; margin: 5px 0; background: #21262d; border-radius: 6px;
+        }
+        .streak-badge { 
+            padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;
+        }
+        .streak-hot { background: #ff6b6b; color: white; }
+        .streak-warm { background: #ffa726; color: white; }
+        .streak-cool { background: #66bb6a; color: white; }
+        .streak-new { background: #42a5f5; color: white; }
+        .pattern-insight { 
+            background: #1f2937; border-left: 4px solid #58a6ff; 
+            padding: 15px; margin: 10px 0; border-radius: 0 6px 6px 0;
+        }
+        .insight-icon { color: #58a6ff; margin-right: 10px; }
+        .trend-indicator { font-size: 1.2em; margin-left: 10px; }
+        .trend-up { color: #66bb6a; }
+        .trend-down { color: #ff6b6b; }
+        .trend-stable { color: #ffa726; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Streak Analytics Dashboard</h1>
+            <p>Tracking consistency and celebrating dedication in /vibe workshop</p>
+            <p><strong>Last Updated:</strong> <span id="lastUpdate"></span></p>
+        </div>
+
+        <div class="grid">
+            <!-- Key Metrics -->
+            <div class="card">
+                <h3>📊 Key Metrics</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalUsers">2</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgStreak">1.0</div>
+                        <div class="stat-label">Avg Current Streak</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="longestStreak">1</div>
+                        <div class="stat-label">Longest Active</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalMilestones">3</div>
+                        <div class="stat-label">Milestones Hit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Streak Distribution -->
+            <div class="card">
+                <h3>📈 Streak Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Current Leaders -->
+            <div class="card">
+                <h3>🏆 Current Streaks</h3>
+                <div id="usersList">
+                    <div class="user-row">
+                        <span>@demo_user</span>
+                        <div>
+                            <span class="streak-badge streak-new">1 day</span>
+                            <span class="trend-indicator trend-stable">📊</span>
+                        </div>
+                    </div>
+                    <div class="user-row">
+                        <span>@vibe_champion</span>
+                        <div>
+                            <span class="streak-badge streak-new">1 day</span>
+                            <span class="trend-indicator trend-stable">📊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trends Analysis -->
+            <div class="card">
+                <h3>📊 Streak Trends</h3>
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Pattern Insights -->
+            <div class="card">
+                <h3>🧠 Pattern Insights</h3>
+                <div class="pattern-insight">
+                    <span class="insight-icon">🌱</span>
+                    <strong>Fresh Start:</strong> Both users just began their journey! Perfect time to encourage consistency.
+                </div>
+                <div class="pattern-insight">
+                    <span class="insight-icon">⚡</span>
+                    <strong>Early Engagement:</strong> 100% of users are actively building streaks - great foundation!
+                </div>
+                <div class="pattern-insight">
+                    <span class="insight-icon">🎯</span>
+                    <strong>Next Milestone:</strong> Watch for 3-day achievements - first major milestone coming up!
+                </div>
+            </div>
+
+            <!-- Milestone Progress -->
+            <div class="card">
+                <h3>🎯 Upcoming Milestones</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #66bb6a;">2</div>
+                        <div class="stat-label">Users → 3 days</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ffa726;">0</div>
+                        <div class="stat-label">Users → 7 days</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ff6b6b;">0</div>
+                        <div class="stat-label">Users → 14 days</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #58a6ff;">0</div>
+                        <div class="stat-label">Users → 30 days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+
+        // Streak Distribution Chart
+        const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+        new Chart(distributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['1 Day', '2-3 Days', '4-7 Days', '8+ Days'],
+                datasets: [{
+                    data: [2, 0, 0, 0],
+                    backgroundColor: ['#42a5f5', '#66bb6a', '#ffa726', '#ff6b6b'],
+                    borderColor: '#161b22',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#c9d1d9' } }
+                }
+            }
+        });
+
+        // Trends Chart (simulated weekly data)
+        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                datasets: [{
+                    label: 'Active Streaks',
+                    data: [0, 0, 0, 0, 0, 0, 2],
+                    borderColor: '#58a6ff',
+                    backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#c9d1d9' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#7d8590' }, grid: { color: '#30363d' } },
+                    y: { ticks: { color: '#7d8590' }, grid: { color: '#30363d' } }
+                }
+            }
+        });
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
