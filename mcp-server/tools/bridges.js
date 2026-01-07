@@ -7,6 +7,7 @@
 const twitter = require('../twitter');
 const telegram = require('../bridges/telegram');
 const discord = require('../discord');
+const farcaster = require('../bridges/farcaster');
 const { requireInit, header, divider, success, warning } = require('./_shared');
 
 const definition = {
@@ -71,12 +72,13 @@ async function handleStatus(platform) {
   display += '• X: Add credentials to config.json (paid API required for writing)\n';
   display += '• Telegram: `vibe telegram-bot --action setup`\n';
   display += '• Discord: Add DISCORD_WEBHOOK_URL to config (one-way only)\n';
-  display += '• Farcaster: Coming soon\n\n';
+  display += '• Farcaster: Add NEYNAR_API_KEY + signer to config\n\n';
   
   display += '**Test connections:**\n';
   display += '• `vibe bridges --action test --platform telegram`\n';
+  display += '• `vibe bridges --action test --platform farcaster`\n';
   display += '• `vibe x-mentions` (test X read)\n';
-  display += '• `vibe x-reply "test tweet"` (test X write)';
+  display += '• `vibe farcaster --action status` (test Farcaster)';
 
   return { display };
 }
@@ -92,6 +94,8 @@ async function handleTest(platform) {
         return await testTelegramBridge();
       case 'discord':
         return await testDiscordBridge();
+      case 'farcaster':
+        return await testFarcasterBridge();
       default:
         return { display: `Testing not implemented for ${platform} yet.` };
     }
@@ -165,13 +169,28 @@ async function getBridgeStatuses() {
     bridges.discord.notes.push('Need DISCORD_WEBHOOK_URL in config.json');
   }
   
-  // Farcaster (placeholder)
+  // Farcaster
   bridges.farcaster = {
-    configured: false,
-    capabilities: { read: true, write: true, frames: true },
-    status: 'not_implemented',
-    notes: ['Coming soon - Neynar API integration']
+    configured: farcaster.isConfigured(),
+    capabilities: { read: true, write: true, channels: true, frames: true },
+    status: 'unknown',
+    notes: []
   };
+  
+  if (bridges.farcaster.configured) {
+    try {
+      const userInfo = await farcaster.getUser();
+      bridges.farcaster.status = 'connected';
+      bridges.farcaster.username = userInfo.users[0].username;
+      bridges.farcaster.fid = userInfo.users[0].fid;
+    } catch (e) {
+      bridges.farcaster.status = 'error';
+      bridges.farcaster.notes.push(e.message);
+    }
+  } else {
+    bridges.farcaster.status = 'not_configured';
+    bridges.farcaster.notes.push('Need NEYNAR_API_KEY, FARCASTER_SIGNER_UUID, and FARCASTER_FID');
+  }
   
   return bridges;
 }
@@ -193,6 +212,10 @@ function formatBridgeStatus(name, status) {
     line += ` (@${status.botUsername})`;
   }
   
+  if (status.username) {
+    line += ` (@${status.username})`;
+  }
+  
   line += '\n';
   
   // Show capabilities
@@ -201,6 +224,7 @@ function formatBridgeStatus(name, status) {
   if (status.capabilities.write) caps.push('write');
   if (status.capabilities.dm) caps.push('dm');
   if (status.capabilities.groups) caps.push('groups');
+  if (status.capabilities.channels) caps.push('channels');
   if (status.capabilities.webhooks) caps.push('webhooks');
   if (status.capabilities.media) caps.push('media');
   if (status.capabilities.frames) caps.push('frames');
@@ -311,6 +335,46 @@ async function testDiscordBridge() {
   } catch (e) {
     display += `❌ Test failed: ${e.message}\n\n`;
     display += 'Check your webhook URL in config.json';
+  }
+  
+  return { display };
+}
+
+async function testFarcasterBridge() {
+  let display = header('Farcaster Bridge Test');
+  display += '\n\n';
+  
+  if (!farcaster.isConfigured()) {
+    display += warning('❌ Farcaster not configured\n\n');
+    display += 'Setup required:\n';
+    display += '1. Get API key from https://neynar.com\n';
+    display += '2. Create signer at https://docs.neynar.com/reference/developer-managed-signers\n';
+    display += '3. Add to config.json: NEYNAR_API_KEY, FARCASTER_SIGNER_UUID, FARCASTER_FID';
+    return { display };
+  }
+  
+  try {
+    const userInfo = await farcaster.getUser();
+    const user = userInfo.users[0];
+    
+    display += success(`✅ Connected to Farcaster as @${user.username}\n\n`);
+    display += `**Account Info:**\n`;
+    display += `• Name: ${user.display_name}\n`;
+    display += `• Username: @${user.username}\n`;
+    display += `• FID: ${user.fid}\n`;
+    display += `• Followers: ${user.follower_count}\n`;
+    display += `• Following: ${user.following_count}\n\n`;
+    
+    display += divider();
+    display += '**Available features:**\n';
+    display += '• View feed: `vibe farcaster --action feed`\n';
+    display += '• Post cast: `vibe farcaster --action cast --text "gm!"`\n';
+    display += '• Browse channels: `vibe farcaster --action channels`\n';
+    display += '• Search: `vibe farcaster --action search --query "ethereum"`';
+    
+  } catch (e) {
+    display += `❌ Connection failed: ${e.message}\n\n`;
+    display += 'Check your API key, signer UUID, and FID configuration.';
   }
   
   return { display };

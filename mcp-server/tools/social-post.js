@@ -2,17 +2,18 @@
  * vibe social-post — Post to multiple social channels at once
  *
  * Multi-cast posting with dry-run preview support.
- * Works with local bridges (X, Telegram, Discord).
+ * Works with local bridges (X, Telegram, Discord, Farcaster).
  */
 
 const twitter = require('../twitter');
 const telegram = require('../bridges/telegram');
 const discord = require('../discord');
+const farcaster = require('../bridges/farcaster');
 const { requireInit, header, divider, warning, success } = require('./_shared');
 
 const definition = {
   name: 'vibe_social_post',
-  description: 'Post content to one or more social channels (x, telegram, discord, etc.)',
+  description: 'Post content to one or more social channels (x, telegram, discord, farcaster)',
   inputSchema: {
     type: 'object',
     properties: {
@@ -24,9 +25,9 @@ const definition = {
         type: 'array',
         items: { 
           type: 'string',
-          enum: ['x', 'twitter', 'telegram', 'discord']
+          enum: ['x', 'twitter', 'telegram', 'discord', 'farcaster']
         },
-        description: 'Channels to post to (e.g., ["x", "telegram"])'
+        description: 'Channels to post to (e.g., ["x", "farcaster"])'
       },
       dry_run: {
         type: 'boolean',
@@ -39,6 +40,10 @@ const definition = {
       chat_id: {
         type: 'string',
         description: 'Telegram chat ID (required for telegram channel)'
+      },
+      farcaster_channel: {
+        type: 'string',
+        description: 'Farcaster channel ID (e.g., "dev", "builders")'
       }
     },
     required: ['content', 'channels']
@@ -49,7 +54,7 @@ async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const { content, channels, dry_run = false, reply_to, chat_id } = args;
+  const { content, channels, dry_run = false, reply_to, chat_id, farcaster_channel } = args;
 
   // Validation
   if (!content || typeof content !== 'string' || content.trim().length === 0) {
@@ -57,7 +62,7 @@ async function handler(args) {
   }
 
   if (!channels || !Array.isArray(channels) || channels.length === 0) {
-    return { display: 'Need at least one channel. Options: x, telegram, discord' };
+    return { display: 'Need at least one channel. Options: x, telegram, discord, farcaster' };
   }
 
   // Normalize channels (twitter -> x)
@@ -94,11 +99,11 @@ async function handler(args) {
 
   // Dry run mode
   if (dry_run) {
-    return handleDryRun(trimmed, normalizedChannels, bridgeStatuses, warnings, chat_id);
+    return handleDryRun(trimmed, normalizedChannels, bridgeStatuses, warnings, chat_id, farcaster_channel);
   }
 
   // Actual posting
-  return await handlePost(trimmed, normalizedChannels, reply_to, warnings, chat_id);
+  return await handlePost(trimmed, normalizedChannels, reply_to, warnings, chat_id, farcaster_channel);
 }
 
 async function getBridgeStatuses() {
@@ -117,11 +122,16 @@ async function getBridgeStatuses() {
       configured: discord.isConfigured(),
       canWrite: true,
       charLimit: 2000
+    },
+    farcaster: {
+      configured: farcaster.isConfigured(),
+      canWrite: true,
+      charLimit: 1024
     }
   };
 }
 
-function handleDryRun(content, channels, statuses, warnings, chatId) {
+function handleDryRun(content, channels, statuses, warnings, chatId, farcasterChannel) {
   let display = header('Post Preview (Dry Run)');
   display += '\n\n';
 
@@ -147,6 +157,12 @@ function handleDryRun(content, channels, statuses, warnings, chatId) {
         display += `   ⚠️ Will be truncated to ${status.charLimit} chars\n`;
       } else if (channel === 'telegram' && chatId) {
         display += `   📤 To chat ID: ${chatId}\n`;
+      } else if (channel === 'farcaster') {
+        if (farcasterChannel) {
+          display += `   📤 To channel: /${farcasterChannel}\n`;
+        } else {
+          display += `   📤 To main feed\n`;
+        }
       }
       
       const preview = previewContent.length > 100 
@@ -163,7 +179,7 @@ function handleDryRun(content, channels, statuses, warnings, chatId) {
   return { display };
 }
 
-async function handlePost(content, channels, replyTo, warnings, chatId) {
+async function handlePost(content, channels, replyTo, warnings, chatId, farcasterChannel) {
   let display = header('Posting...');
   display += '\n\n';
 
@@ -189,6 +205,9 @@ async function handlePost(content, channels, replyTo, warnings, chatId) {
         case 'discord':
           result = await postToDiscord(content);
           break;
+        case 'farcaster':
+          result = await postToFarcaster(content, farcasterChannel, replyTo);
+          break;
         default:
           throw new Error(`Unsupported channel: ${channel}`);
       }
@@ -213,6 +232,9 @@ async function handlePost(content, channels, replyTo, warnings, chatId) {
       }
       if (result.id) {
         display += `   ID: ${result.id}\n`;
+      }
+      if (result.hash) {
+        display += `   Hash: ${result.hash}\n`;
       }
     } else {
       display += `❌ **${channel.toUpperCase()}** — Failed: ${result.error}\n`;
@@ -273,6 +295,31 @@ async function postToDiscord(content) {
   return {
     id: 'discord:webhook',
     webhook: true
+  };
+}
+
+async function postToFarcaster(content, channelId, replyTo) {
+  // Handle reply_to format: "farcaster:hash" -> "hash"
+  const castHash = replyTo?.startsWith('farcaster:') ? replyTo.slice(10) : replyTo;
+  
+  const options = {};
+  if (channelId) options.channel = channelId;
+  if (castHash) options.replyTo = castHash;
+  
+  const result = await farcaster.publishCast(content, options);
+  
+  if (!result.success) {
+    throw new Error(result.message || 'Failed to publish cast');
+  }
+  
+  const cast = result.cast;
+  const username = cast.author.username;
+  const hash = cast.hash;
+  
+  return {
+    id: `farcaster:${hash}`,
+    hash: hash,
+    url: `https://warpcast.com/${username}/${hash.slice(0, 10)}`
   };
 }
 
