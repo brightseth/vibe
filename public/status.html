@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/vibe Status</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      padding-top: env(safe-area-inset-top, 20px);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    h1 { font-size: 24px; font-weight: 600; }
+    .refresh-btn {
+      background: #222;
+      border: none;
+      color: #888;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .refresh-btn:active { background: #333; }
+
+    .overall {
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      border: 1px solid #222;
+    }
+    .overall-status {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .overall-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .overall-time {
+      color: #666;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #111;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #222;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .services {
+      background: #111;
+      border-radius: 12px;
+      border: 1px solid #222;
+      overflow: hidden;
+    }
+    .service {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .service:last-child { border-bottom: none; }
+    .service-name {
+      font-size: 15px;
+      color: #ccc;
+    }
+    .service-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot.green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .dot.red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+    .dot.yellow { background: #eab308; box-shadow: 0 0 8px #eab308; }
+    .dot.gray { background: #666; }
+
+    .latency { color: #666; font-size: 12px; }
+
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      color: #444;
+      font-size: 12px;
+    }
+    .footer a { color: #666; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .checking .dot { animation: pulse 1s infinite; background: #666; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📡 /vibe status</h1>
+    <button class="refresh-btn" onclick="checkAll()">Refresh</button>
+  </div>
+
+  <div class="overall">
+    <div class="overall-status" id="overall-icon">⏳</div>
+    <div class="overall-text" id="overall-text">Checking...</div>
+    <div class="overall-time" id="check-time"></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="users">--</div>
+      <div class="stat-label">Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="messages">--</div>
+      <div class="stat-label">Messages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="genesis">--</div>
+      <div class="stat-label">Genesis Left</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="online">--</div>
+      <div class="stat-label">Online Now</div>
+    </div>
+  </div>
+
+  <div class="services" id="services">
+    <div class="service checking">
+      <span class="service-name">Homepage</span>
+      <span class="service-status"><span class="dot gray"></span></span>
+    </div>
+    <div class="service checking">
+      <span class="service-name">API</span>
+      <span class="service-status"><span class="dot gray"></span></span>
+    </div>
+    <div class="service checking">
+      <span class="service-name">Presence</span>
+      <span class="service-status"><span class="dot gray"></span></span>
+    </div>
+    <div class="service checking">
+      <span class="service-name">Messaging</span>
+      <span class="service-status"><span class="dot gray"></span></span>
+    </div>
+    <div class="service checking">
+      <span class="service-name">Board</span>
+      <span class="service-status"><span class="dot gray"></span></span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="https://slashvibe.dev">slashvibe.dev</a> · auto-refresh 30s
+  </div>
+
+  <script>
+    const BASE = 'https://slashvibe.dev';
+
+    const services = [
+      { name: 'Homepage', url: '/', check: 'status' },
+      { name: 'API', url: '/api/stats', check: 'json' },
+      { name: 'Presence', url: '/api/presence/who', check: 'json' },
+      { name: 'Messaging', url: '/api/messages/inbox?handle=_health', check: 'json' },
+      { name: 'Board', url: '/api/board', check: 'json' }
+    ];
+
+    async function checkService(svc) {
+      const start = Date.now();
+      try {
+        const res = await fetch(BASE + svc.url, {
+          method: 'GET',
+          cache: 'no-store'
+        });
+        const latency = Date.now() - start;
+
+        if (svc.check === 'json') {
+          const data = await res.json();
+          return {
+            ok: res.ok && data.success !== false,
+            latency,
+            data
+          };
+        }
+        return { ok: res.ok, latency };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    async function checkAll() {
+      const servicesEl = document.getElementById('services');
+      const results = [];
+
+      // Reset to checking state
+      servicesEl.innerHTML = services.map(s => `
+        <div class="service checking">
+          <span class="service-name">${s.name}</span>
+          <span class="service-status"><span class="dot gray"></span></span>
+        </div>
+      `).join('');
+
+      // Check all services
+      for (let i = 0; i < services.length; i++) {
+        const svc = services[i];
+        const result = await checkService(svc);
+        results.push({ ...svc, ...result });
+
+        // Update UI immediately
+        const serviceEls = servicesEl.querySelectorAll('.service');
+        serviceEls[i].innerHTML = `
+          <span class="service-name">${svc.name}</span>
+          <span class="service-status">
+            <span class="latency">${result.latency ? result.latency + 'ms' : ''}</span>
+            <span class="dot ${result.ok ? 'green' : 'red'}"></span>
+          </span>
+        `;
+        serviceEls[i].classList.remove('checking');
+
+        // Extract stats from API response
+        if (svc.name === 'API' && result.data) {
+          document.getElementById('users').textContent = result.data.users || '--';
+          document.getElementById('messages').textContent = result.data.messages || '--';
+          document.getElementById('genesis').textContent = result.data.genesis?.genesis_remaining || '--';
+        }
+        if (svc.name === 'Presence' && result.data) {
+          document.getElementById('online').textContent = result.data.online?.length || 0;
+        }
+      }
+
+      // Update overall status
+      const allOk = results.every(r => r.ok);
+      const someOk = results.some(r => r.ok);
+
+      document.getElementById('overall-icon').textContent = allOk ? '✅' : (someOk ? '⚠️' : '🔴');
+      document.getElementById('overall-text').textContent = allOk ? 'All Systems Go' : (someOk ? 'Partial Outage' : 'Major Outage');
+      document.getElementById('check-time').textContent = 'Last checked: ' + new Date().toLocaleTimeString();
+    }
+
+    // Initial check
+    checkAll();
+
+    // Auto-refresh every 30 seconds
+    setInterval(checkAll, 30000);
+
+    // Pull to refresh on mobile
+    let startY = 0;
+    document.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+    document.addEventListener('touchend', e => {
+      if (window.scrollY === 0 && e.changedTouches[0].clientY - startY > 100) {
+        checkAll();
+      }
+    });
+  </script>
+</body>
+</html>
