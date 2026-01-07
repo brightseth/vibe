@@ -414,6 +414,17 @@ async function getMyInvites(handle) {
   }
 }
 
+async function submitReport({ reporter, reported, reason, message_id, details }) {
+  const result = await request('POST', '/api/report', {
+    reporter,
+    reported,
+    reason,
+    message_id,
+    details
+  });
+  return result;
+}
+
 async function checkInviteCode(code) {
   try {
     const result = await request('GET', `/api/invites?code=${code}`);
@@ -473,6 +484,9 @@ module.exports = {
   generateInviteCode,
   getMyInvites,
   checkInviteCode,
+
+  // Reports
+  submitReport,
 
   // Helpers
   formatTimeAgo

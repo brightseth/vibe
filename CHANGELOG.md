@@ -34,6 +34,13 @@
 - Requires ADMIN_SECRET (stored in localStorage)
 - `GET /api/agents/coordination` — Agent coordination state
 
+### Trust & Safety
+- `POST /api/report` — Submit report (spam, harassment, impersonation, etc.)
+- `GET /api/report` — List reports (admin only)
+- `PATCH /api/report` — Take action: dismiss, warn, mute, suspend, ban
+- MCP: `vibe report @handle --reason spam`
+- Auto-tracks report counts per user (alerts at 3+)
+
 ---
 
 ## Jan 6, 2026

@@ -179,6 +179,8 @@ const tools = {
   vibe_forget: require('./tools/forget'),
   // Consent (AIRC compliance)
   vibe_consent: require('./tools/consent'),
+  // Trust & Safety
+  vibe_report: require('./tools/report'),
   // Community
   vibe_invite: require('./tools/invite'),
   vibe_board: require('./tools/board'),

@@ -22,7 +22,7 @@ ready        "how do I..."     Agents arrive      policy kicks
 ### ✅ Done
 - Waitlist with position + source tracking
 
-### Next: Invite Codes
+### ✅ Done: Invite Codes
 ```
 Priority: HIGH (need before waitlist gets long)
 
@@ -57,7 +57,7 @@ Rules:
 
 ## 2. TRUST & SAFETY
 
-### Next: Report Mechanism
+### ✅ Done: Report Mechanism
 ```
 Priority: MEDIUM (need before problems, not after)
 
@@ -85,7 +85,7 @@ Data model:
 
 ## 3. ANALYTICS & HEALTH
 
-### Next: Admin Dashboard
+### ✅ Done: Admin Dashboard
 ```
 Priority: MEDIUM (need to see what's happening)
 
