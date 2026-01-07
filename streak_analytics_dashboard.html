@@ -45,6 +45,15 @@
         .trend-up { color: #66bb6a; }
         .trend-down { color: #ff6b6b; }
         .trend-stable { color: #ffa726; }
+        .engagement-pulse { 
+            background: linear-gradient(45deg, #1f2937, #374151);
+            border: 2px solid #10b981; border-radius: 8px; padding: 15px; margin: 15px 0;
+        }
+        .pulse-icon { color: #10b981; font-size: 1.2em; margin-right: 8px; }
+        .achievement-preview { 
+            display: flex; align-items: center; padding: 8px; margin: 5px 0;
+            background: #0f1419; border-radius: 6px; border-left: 3px solid #fbbf24;
+        }
     </style>
 </head>
 <body>
@@ -53,6 +62,10 @@
             <h1>🔥 Streak Analytics Dashboard</h1>
             <p>Tracking consistency and celebrating dedication in /vibe workshop</p>
             <p><strong>Last Updated:</strong> <span id="lastUpdate"></span></p>
+            <div class="engagement-pulse">
+                <span class="pulse-icon">💫</span>
+                <strong>Community Health:</strong> Strong foundation - 2 active builders maintaining daily engagement!
+            </div>
         </div>
 
         <div class="grid">
@@ -73,9 +86,34 @@
                         <div class="stat-label">Longest Active</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="totalMilestones">3</div>
-                        <div class="stat-label">Milestones Hit</div>
+                        <div class="stat-value" id="totalMilestones">2</div>
+                        <div class="stat-label">Achievements Earned</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Current Leaders -->
+            <div class="card">
+                <h3>🏆 Current Streaks</h3>
+                <div id="usersList">
+                    <div class="user-row">
+                        <span><strong>@demo_user</strong> 🎉</span>
+                        <div>
+                            <span class="streak-badge streak-new">1 day</span>
+                            <span class="trend-indicator trend-stable">📈</span>
+                        </div>
+                    </div>
+                    <div class="user-row">
+                        <span><strong>@vibe_champion</strong> 🎉</span>
+                        <div>
+                            <span class="streak-badge streak-new">1 day</span>
+                            <span class="trend-indicator trend-stable">📈</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="achievement-preview">
+                    <span>🎯</span>
+                    <span><strong>Next up:</strong> Both users 2 days away from Seedling 🌱 milestone!</span>
                 </div>
             </div>
 
@@ -87,72 +125,88 @@
                 </div>
             </div>
 
-            <!-- Current Leaders -->
+            <!-- Pattern Insights -->
             <div class="card">
-                <h3>🏆 Current Streaks</h3>
-                <div id="usersList">
-                    <div class="user-row">
-                        <span>@demo_user</span>
-                        <div>
-                            <span class="streak-badge streak-new">1 day</span>
-                            <span class="trend-indicator trend-stable">📊</span>
-                        </div>
+                <h3>🧠 Pattern Insights</h3>
+                <div class="pattern-insight">
+                    <span class="insight-icon">🌟</span>
+                    <strong>Perfect Start:</strong> 100% engagement rate - both users celebrated their first achievement!
+                </div>
+                <div class="pattern-insight">
+                    <span class="insight-icon">🎯</span>
+                    <strong>Critical Window:</strong> Next 48 hours are crucial for building sustainable habits.
+                </div>
+                <div class="pattern-insight">
+                    <span class="insight-icon">🚀</span>
+                    <strong>Milestone Ready:</strong> Achievement system deployed and celebrating consistency!
+                </div>
+                <div class="pattern-insight">
+                    <span class="insight-icon">📊</span>
+                    <strong>Growth Potential:</strong> Both users positioned for their first major milestone (Day 3).
+                </div>
+            </div>
+
+            <!-- Achievement System Status -->
+            <div class="card">
+                <h3>🎖️ Achievement System</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #10b981;">✅</div>
+                        <div class="stat-label">System Active</div>
                     </div>
-                    <div class="user-row">
-                        <span>@vibe_champion</span>
-                        <div>
-                            <span class="streak-badge streak-new">1 day</span>
-                            <span class="trend-indicator trend-stable">📊</span>
-                        </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #fbbf24;">2</div>
+                        <div class="stat-label">Badges Earned</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #8b5cf6;">5</div>
+                        <div class="stat-label">Milestone Levels</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #06b6d4;">2</div>
+                        <div class="stat-label">Users Celebrated</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #0f1419; border-radius: 6px;">
+                    <div><strong>🎉 First Day</strong> - Welcome achievement (2 awarded)</div>
+                    <div><strong>🌱 Seedling</strong> - 3 days (coming soon!)</div>
+                    <div><strong>💪 Sprout</strong> - 7 days (board-worthy!)</div>
+                    <div><strong>🔥 Flame</strong> - 14 days (legendary!)</div>
+                    <div><strong>👑 Crown</strong> - 30 days (hall of fame!)</div>
+                </div>
+            </div>
+
+            <!-- Milestone Progress -->
+            <div class="card">
+                <h3>🎯 Milestone Countdown</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #66bb6a;">2</div>
+                        <div class="stat-label">Days to Seedling 🌱</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ffa726;">6</div>
+                        <div class="stat-label">Days to Sprout 💪</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ff6b6b;">13</div>
+                        <div class="stat-label">Days to Flame 🔥</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #58a6ff;">29</div>
+                        <div class="stat-label">Days to Crown 👑</div>
                     </div>
                 </div>
             </div>
 
             <!-- Trends Analysis -->
             <div class="card">
-                <h3>📊 Streak Trends</h3>
+                <h3>📊 Community Growth</h3>
                 <div class="chart-container">
                     <canvas id="trendsChart"></canvas>
                 </div>
-            </div>
-
-            <!-- Pattern Insights -->
-            <div class="card">
-                <h3>🧠 Pattern Insights</h3>
-                <div class="pattern-insight">
-                    <span class="insight-icon">🌱</span>
-                    <strong>Fresh Start:</strong> Both users just began their journey! Perfect time to encourage consistency.
-                </div>
-                <div class="pattern-insight">
-                    <span class="insight-icon">⚡</span>
-                    <strong>Early Engagement:</strong> 100% of users are actively building streaks - great foundation!
-                </div>
-                <div class="pattern-insight">
-                    <span class="insight-icon">🎯</span>
-                    <strong>Next Milestone:</strong> Watch for 3-day achievements - first major milestone coming up!
-                </div>
-            </div>
-
-            <!-- Milestone Progress -->
-            <div class="card">
-                <h3>🎯 Upcoming Milestones</h3>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" style="color: #66bb6a;">2</div>
-                        <div class="stat-label">Users → 3 days</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" style="color: #ffa726;">0</div>
-                        <div class="stat-label">Users → 7 days</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" style="color: #ff6b6b;">0</div>
-                        <div class="stat-label">Users → 14 days</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" style="color: #58a6ff;">0</div>
-                        <div class="stat-label">Users → 30 days</div>
-                    </div>
+                <div style="margin-top: 10px; text-align: center; color: #7d8590;">
+                    <small>🚀 Strong foundation: Perfect engagement on Day 1!</small>
                 </div>
             </div>
         </div>
@@ -167,7 +221,7 @@
         new Chart(distributionCtx, {
             type: 'doughnut',
             data: {
-                labels: ['1 Day', '2-3 Days', '4-7 Days', '8+ Days'],
+                labels: ['Day 1 (New)', 'Days 2-3', 'Days 4-7', 'Week+'],
                 datasets: [{
                     data: [2, 0, 0, 0],
                     backgroundColor: ['#42a5f5', '#66bb6a', '#ffa726', '#ff6b6b'],
@@ -179,24 +233,40 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: '#c9d1d9' } }
+                    legend: { labels: { color: '#c9d1d9' } },
+                    title: {
+                        display: true,
+                        text: 'Current Distribution',
+                        color: '#c9d1d9'
+                    }
                 }
             }
         });
 
-        // Trends Chart (simulated weekly data)
+        // Community Growth Trends
         const trendsCtx = document.getElementById('trendsChart').getContext('2d');
         new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                labels: ['Launch', 'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Future'],
                 datasets: [{
                     label: 'Active Streaks',
-                    data: [0, 0, 0, 0, 0, 0, 2],
-                    borderColor: '#58a6ff',
-                    backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                    data: [0, 2, null, null, null, null, null],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 5
+                }, {
+                    label: 'Achievements Earned',
+                    data: [0, 2, null, null, null, null, null],
+                    borderColor: '#fbbf24',
+                    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fbbf24',
+                    pointRadius: 5
                 }]
             },
             options: {
@@ -207,7 +277,11 @@
                 },
                 scales: {
                     x: { ticks: { color: '#7d8590' }, grid: { color: '#30363d' } },
-                    y: { ticks: { color: '#7d8590' }, grid: { color: '#30363d' } }
+                    y: { 
+                        ticks: { color: '#7d8590', stepSize: 1 }, 
+                        grid: { color: '#30363d' },
+                        beginAtZero: true
+                    }
                 }
             }
         });
