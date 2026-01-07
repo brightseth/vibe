@@ -46,6 +46,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
     { "source": "/api/openapi.json", "destination": "/openapi.json" },
     { "source": "/api/presence/heartbeat", "destination": "/api/presence/heartbeat.js" },
     { "source": "/api/presence/who", "destination": "/api/presence/who.js" },
