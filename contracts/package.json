@@ -1,0 +1,18 @@
+{
+  "name": "vibe-artifacts",
+  "version": "1.0.0",
+  "description": "ERC-721 contract for /vibe moments onchain",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network mainnet",
+    "verify": "hardhat verify --network mainnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0"
+  }
+}

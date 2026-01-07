@@ -1,0 +1,21 @@
+{
+  "userStreaks": {
+    "demo_user": {
+      "current": 1,
+      "longest": 1,
+      "lastActive": "2026-01-07",
+      "firstSeen": "2026-01-07"
+    },
+    "vibe_champion": {
+      "current": 1,
+      "longest": 1,
+      "lastActive": "2026-01-07",
+      "firstSeen": "2026-01-07"
+    }
+  },
+  "milestonesAnnounced": [
+    "demo_user:1-day"
+  ],
+  "featuresBuilt": [],
+  "lastRun": "2026-01-07T19:05:50.688Z"
+}
