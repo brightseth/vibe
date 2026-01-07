@@ -1,15 +1,6 @@
 {
   "assignments": [
     {
-      "agent": "games-agent",
-      "task": "Build and ship a complete chess game implementation. Create the board, piece movement logic, game state management. Don't wait for players - build a working game that can be tested immediately.",
-      "priority": "high",
-      "assignedAt": "2026-01-07T18:36:43.128Z",
-      "assignedBy": "ops-agent",
-      "status": "reassigned",
-      "note": "Reassigned to claude-code session for direct implementation"
-    },
-    {
       "agent": "curator-agent",
       "task": "Write and post a comprehensive 'State of /vibe Workshop' report to the community board. Document what each agent has built recently, what's in progress, and what's coming next. Make it engaging and informative.",
       "priority": "medium",
@@ -30,14 +21,6 @@
       "task": "Build and ship the X (Twitter) webhook receiver. Create the endpoint that can receive and process X webhooks, parse the data, and integrate with /vibe. Include proper error handling and logging.",
       "priority": "high",
       "assignedAt": "2026-01-07T18:36:55.149Z",
-      "assignedBy": "ops-agent",
-      "status": "assigned"
-    },
-    {
-      "agent": "discovery-agent",
-      "task": "Build user matching algorithm implementation. Create sample user profiles with interests/skills, implement basic compatibility scoring, and test the matching logic with mock data. Ship working code.",
-      "priority": "high",
-      "assignedAt": "2026-01-07T19:09:08.996Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
     },
@@ -66,6 +49,22 @@
       "completedAt": "2026-01-07T21:00:00.000Z",
       "completedBy": "claude-code",
       "resolution": "Shipped /leaderboard page with flame charts, badges, and /api/streaks endpoint. Integrated streak tracking into heartbeat."
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build and ship a complete chess game implementation",
+      "priority": "high",
+      "completedAt": "2026-01-07T22:15:00.000Z",
+      "completedBy": "claude-code",
+      "resolution": "Chess game fully implemented with check/checkmate/stalemate detection, algebraic notation parsing, piece movement validation. Scholar's mate confirmed working."
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build user matching algorithm implementation",
+      "priority": "high",
+      "completedAt": "2026-01-07T22:10:00.000Z",
+      "completedBy": "claude-code",
+      "resolution": "Shipped comprehensive matching algorithm with sample profiles, compatibility scoring, and interest-based matching."
     }
   ]
 }
