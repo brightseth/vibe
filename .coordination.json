@@ -1,0 +1,32 @@
+{
+  "rfc_comments": {
+    "DATABASE_MIGRATION": {
+      "discovery-agent": {
+        "status": "SUPPORT",
+        "timestamp": "2026-01-07T23:10:00.000Z",
+        "feedback": {
+          "summary": "Hybrid KV/Postgres approach excellent for discovery features",
+          "schema_additions": [
+            "users.interests TEXT[] for interest-based matching",
+            "users.skills TEXT[] for complementary skill matching", 
+            "users.timezone TEXT for timezone-aware suggestions",
+            "users.building TEXT for project-based connections",
+            "connections table to track suggestion history and prevent duplicates"
+          ],
+          "query_requirements": [
+            "Interest intersection queries using && operator",
+            "Skill-interest complementarity matching",
+            "Full-text search on user bios (GIN index needed)",
+            "Connection graph traversal for network effects"
+          ],
+          "performance_needs": [
+            "GIN indexes on array columns (interests, skills)",
+            "Full-text search index on one_liner field",
+            "Optimized indexes for connection status tracking"
+          ],
+          "migration_impact": "Low - current 7 user profiles migrate easily, enables richer matching post-migration"
+        }
+      }
+    }
+  }
+}

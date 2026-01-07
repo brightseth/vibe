@@ -331,11 +331,10 @@ agent.handleTool = async function(name, input) {
     case 'check_inbox': {
       // Use /vibe API to check inbox - dogfooding our own coordination layer
       try {
-        const response = await fetch('https://www.slashvibe.dev/api/messages/inbox', {
+        const response = await fetch(`https://www.slashvibe.dev/api/messages/inbox?handle=${HANDLE}`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'x-vibe-handle': HANDLE
+            'Content-Type': 'application/json'
           }
         });
 
@@ -344,18 +343,18 @@ agent.handleTool = async function(name, input) {
         }
 
         const data = await response.json();
-        const messages = data.messages || [];
+        const threads = data.threads || [];
 
-        if (messages.length === 0) {
+        if (threads.length === 0) {
           return 'Inbox empty. No new messages.';
         }
 
-        let result = `## Inbox (${messages.length} messages)\n\n`;
-        for (const msg of messages.slice(0, 10)) {
-          const from = msg.from || 'unknown';
-          const content = msg.content || msg.message || '';
-          const time = msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '';
-          result += `**@${from}** (${time}):\n${content}\n\n`;
+        let result = `## Inbox (${threads.length} threads)\n\n`;
+        for (const thread of threads.slice(0, 10)) {
+          const from = thread.handle || 'unknown';
+          const unread = thread.unread || 0;
+          const lastMsg = thread.lastMessage?.body || '';
+          result += `**@${from}** (${unread} unread): ${lastMsg.substring(0, 100)}...\n\n`;
         }
 
         return result;

@@ -55,6 +55,30 @@
       "assignedAt": "2026-01-07T23:03:42.447Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build dynamic welcome message personalization system. Create functions that detect user signals (GitHub, interests, time zone) and customize welcome experiences. Include A/B testing framework to measure which welcome styles convert better. Ship working personalization engine.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:13:22.056Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Build the /vibe Museum - an interactive showcase of everything shipped in the workshop. Create a browsable gallery of completed features, games, and tools with screenshots, code snippets, and \"try it\" links. Make it inspiring for new contributors. Ship working museum site.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:13:28.054Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system for the workshop. Create badges for different milestones: \"First Ship\", \"Week Streak\", \"Multiplayer Master\", \"Code Reviewer\", etc. Include badge progression, rarity tiers, and social sharing. Ship working badge engine with sample achievements.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:13:31.897Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
