@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe — Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #222;
+        }
+        h1 { font-size: 24px; font-weight: 400; letter-spacing: -1px; }
+        .status { font-size: 12px; color: #666; }
+        .status.live { color: #4a4; }
+        .status.error { color: #a44; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card h2 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+        .metric:last-child { margin-bottom: 0; }
+        .metric .label { font-size: 13px; color: #888; }
+        .metric .value { font-size: 20px; color: #fff; font-weight: 500; }
+        .metric .value.highlight { color: #6B8FFF; }
+        .metric .value.warning { color: #f90; }
+        .metric .value.success { color: #4a4; }
+        .metric .value.small { font-size: 14px; }
+
+        .progress-bar {
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #6B8FFF;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .progress-bar .fill.warning { background: #f90; }
+        .progress-bar .fill.success { background: #4a4; }
+
+        .agent-list {
+            list-style: none;
+        }
+        .agent-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 13px;
+        }
+        .agent-list li:last-child { border-bottom: none; }
+        .agent-name { color: #6B8FFF; }
+        .agent-status {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .agent-status.active { background: #1a2a1a; color: #4a4; }
+        .agent-status.idle { background: #2a2a1a; color: #aa4; }
+        .agent-status.down { background: #2a1a1a; color: #a44; }
+
+        .leaderboard {
+            list-style: none;
+        }
+        .leaderboard li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #888;
+        }
+        .leaderboard .handle { color: #6B8FFF; }
+        .leaderboard .count { color: #fff; }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .auth-box {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+        }
+        .auth-box h2 { font-size: 18px; margin-bottom: 8px; font-weight: 400; }
+        .auth-box p { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .auth-box input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        .auth-box input:focus { border-color: #6B8FFF; }
+        .auth-box button {
+            width: 100%;
+            background: #6B8FFF;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #000;
+            cursor: pointer;
+        }
+        .auth-box button:hover { background: #8FA8FF; }
+        .auth-box .error { color: #a44; font-size: 12px; margin-top: 12px; }
+
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-family: inherit;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+        }
+        .refresh-btn:hover { border-color: #6B8FFF; color: #6B8FFF; }
+
+        .announcement {
+            background: #111;
+            border-left: 3px solid #6B8FFF;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .announcement .time { color: #666; font-size: 11px; }
+        .announcement .agent { color: #6B8FFF; }
+        .announcement .what { color: #999; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2>/vibe Dashboard</h2>
+            <p>Enter admin secret to continue</p>
+            <input type="password" id="secret-input" placeholder="ADMIN_SECRET">
+            <button onclick="authenticate()">Access Dashboard</button>
+            <div id="auth-error" class="error hidden"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+        <div class="header">
+            <h1>/vibe Dashboard</h1>
+            <div>
+                <span id="status" class="status">Connecting...</span>
+                <button class="refresh-btn" onclick="refresh()" style="margin-left: 12px;">Refresh</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Health -->
+            <div class="card">
+                <h2>Health</h2>
+                <div class="metric">
+                    <span class="label">KV Store</span>
+                    <span id="kv-status" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Genesis Open</span>
+                    <span id="genesis-open" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Genesis Spots Left</span>
+                    <span id="genesis-remaining" class="value highlight">—</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="genesis-progress" class="fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Users -->
+            <div class="card">
+                <h2>Users</h2>
+                <div class="metric">
+                    <span class="label">Total Handles</span>
+                    <span id="handles-total" class="value highlight">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Genesis Users</span>
+                    <span id="handles-genesis" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Via Invite</span>
+                    <span id="handles-invited" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Today</span>
+                    <span id="handles-today" class="value success small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">This Week</span>
+                    <span id="handles-week" class="value small">—</span>
+                </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="card">
+                <h2>Activity</h2>
+                <div class="metric">
+                    <span class="label">Online Now</span>
+                    <span id="online" class="value success">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">DAU (24h)</span>
+                    <span id="dau" class="value highlight">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">WAU (7d)</span>
+                    <span id="wau" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Messages (est)</span>
+                    <span id="messages" class="value small">—</span>
+                </div>
+            </div>
+
+            <!-- Invites -->
+            <div class="card">
+                <h2>Invites</h2>
+                <div class="metric">
+                    <span class="label">Total Generated</span>
+                    <span id="invites-total" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Available</span>
+                    <span id="invites-available" class="value highlight">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Redeemed</span>
+                    <span id="invites-used" class="value success small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Expired</span>
+                    <span id="invites-expired" class="value warning small">—</span>
+                </div>
+            </div>
+
+            <!-- Waitlist -->
+            <div class="card">
+                <h2>Waitlist</h2>
+                <div class="metric">
+                    <span class="label">Total</span>
+                    <span id="waitlist-total" class="value highlight">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Today</span>
+                    <span id="waitlist-today" class="value success small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Already Invited</span>
+                    <span id="waitlist-invited" class="value small">—</span>
+                </div>
+            </div>
+
+            <!-- Top Inviters -->
+            <div class="card">
+                <h2>Top Inviters</h2>
+                <ul id="top-inviters" class="leaderboard">
+                    <li><span class="handle">—</span><span class="count">—</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Agents Section -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>Agent Status</h2>
+            <ul id="agent-list" class="agent-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+
+        <!-- Recent Announcements -->
+        <div class="card">
+            <h2>Recent Agent Activity</h2>
+            <div id="announcements">
+                <div class="announcement">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminSecret = localStorage.getItem('vibe_admin_secret');
+        let refreshInterval;
+
+        // Check for stored secret
+        if (adminSecret) {
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            refresh();
+            startAutoRefresh();
+        }
+
+        async function authenticate() {
+            const input = document.getElementById('secret-input');
+            const error = document.getElementById('auth-error');
+            const secret = input.value.trim();
+
+            if (!secret) {
+                error.textContent = 'Please enter the admin secret';
+                error.classList.remove('hidden');
+                return;
+            }
+
+            // Test the secret
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${secret}` }
+                });
+
+                if (res.ok) {
+                    localStorage.setItem('vibe_admin_secret', secret);
+                    adminSecret = secret;
+                    document.getElementById('auth-overlay').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    refresh();
+                    startAutoRefresh();
+                } else {
+                    error.textContent = 'Invalid secret';
+                    error.classList.remove('hidden');
+                }
+            } catch (e) {
+                error.textContent = 'Connection error';
+                error.classList.remove('hidden');
+            }
+        }
+
+        function startAutoRefresh() {
+            refreshInterval = setInterval(refresh, 30000); // Every 30 seconds
+        }
+
+        async function refresh() {
+            const status = document.getElementById('status');
+            status.textContent = 'Updating...';
+            status.className = 'status';
+
+            try {
+                // Fetch admin stats
+                const statsRes = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${adminSecret}` }
+                });
+
+                if (!statsRes.ok) {
+                    throw new Error('Failed to fetch stats');
+                }
+
+                const stats = await statsRes.json();
+
+                // Update health
+                document.getElementById('kv-status').textContent = stats.health.kv.toUpperCase();
+                document.getElementById('kv-status').className = 'value small ' + (stats.health.kv === 'ok' ? 'success' : 'warning');
+                document.getElementById('genesis-open').textContent = stats.health.genesis_open ? 'YES' : 'NO';
+                document.getElementById('genesis-open').className = 'value small ' + (stats.health.genesis_open ? 'success' : 'warning');
+                document.getElementById('genesis-remaining').textContent = stats.health.genesis_remaining;
+                document.getElementById('genesis-progress').style.width = ((100 - stats.health.genesis_remaining) + '%');
+
+                // Update handles
+                document.getElementById('handles-total').textContent = stats.handles.total;
+                document.getElementById('handles-genesis').textContent = stats.handles.genesis;
+                document.getElementById('handles-invited').textContent = stats.handles.invited;
+                document.getElementById('handles-today').textContent = '+' + stats.handles.today;
+                document.getElementById('handles-week').textContent = '+' + stats.handles.this_week;
+
+                // Update activity
+                document.getElementById('online').textContent = stats.activity.online;
+                document.getElementById('dau').textContent = stats.activity.dau;
+                document.getElementById('wau').textContent = stats.activity.wau;
+                document.getElementById('messages').textContent = '~' + stats.activity.messages_estimate;
+
+                // Update invites
+                document.getElementById('invites-total').textContent = stats.invites.total;
+                document.getElementById('invites-available').textContent = stats.invites.available;
+                document.getElementById('invites-used').textContent = stats.invites.used;
+                document.getElementById('invites-expired').textContent = stats.invites.expired;
+
+                // Update waitlist
+                document.getElementById('waitlist-total').textContent = stats.waitlist.total;
+                document.getElementById('waitlist-today').textContent = '+' + stats.waitlist.today;
+                document.getElementById('waitlist-invited').textContent = stats.waitlist.invited;
+
+                // Update top inviters
+                const invitersList = document.getElementById('top-inviters');
+                if (stats.topInviters && stats.topInviters.length > 0) {
+                    invitersList.innerHTML = stats.topInviters.map(i =>
+                        `<li><span class="handle">@${i.handle}</span><span class="count">${i.invited} invited</span></li>`
+                    ).join('');
+                } else {
+                    invitersList.innerHTML = '<li><span style="color:#666">No invites yet</span></li>';
+                }
+
+                // Fetch agent coordination (local file, served via API or fetch)
+                await refreshAgentStatus();
+
+                status.textContent = 'Live — ' + new Date().toLocaleTimeString();
+                status.className = 'status live';
+
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        async function refreshAgentStatus() {
+            // Agent status - fetch from coordination endpoint or hardcode known agents
+            const agents = [
+                { name: '@echo', role: 'Welcome & Connect' },
+                { name: '@games-agent', role: 'Game Builder' },
+                { name: '@streaks-agent', role: 'Engagement' },
+                { name: '@discovery-agent', role: 'Matchmaking' },
+                { name: '@curator-agent', role: 'Content Curation' },
+                { name: '@ops-agent', role: 'Infrastructure' },
+                { name: '@bridges-agent', role: 'External Bridges' }
+            ];
+
+            // Try to fetch live presence for agents
+            let presenceData = {};
+            try {
+                const presRes = await fetch('/api/presence');
+                if (presRes.ok) {
+                    const pres = await presRes.json();
+                    if (pres.active) {
+                        pres.active.forEach(h => {
+                            presenceData[h.handle] = true;
+                        });
+                    }
+                }
+            } catch (e) {}
+
+            const agentList = document.getElementById('agent-list');
+            agentList.innerHTML = agents.map(a => {
+                const handleClean = a.name.replace('@', '');
+                const isOnline = presenceData[handleClean];
+                const statusClass = isOnline ? 'active' : 'idle';
+                const statusText = isOnline ? 'Online' : 'Idle';
+                return `<li>
+                    <span><span class="agent-name">${a.name}</span> <span style="color:#666">— ${a.role}</span></span>
+                    <span class="agent-status ${statusClass}">${statusText}</span>
+                </li>`;
+            }).join('');
+
+            // Fetch announcements from coordination file (need an API endpoint for this)
+            // For now, show placeholder or fetch if available
+            try {
+                const coordRes = await fetch('/api/agents/coordination');
+                if (coordRes.ok) {
+                    const coord = await coordRes.json();
+                    const announcements = coord.announcements || [];
+                    const announcementsDiv = document.getElementById('announcements');
+
+                    if (announcements.length > 0) {
+                        announcementsDiv.innerHTML = announcements.slice(-5).reverse().map(a => {
+                            const time = new Date(a.timestamp).toLocaleString();
+                            return `<div class="announcement">
+                                <span class="agent">${a.agent}</span>: <span class="what">${a.what}</span>
+                                <div class="time">${time}</div>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        announcementsDiv.innerHTML = '<div class="announcement"><span style="color:#666">No recent announcements</span></div>';
+                    }
+                }
+            } catch (e) {
+                // No coordination API yet
+                document.getElementById('announcements').innerHTML =
+                    '<div class="announcement"><span style="color:#666">Coordination API not available</span></div>';
+            }
+        }
+
+        // Enter key to submit
+        document.getElementById('secret-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') authenticate();
+        });
+    </script>
+</body>
+</html>

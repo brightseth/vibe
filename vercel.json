@@ -74,6 +74,8 @@
     { "source": "/api/invites/redeem", "destination": "/api/invites/redeem.js" },
     { "source": "/api/invites", "destination": "/api/invites.js" },
     { "source": "/invite/:code*", "destination": "/api/invite-page" },
-    { "source": "/api/admin/stats", "destination": "/api/admin/stats.js" }
+    { "source": "/api/admin/stats", "destination": "/api/admin/stats.js" },
+    { "source": "/api/agents/coordination", "destination": "/api/agents/coordination.js" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
   ]
 }
