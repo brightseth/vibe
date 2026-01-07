@@ -55,6 +55,14 @@
     {
       "timestamp": "2026-01-07T17:51:55.674Z",
       "observation": "Infrastructure check initiated. User reports 5/6 agents running, expecting 6 (welcome, curator, games, streaks, discovery, bridges). Workshop status shows 0 agents running - critical disconnect between actual processes and workshop monitoring. No one online on /vibe."
+    },
+    {
+      "timestamp": "2026-01-07T18:08:30.269Z",
+      "observation": "Infrastructure check initiated. User reports 5/6 agents running, expecting 6 (welcome, curator, games, streaks, discovery, bridges). Workshop status shows 0 agents running - critical disconnect between actual processes and workshop monitoring. No one online on /vibe."
+    },
+    {
+      "timestamp": "2026-01-07T18:12:11.141Z",
+      "observation": "Infrastructure check performed. Found discrepancy: workshop status shows 0 agents but user reports 7 running (expected 6). Agent directories present: ops, welcome, curator, games, streaks, discovery, bridges. Monitor and start scripts are in place. Need to investigate actual process status."
     }
   ],
   "interactions": [],

@@ -48,6 +48,24 @@ const OPS_TOOLS = [
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
+    name: 'assign_task',
+    description: 'Assign a task to an agent by DMing them',
+    input_schema: {
+      type: 'object',
+      properties: {
+        agent: { type: 'string', description: 'Agent handle (e.g., games-agent)' },
+        task: { type: 'string', description: 'Task description' },
+        priority: { type: 'string', description: 'high, medium, low' }
+      },
+      required: ['agent', 'task']
+    }
+  },
+  {
+    name: 'check_backlog',
+    description: 'View the current task backlog and assignments',
+    input_schema: { type: 'object', properties: {}, required: [] }
+  },
+  {
     name: 'restart_agent',
     description: 'Restart a specific agent',
     input_schema: {
@@ -184,6 +202,71 @@ agent.handleTool = async function(name, input) {
       return result;
     }
 
+    case 'assign_task': {
+      const { agent: targetAgent, task, priority = 'medium' } = input;
+
+      // Read current backlog
+      const backlogPath = path.join(AGENTS_DIR, '.backlog.json');
+      let backlog = { assignments: [], completed: [] };
+      try {
+        if (fs.existsSync(backlogPath)) {
+          backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+        }
+      } catch (e) { /* start fresh */ }
+
+      // Add assignment
+      const assignment = {
+        agent: targetAgent,
+        task,
+        priority,
+        assignedAt: new Date().toISOString(),
+        assignedBy: 'ops-agent',
+        status: 'assigned'
+      };
+      backlog.assignments.push(assignment);
+
+      // Save backlog
+      fs.writeFileSync(backlogPath, JSON.stringify(backlog, null, 2));
+
+      // DM the agent
+      try {
+        await agent.dm(targetAgent, `📋 New task from @ops-agent [${priority}]: ${task}`);
+      } catch (e) {
+        console.log(`[@ops-agent] Could not DM ${targetAgent}: ${e.message}`);
+      }
+
+      return `Assigned to @${targetAgent}: "${task}" [${priority}]`;
+    }
+
+    case 'check_backlog': {
+      const backlogPath = path.join(AGENTS_DIR, '.backlog.json');
+      let backlog = { assignments: [], completed: [] };
+      try {
+        if (fs.existsSync(backlogPath)) {
+          backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+        }
+      } catch (e) { /* empty */ }
+
+      if (backlog.assignments.length === 0) {
+        return 'Backlog empty. All agents need tasks assigned.';
+      }
+
+      let result = `## Current Assignments (${backlog.assignments.length})\n\n`;
+      for (const a of backlog.assignments) {
+        result += `- @${a.agent} [${a.priority}]: ${a.task}\n`;
+        result += `  Assigned: ${a.assignedAt}\n\n`;
+      }
+
+      if (backlog.completed.length > 0) {
+        result += `\n## Recently Completed (${backlog.completed.length})\n`;
+        for (const c of backlog.completed.slice(-5)) {
+          result += `- @${c.agent}: ${c.task} ✓\n`;
+        }
+      }
+
+      return result;
+    }
+
     case 'restart_agent': {
       const agentName = input.agent;
       console.log(`[@ops-agent] Restarting ${agentName}...`);
@@ -247,37 +330,63 @@ agent.handleTool = async function(name, input) {
 
 // ============ SYSTEM PROMPT ============
 
-const SYSTEM_PROMPT = `You are @ops-agent, the infrastructure guardian for /vibe.
+const SYSTEM_PROMPT = `You are @ops-agent, the infrastructure guardian AND workshop coordinator for /vibe.
 
-Your mission: Keep the workshop running. Monitor agent health, restart failures, check system status.
+## Primary Mission
+Keep the workshop running AND keep agents productive. You're both DevOps AND the PM.
 
-Your capabilities:
+## Your Capabilities
 1. Check which agents are running
 2. Restart individual agents or all agents
 3. Read agent logs for errors
 4. Check API health
 5. Use git to deploy fixes
-6. Coordinate with other agents
+6. Coordinate with other agents via announcements and DMs
+7. Assign tasks from the backlog
 
-Your workflow each cycle:
-1. Check agent processes - are all 6 running?
-2. If any missing, restart them
-3. Check API health
-4. Look for errors in recent logs
-5. If you find issues, fix them or alert
+## Your Workflow Each Cycle
 
-Agent health rules:
-- All 6 agents should be running: welcome, curator, games, streaks, discovery, bridges
-- If an agent is missing, restart it
-- If an agent keeps crashing, check its logs and fix the issue
-- If the API is down, alert immediately
+### 1. Infrastructure Check (2 min)
+- Are all 6 agents running? (welcome, curator, games, streaks, discovery, bridges)
+- Is the API healthy?
+- Any crashes in logs?
 
-Don't:
-- Restart agents unnecessarily
-- Make changes without checking first
-- Ignore errors in logs
+### 2. Productivity Check (3 min)
+- Read coordination.json - any stale tasks?
+- Check what each agent shipped recently (git log)
+- Identify idle agents
 
-You're the responsible adult in the room. Keep things stable.`;
+### 3. Task Assignment (if agents are idle)
+When agents are waiting for activity, assign them GENERATIVE work:
+
+**@games-agent**: "Ship chess implementation. Don't wait for players - build it."
+**@curator-agent**: "Write a 'state of /vibe' post for the board. What's been built? What's coming?"
+**@welcome-agent**: "Draft welcome messages for 3 hypothetical user types. Test them."
+**@streaks-agent**: "Build the streak leaderboard visualization."
+**@discovery-agent**: "Create sample user profiles for testing. Build the matching algorithm."
+**@bridges-agent**: "Document the X integration. Ship the webhook receiver."
+
+### 4. Announce & DM
+- Post announcements about workshop status
+- DM specific agents with tasks
+- Celebrate when someone ships
+
+## The Backlog (prioritized)
+1. Chess game (games-agent)
+2. X bridge webhook (bridges-agent)
+3. Streak leaderboard (streaks-agent)
+4. User matching (discovery-agent)
+5. Welcome flow improvements (welcome-agent)
+6. Weekly digest (curator-agent)
+
+## Rules
+- Don't restart agents unnecessarily
+- Assign ONE task per agent per cycle
+- If an agent keeps crashing on same task, reassign or break down the task
+- Ship > perfect. Small working things beat ambitious failures.
+
+You're the responsible adult AND the coach. Keep things stable AND moving forward.`;
+
 
 // ============ MAIN ============
 
@@ -286,16 +395,25 @@ async function main() {
 
   const getInitialMessage = () => {
     const running = getRunningAgents();
-    return `Infrastructure check time.
+    return `Workshop coordination cycle starting.
 
+## Phase 1: Infrastructure
 Expected agents: 6 (welcome, curator, games, streaks, discovery, bridges)
 Currently running: ${running.length}
 
-1. Check agent processes
-2. Restart any missing agents
-3. Check API health
-4. Scan logs for errors
-5. Report status`;
+## Phase 2: Productivity
+Check backlog and agent output. Who's idle? Who shipped?
+
+## Phase 3: Task Assignment
+If agents are idle, assign them generative work from the backlog.
+
+Your workflow:
+1. check_agent_processes - restart any missing
+2. check_api_health - ensure system healthy
+3. check_backlog - see current assignments
+4. check_logs for each agent - any errors? any ships?
+5. assign_task to idle agents - give them something to BUILD
+6. announce workshop status`;
   };
 
   if (mode === 'daemon') {
