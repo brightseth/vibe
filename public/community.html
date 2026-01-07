@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/vibe — Community</title>
+  <meta name="description" content="See who's building on /vibe">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111;
+      --border: #222;
+      --text: #e5e5e5;
+      --muted: #888;
+      --accent: #6366f1;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 20px; }
+    .header nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 24px;
+      font-size: 14px;
+    }
+    .header nav a:hover { color: var(--text); }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+    .section h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .online-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .online-user {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+    .online-handle {
+      font-weight: 600;
+    }
+    .online-building {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .board-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .board-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .board-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .board-author {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .board-category {
+      font-size: 11px;
+      background: var(--border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .board-time {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .board-content {
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0d0d0d 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+    }
+    .cta h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .cta p {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .cta code {
+      display: inline-block;
+      background: #000;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 14px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .stat-value { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🌊 /vibe</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="/chronicle">Chronicle</a>
+      <a href="/status">Status</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <h2>The /vibe Community</h2>
+      <p>Developers building in public, together</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-value" id="genesis">--</div>
+        <div class="stat-label">Genesis Users</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="messages">--</div>
+        <div class="stat-label">Messages</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="remaining">--</div>
+        <div class="stat-label">Spots Left</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="online">--</div>
+        <div class="stat-label">Online Now</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🟢 Online Now</h3>
+      <div id="online-list" class="online-list">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📋 Community Board</h3>
+      <div id="board" class="board-entries">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+
+    <div class="section cta">
+      <h3>Join the Genesis Cohort</h3>
+      <p>Get /vibe for Claude Code. Talk to other developers while you build.</p>
+      <code>curl -fsSL https://slashvibe.dev/install.sh | bash</code>
+    </div>
+  </div>
+
+  <script>
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('genesis').textContent = data.genesis?.total || 0;
+        document.getElementById('messages').textContent = data.messages || 0;
+        document.getElementById('remaining').textContent = data.genesis?.genesis_remaining || 0;
+      } catch (e) {
+        console.error('Stats error:', e);
+      }
+    }
+
+    async function loadOnline() {
+      try {
+        const res = await fetch('/api/presence/who');
+        const data = await res.json();
+        const list = document.getElementById('online-list');
+
+        if (!data.users || data.users.length === 0) {
+          list.innerHTML = '<div class="empty-state">No one online right now. Be the first!</div>';
+          document.getElementById('online').textContent = '0';
+          return;
+        }
+
+        document.getElementById('online').textContent = data.users.length;
+        list.innerHTML = data.users.map(u => `
+          <div class="online-user">
+            <div class="online-dot"></div>
+            <span class="online-handle">@${u.username}</span>
+            <span class="online-building">${u.workingOn || 'building'}</span>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Online error:', e);
+        document.getElementById('online-list').innerHTML = '<div class="empty-state">Could not load</div>';
+      }
+    }
+
+    async function loadBoard() {
+      try {
+        const res = await fetch('/api/board?limit=5');
+        const data = await res.json();
+        const board = document.getElementById('board');
+
+        if (!data.entries || data.entries.length === 0) {
+          board.innerHTML = '<div class="empty-state">No posts yet. Be the first to share!</div>';
+          return;
+        }
+
+        board.innerHTML = data.entries.map(e => {
+          const time = new Date(e.timestamp).toLocaleDateString();
+          return `
+            <div class="board-entry">
+              <div class="board-meta">
+                <span class="board-author">@${e.author}</span>
+                <span class="board-category">${e.category}</span>
+                <span class="board-time">${time}</span>
+              </div>
+              <div class="board-content">${e.content}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Board error:', e);
+        document.getElementById('board').innerHTML = '<div class="empty-state">Could not load</div>';
+      }
+    }
+
+    // Load all data
+    loadStats();
+    loadOnline();
+    loadBoard();
+
+    // Refresh every 30s
+    setInterval(() => {
+      loadStats();
+      loadOnline();
+    }, 30000);
+  </script>
+</body>
+</html>
