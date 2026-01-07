@@ -69,6 +69,10 @@
     { "source": "/api/cron/social-sync", "destination": "/api/cron/social-sync.js" },
     { "source": "/api/register", "destination": "/api/register.js" },
     { "source": "/api/cron/agents", "destination": "/api/cron/agents.js" },
-    { "source": "/api/waitlist", "destination": "/api/waitlist.js" }
+    { "source": "/api/waitlist", "destination": "/api/waitlist.js" },
+    { "source": "/api/invites", "destination": "/api/invites.js" },
+    { "source": "/api/invites/redeem", "destination": "/api/invites.js" },
+    { "source": "/api/invites/my", "destination": "/api/invites.js" },
+    { "source": "/invite/:code", "destination": "/invite.html" }
   ]
 }
