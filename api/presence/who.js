@@ -33,10 +33,34 @@ module.exports = async function handler(req, res) {
     }
 
     // Get presence data for each handle
-    // Note: Main API uses kv.set (JSON), not hset (hash)
+    // Check both JSON format (MCP) and hash format (heartbeat API)
     const users = await Promise.all(
       handles.map(async (handle) => {
-        const data = await kv.get(`presence:${handle}`);
+        // Try JSON format first (main presence API)
+        let data = await kv.get(`presence:${handle}`);
+
+        // If no JSON data, try hash format (heartbeat API)
+        if (!data) {
+          data = await kv.hgetall(`presence:${handle}`);
+          if (data) {
+            // Normalize hash format to JSON format
+            data = {
+              username: data.handle,
+              workingOn: data.one_liner,
+              lastSeen: new Date(parseInt(data.last_heartbeat)).toISOString(),
+              context: {
+                file: data.file,
+                branch: data.branch,
+                error: data.error,
+                note: data.note
+              },
+              mood: data.mood,
+              mood_inferred: data.mood_inferred === 'true',
+              mood_reason: data.mood_reason
+            };
+          }
+        }
+
         if (!data) return null;
 
         // Data is stored as JSON object by /api/presence.js
