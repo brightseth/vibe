@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe — You're Invited</title>
+    <meta name="description" content="You've been invited to /vibe — the social layer for Claude Code.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 48px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { max-width: 480px; width: 100%; text-align: center; }
+
+        h1 { font-size: 48px; font-weight: 400; margin-bottom: 12px; letter-spacing: -2px; }
+        .tagline { font-size: 17px; color: #6B8FFF; margin-bottom: 8px; }
+        .inviter { font-size: 14px; color: #888; margin-bottom: 32px; }
+        .sub { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.6; }
+
+        .form-container {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 16px;
+        }
+        input[type="text"]:focus {
+            border-color: #6B8FFF;
+        }
+        input[type="text"]::placeholder {
+            color: #555;
+        }
+
+        .handle-prefix {
+            color: #6B8FFF;
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .handle-input-wrapper {
+            position: relative;
+        }
+
+        .handle-input-wrapper input {
+            padding-left: 28px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #555;
+            margin-top: -12px;
+            margin-bottom: 16px;
+        }
+
+        button {
+            width: 100%;
+            background: #6B8FFF;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #8FA8FF;
+        }
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .result {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        .result.success {
+            background: #0a1a0a;
+            border: 1px solid #1a3a1a;
+            display: block;
+        }
+        .result.error {
+            background: #1a0a0a;
+            border: 1px solid #3a1a1a;
+            color: #a44;
+            display: block;
+        }
+        .result .welcome {
+            font-size: 24px;
+            color: #6B8FFF;
+            margin-bottom: 12px;
+        }
+        .result .message {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 16px;
+        }
+        .result .next-step {
+            font-size: 13px;
+            color: #666;
+            background: #111;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: left;
+        }
+        .result .next-step code {
+            color: #6B8FFF;
+        }
+
+        .invalid-code {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .invalid-code h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: #a44;
+        }
+        .invalid-code p {
+            color: #666;
+            margin-bottom: 24px;
+        }
+        .invalid-code a {
+            color: #6B8FFF;
+            text-decoration: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .suggestions {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+        .suggestions span {
+            color: #6B8FFF;
+            cursor: pointer;
+            margin: 0 4px;
+        }
+        .suggestions span:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            Checking invite...
+        </div>
+
+        <div id="invalid" class="invalid-code" style="display: none;">
+            <h2>Invalid Invite</h2>
+            <p id="invalid-reason">This invite code is not valid.</p>
+            <p><a href="/waitlist">Join the waitlist instead</a></p>
+        </div>
+
+        <div id="form-section" style="display: none;">
+            <h1>/vibe</h1>
+            <p class="tagline">You're invited</p>
+            <p class="inviter" id="inviter-text">@someone invited you</p>
+
+            <div class="form-container">
+                <form id="redeem-form">
+                    <label>Choose your handle</label>
+                    <div class="handle-input-wrapper">
+                        <span class="handle-prefix">@</span>
+                        <input type="text" id="handle" placeholder="yourhandle" required
+                               pattern="[a-zA-Z0-9_]+" minlength="3" maxlength="20">
+                    </div>
+                    <p class="hint">3-20 characters, letters, numbers, underscores</p>
+
+                    <label>What are you building?</label>
+                    <input type="text" id="one_liner" placeholder="something cool" maxlength="100">
+
+                    <button type="submit" id="submit-btn">Claim @<span id="handle-preview">handle</span></button>
+                </form>
+                <div id="result" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loading = document.getElementById('loading');
+        const invalid = document.getElementById('invalid');
+        const invalidReason = document.getElementById('invalid-reason');
+        const formSection = document.getElementById('form-section');
+        const inviterText = document.getElementById('inviter-text');
+        const form = document.getElementById('redeem-form');
+        const handleInput = document.getElementById('handle');
+        const oneLinerInput = document.getElementById('one_liner');
+        const submitBtn = document.getElementById('submit-btn');
+        const handlePreview = document.getElementById('handle-preview');
+        const result = document.getElementById('result');
+
+        // Get code from URL path: /invite/VIBE-XXXX-XXXX
+        function getCodeFromPath() {
+            const path = window.location.pathname;
+            const match = path.match(/\/invite\/([A-Z0-9-]+)/i);
+            return match ? match[1].toUpperCase() : null;
+        }
+
+        const code = getCodeFromPath();
+
+        // Update handle preview as user types
+        handleInput.addEventListener('input', function() {
+            const val = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            this.value = val;
+            handlePreview.textContent = val || 'handle';
+        });
+
+        // Check if code is valid
+        async function checkCode() {
+            if (!code) {
+                showInvalid('No invite code provided');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/invites?code=' + encodeURIComponent(code));
+                const data = await res.json();
+
+                if (data.valid) {
+                    showForm(data.inviter);
+                } else {
+                    showInvalid(data.error || 'Invalid invite code');
+                }
+            } catch (e) {
+                showInvalid('Could not verify invite code');
+            }
+        }
+
+        function showInvalid(reason) {
+            loading.style.display = 'none';
+            invalid.style.display = 'block';
+            invalidReason.textContent = reason;
+        }
+
+        function showForm(inviter) {
+            loading.style.display = 'none';
+            formSection.style.display = 'block';
+            inviterText.textContent = '@' + inviter + ' invited you';
+        }
+
+        // Submit form
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const handle = handleInput.value.trim().toLowerCase();
+            const one_liner = oneLinerInput.value.trim();
+
+            if (!handle || handle.length < 3) {
+                alert('Handle must be at least 3 characters');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Claiming...';
+
+            try {
+                const res = await fetch('/api/invites/redeem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, handle, one_liner })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    form.style.display = 'none';
+                    result.className = 'result success';
+                    result.innerHTML =
+                        '<div class="welcome">Welcome, @' + data.handle + '!</div>' +
+                        '<div class="message">' + data.message + '</div>' +
+                        '<div class="next-step">' +
+                        '<strong>Next step:</strong><br><br>' +
+                        'Open Claude Code and say:<br>' +
+                        '<code>"go to slashvibe.dev and install /vibe"</code><br><br>' +
+                        'Then run:<br>' +
+                        '<code>"vibe init @' + data.handle + '"</code>' +
+                        '</div>';
+                } else {
+                    result.className = 'result error';
+                    let html = '<div class="message">' + (data.message || data.error || 'Something went wrong') + '</div>';
+
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        html += '<div class="suggestions">Try: ';
+                        data.suggestions.forEach(function(s) {
+                            html += '<span onclick="suggestHandle(\'' + s + '\')">' + s + '</span>';
+                        });
+                        html += '</div>';
+                    }
+
+                    result.innerHTML = html;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Claim @' + handle;
+                }
+            } catch (e) {
+                result.className = 'result error';
+                result.innerHTML = '<div class="message">Network error. Try again.</div>';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Claim @' + handle;
+            }
+        });
+
+        function suggestHandle(handle) {
+            handleInput.value = handle;
+            handlePreview.textContent = handle;
+            result.style.display = 'none';
+        }
+
+        // Check code on load
+        checkCode();
+    </script>
+</body>
+</html>

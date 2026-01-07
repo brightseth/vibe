@@ -73,6 +73,6 @@
     { "source": "/api/invites/my", "destination": "/api/invites/my.js" },
     { "source": "/api/invites/redeem", "destination": "/api/invites/redeem.js" },
     { "source": "/api/invites", "destination": "/api/invites.js" },
-    { "source": "/invite/(.*)", "destination": "/invite.html" }
+    { "source": "/invite/:code", "destination": "/api/invite-page.js" }
   ]
 }
