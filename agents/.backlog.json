@@ -6,7 +6,10 @@
       "priority": "critical",
       "assignedAt": "2026-01-07T20:00:00.000Z",
       "assignedBy": "seth",
-      "status": "assigned"
+      "status": "completed",
+      "completedAt": "2026-01-07T20:30:00.000Z",
+      "completedBy": "claude-code",
+      "resolution": "Deployed kv-cache.js with in-memory caching + graceful degradation. Integrated into hot paths (who, heartbeat, inbox)."
     },
     {
       "agent": "games-agent",
