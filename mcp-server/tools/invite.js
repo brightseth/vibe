@@ -126,13 +126,24 @@ You can have up to ${result.max_codes} unused codes at a time.`
     return { display };
   }
 
-  // Get an available code for the share message
+  // Get an available code, or auto-generate one
   let shareCode = null;
+  let justGenerated = false;
+
   const codesResult = await store.getMyInvites(myHandle);
   if (codesResult.success && codesResult.codes) {
     const available = codesResult.codes.find(c => c.status === 'available');
     if (available) {
       shareCode = available.code;
+    }
+  }
+
+  // Auto-generate if no available code and user can generate
+  if (!shareCode && codesResult.success && codesResult.can_generate) {
+    const genResult = await store.generateInviteCode(myHandle);
+    if (genResult.success) {
+      shareCode = genResult.code;
+      justGenerated = true;
     }
   }
 
@@ -163,33 +174,42 @@ _Copy the above and send it._`
     };
   }
 
-  // Full personalized message (default)
-  const greeting = name ? `Hey ${name}!` : 'Hey!';
-  const fromLine = myHandle ? ` — @${myHandle}` : '';
+  // Default: Quick copy-ready format
+  // If name provided, make it personalized
+  if (name) {
+    return {
+      display: `## Invite for ${name}
+
+---
+
+Hey ${name}!
+
+I've been using /vibe in Claude Code — it's a social layer that lets you see who else is building and message people without leaving your terminal.
+
+Just tell Claude: "go to slashvibe.dev and install /vibe"
+
+Then say "let's vibe" to start. I'm @${myHandle} — ping me once you're on!
+
+---
+
+**${shareUrl}**
+
+_Copy the link above and send it._`
+    };
+  }
+
+  // No name: ultra-short copy-ready format
+  const genNote = justGenerated ? ' (just generated)' : '';
+  const randomMsg = INVITE_MESSAGES[Math.floor(Math.random() * INVITE_MESSAGES.length)];
 
   return {
-    display: `## Invite to /vibe
+    display: `## Quick Invite${genNote}
 
----
+> ${randomMsg}
+>
+> **${shareUrl}**
 
-${greeting}
-
-I've been using this thing called /vibe in Claude Code — it's a social layer that lets you see who else is building and message people without leaving your terminal.
-
-No app to install really, you just tell Claude:
-
-  "go to slashvibe.dev and install /vibe"
-
-Then say "let's vibe" to start.
-
-${name ? `Hit me up once you're on — I'm @${myHandle}` : `I'm @${myHandle} if you want to ping me.`}${fromLine}
-
----
-
-**Shareable link**: ${shareUrl}
-${shareCode ? `\n_This is your personal invite code. When ${name || 'they'} joins, you'll earn a bonus code._` : '\n_Run `vibe invite --action generate` to get a personal invite code._'}
-
-_Copy and send to a friend who uses Claude Code._`
+_Copy and send. ${shareCode ? `Bonus code earned when they join.` : ''}_`
   };
 }
 
