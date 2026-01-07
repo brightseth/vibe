@@ -327,6 +327,42 @@ agent.handleTool = async function(name, input) {
       }
       return `Restart results:\n${results.join('\n')}`;
     }
+
+    case 'check_inbox': {
+      // Use /vibe API to check inbox - dogfooding our own coordination layer
+      try {
+        const response = await fetch('https://www.slashvibe.dev/api/messages/inbox', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-vibe-handle': HANDLE
+          }
+        });
+
+        if (!response.ok) {
+          return `Could not check inbox: ${response.status}`;
+        }
+
+        const data = await response.json();
+        const messages = data.messages || [];
+
+        if (messages.length === 0) {
+          return 'Inbox empty. No new messages.';
+        }
+
+        let result = `## Inbox (${messages.length} messages)\n\n`;
+        for (const msg of messages.slice(0, 10)) {
+          const from = msg.from || 'unknown';
+          const content = msg.content || msg.message || '';
+          const time = msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '';
+          result += `**@${from}** (${time}):\n${content}\n\n`;
+        }
+
+        return result;
+      } catch (e) {
+        return `Error checking inbox: ${e.message}`;
+      }
+    }
   }
 
   // Fall back to base handler
@@ -372,6 +408,12 @@ Supportive but pushes for output. Celebrates ships. Unblocks problems. Never bla
 8. Celebrate ships and unblock failures
 
 ## Your Workflow Each Cycle
+
+### 0. CHECK INBOX FIRST (CRITICAL)
+- Call check_inbox IMMEDIATELY at start of every cycle
+- Look for DMs from @seth or other agents
+- RFCs, urgent requests, and coordination messages come through DMs
+- If you see an RFC review request, READ THE RFC and respond with your analysis
 
 ### 1. Infrastructure Check
 - Are all 6 agents running?
@@ -437,7 +479,18 @@ async function main() {
 
   const getInitialMessage = () => {
     const running = getRunningAgents();
-    return `Workshop coordination cycle starting.
+    const wakeReason = process.env.WAKE_REASON;
+
+    let urgentPrefix = '';
+    if (wakeReason) {
+      urgentPrefix = `## ⚠️ URGENT WAKE: ${wakeReason}\n\nYou were woken up for an urgent matter. Check your inbox FIRST.\n\n`;
+    }
+
+    return `${urgentPrefix}Workshop coordination cycle starting.
+
+## Phase 0: CHECK INBOX (DO THIS FIRST)
+Call check_inbox to see if there are urgent DMs from @seth or other agents.
+RFCs and urgent requests come through DMs - don't miss them!
 
 ## Phase 1: Infrastructure
 Expected agents: 6 (welcome, curator, games, streaks, discovery, bridges)
@@ -450,12 +503,13 @@ Check backlog and agent output. Who's idle? Who shipped?
 If agents are idle, assign them generative work from the backlog.
 
 Your workflow:
-1. check_agent_processes - restart any missing
-2. check_api_health - ensure system healthy
-3. check_backlog - see current assignments
-4. check_logs for each agent - any errors? any ships?
-5. assign_task to idle agents - give them something to BUILD
-6. announce workshop status`;
+1. check_inbox - FIRST! Look for urgent DMs and RFCs
+2. check_agent_processes - restart any missing
+3. check_api_health - ensure system healthy
+4. check_backlog - see current assignments
+5. check_logs for each agent - any errors? any ships?
+6. assign_task to idle agents - give them something to BUILD
+7. announce workshop status`;
   };
 
   if (mode === 'daemon') {
