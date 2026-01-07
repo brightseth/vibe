@@ -54,7 +54,7 @@ module.exports = async function handler(req, res) {
       try {
         await sql`
           INSERT INTO messages (id, from_user, to_user, text, read, payload, created_at)
-          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${payload}::jsonb, NOW())
+          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${payload}, NOW())
         `;
         stored = true;
         storage = 'postgres';
