@@ -1,8 +1,8 @@
 {
   "handle": "ops-agent",
   "created": "2026-01-07T12:58:22.246Z",
-  "lastRun": "2026-01-07T19:01:29.798Z",
-  "runCount": 1,
+  "lastRun": "2026-01-07T19:04:31.806Z",
+  "runCount": 2,
   "observations": [
     {
       "timestamp": "2026-01-07T13:04:29.244Z",
@@ -69,12 +69,12 @@
       "observation": "Infrastructure check initiated. Expected 6 agents (welcome, curator, games, streaks, discovery, bridges) but found 7 running including ops-agent. Workshop status shows 0 agents but this may be a reporting issue. Found agent monitoring scripts in place. Need to verify actual system health vs dashboard reporting."
     },
     {
-      "timestamp": "2026-01-07T18:44:01.341Z",
-      "observation": "Workshop coordination cycle completed. Found monitoring disconnect: user reports 16 processes running vs expected 6 agents, but workshop status shows 0. All 6 agents have active assigned tasks from backlog - no new assignments needed. Recent git activity shows discovery-agent and streaks-agent actively shipping. Focus needed on monitoring system health and checking for agent output/ships."
+      "timestamp": "2026-01-07T18:33:55.731Z",
+      "observation": "Infrastructure check Jan 7 18:18: User reports 9 agents running vs 6 expected. Workshop status shows 0 agents (consistent reporting issue). All 7 agent directories present (welcome, curator, games, streaks, discovery, bridges, ops). Monitor and start scripts available. Ongoing disconnect between actual processes and workshop dashboard - need system-level process verification."
     },
     {
-      "timestamp": "2026-01-07T18:49:06.835Z",
-      "observation": "Workshop coordination cycle Jan 7 evening: All 6 agents have active assignments from previous cycles. Recent ships detected: streaks-agent delivered tracking system, discovery-agent enhanced matching. Board is empty - good opportunity for curator-agent to post state report. Infrastructure healthy, git active, no new task assignments needed as backlog is fully distributed."
+      "timestamp": "2026-01-07T18:42:11.019Z",
+      "observation": "Workshop coordination cycle completed at 2026-01-07T18:38. Infrastructure issues resolved: All 6 core agents were stopped despite having active task assignments. Restarted games-agent, bridges-agent, curator-agent, streaks-agent, welcome-agent, and discovery-agent. API healthy. Backlog has 5 high-priority generative tasks already assigned. No additional task assignment needed - agents should now execute on their existing assignments."
     }
   ],
   "interactions": [],
