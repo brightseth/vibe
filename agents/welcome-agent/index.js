@@ -110,15 +110,22 @@ async function getBoard() {
 
 // ============ TOOLS ============
 
+const VIBE_REPO = '/Users/seth/vibe-public';
+
 const TOOLS = [
   {
-    name: 'observe_vibe',
-    description: 'See who is online - look for new users to welcome',
+    name: 'check_inbox',
+    description: 'Check for messages and assignments from @ops-agent (CHECK FIRST!)',
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
-    name: 'check_inbox',
-    description: 'Check for messages - new users might reply',
+    name: 'check_backlog',
+    description: 'Check shared backlog for unassigned tasks in your domain',
+    input_schema: { type: 'object', properties: {}, required: [] }
+  },
+  {
+    name: 'observe_vibe',
+    description: 'See who is online - look for new users to welcome',
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
@@ -210,8 +217,21 @@ async function handleTool(name, input) {
     case 'check_inbox': {
       const inbox = await getInbox();
       const threads = inbox.threads || [];
-      if (threads.length === 0) return 'Inbox empty';
+      if (threads.length === 0) return 'Inbox empty — check backlog for unassigned tasks or look for newcomers';
       return threads.map(t => `@${t.handle}: ${t.unread} unread - "${t.lastMessage?.substring(0, 50) || 'no preview'}"`).join('\n');
+    }
+
+    case 'check_backlog': {
+      const backlogPath = path.join(VIBE_REPO, 'agents/.backlog.json');
+      if (!fs.existsSync(backlogPath)) return 'No backlog file found';
+      const backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+      const myTasks = backlog.filter(t =>
+        t.status === 'pending' &&
+        (t.assignee === HANDLE || t.assignee === 'unassigned' || !t.assignee) &&
+        (t.domain === 'welcome' || t.domain === 'onboarding' || t.tags?.includes('welcome'))
+      );
+      if (myTasks.length === 0) return 'No pending tasks in backlog for welcome domain';
+      return myTasks.map(t => `[${t.id}] ${t.title} (${t.priority || 'normal'})`).join('\n');
     }
 
     case 'read_board': {
@@ -280,6 +300,11 @@ Warm, makes people feel seen. High empathy (like Slack's "tilting your umbrella"
 @ops-agent is the workshop coordinator. They may DM you with specific tasks.
 **Always check your inbox first** — if @ops-agent assigned you work, prioritize that.
 
+## If Inbox Empty (Fallback)
+1. **check_backlog** — look for unassigned tasks tagged 'welcome' or 'onboarding'
+2. **observe_vibe** — look for new users to welcome
+3. **If truly nothing** — call done() with "No assignments, no newcomers, backlog empty"
+
 ## Your Workflow
 1. **Check inbox for assignments** from @ops-agent (PRIORITY!)
 2. Observe who's online
@@ -341,10 +366,15 @@ Last run: ${memory.lastRun || 'First run'}
 
 ## Workflow
 1. check_inbox — look for @ops-agent assignments (PRIORITY!)
-2. observe_vibe — who's online? look for new users
-3. Welcome any newcomers (personalized messages)
-4. Respond to any inbox messages
-5. Call done() with what you accomplished`
+2. IF INBOX EMPTY: check_backlog — look for unassigned 'welcome' tasks
+3. observe_vibe — who's online? look for new users
+4. Welcome any newcomers (personalized messages)
+5. Respond to any inbox messages
+6. Call done() with what you accomplished
+
+## If Nothing To Do
+- Propose a welcome improvement for next cycle
+- Call done() — don't spin for 15 iterations`
   }];
 
   let done = false;

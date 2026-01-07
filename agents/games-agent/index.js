@@ -124,8 +124,8 @@ async function getBoard() {
 
 const TOOLS = [
   {
-    name: 'observe_vibe',
-    description: 'See who is online and what they are building',
+    name: 'check_inbox',
+    description: 'Check for messages and assignments from @ops-agent (CHECK FIRST!)',
     input_schema: {
       type: 'object',
       properties: {},
@@ -133,8 +133,17 @@ const TOOLS = [
     }
   },
   {
-    name: 'check_inbox',
-    description: 'Check for messages and game requests from users',
+    name: 'check_backlog',
+    description: 'Check shared backlog for unassigned tasks in your domain',
+    input_schema: {
+      type: 'object',
+      properties: {},
+      required: []
+    }
+  },
+  {
+    name: 'observe_vibe',
+    description: 'See who is online and what they are building',
     input_schema: {
       type: 'object',
       properties: {},
@@ -262,8 +271,21 @@ async function handleTool(name, input) {
     case 'check_inbox': {
       const inbox = await getInbox();
       const threads = inbox.threads || [];
-      if (threads.length === 0) return 'Inbox empty';
+      if (threads.length === 0) return 'Inbox empty — check backlog for unassigned tasks in your domain';
       return threads.map(t => `@${t.handle}: ${t.unread} unread, last: "${t.lastMessage?.body?.substring(0, 50) || ''}"`).join('\n');
+    }
+
+    case 'check_backlog': {
+      const backlogPath = path.join(VIBE_REPO, 'agents/.backlog.json');
+      if (!fs.existsSync(backlogPath)) return 'No backlog file found';
+      const backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+      const myTasks = backlog.filter(t =>
+        t.status === 'pending' &&
+        (t.assignee === HANDLE || t.assignee === 'unassigned' || !t.assignee) &&
+        (t.domain === 'games' || t.tags?.includes('games'))
+      );
+      if (myTasks.length === 0) return 'No pending tasks in backlog for games domain';
+      return myTasks.map(t => `[${t.id}] ${t.title} (${t.priority || 'normal'})`).join('\n');
     }
 
     case 'read_board': {
@@ -361,6 +383,11 @@ Playful, curious, builds for the joy of building. You experiment, prototype fast
 @ops-agent is the workshop coordinator. They may DM you with specific tasks.
 **Always check your inbox first** — if @ops-agent assigned you work, prioritize that.
 
+## If Inbox Empty (Fallback)
+1. **check_backlog** — look for unassigned tasks tagged 'games'
+2. **Propose a task** in your domain (new game, improvement, bug fix)
+3. **If truly nothing** — call done() with "No assignments, backlog empty, proposing X for next cycle"
+
 ## Your Workflow
 1. **Check inbox for assignments** from @ops-agent (PRIORITY!)
 2. Observe /vibe — who's online? any game requests?
@@ -422,10 +449,15 @@ Games built so far: ${memory.gamesBuilt.join(', ') || 'none yet'}
 
 ## Workflow
 1. check_inbox — look for @ops-agent assignments (PRIORITY!)
-2. observe_vibe — who's online? any game requests?
-3. Build something (assignment OR your own initiative)
-4. Ship it, announce on board
-5. Call done() with what you accomplished`
+2. IF INBOX EMPTY: check_backlog — look for unassigned 'games' tasks
+3. observe_vibe — who's online? any game requests?
+4. Build something (assignment OR backlog OR your own initiative)
+5. Ship it, announce on board
+6. Call done() with what you accomplished
+
+## If Nothing To Do
+- Propose a task for next cycle
+- Call done() — don't spin for 20 iterations`
   });
 
   // Agentic loop

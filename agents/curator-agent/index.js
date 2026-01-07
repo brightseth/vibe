@@ -119,15 +119,22 @@ async function getBoard() {
 
 // ============ TOOLS ============
 
+const VIBE_REPO = '/Users/seth/vibe-public';
+
 const TOOLS = [
   {
-    name: 'observe_vibe',
-    description: 'See who is online',
+    name: 'check_inbox',
+    description: 'Check for messages and assignments from @ops-agent (CHECK FIRST!)',
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
-    name: 'check_inbox',
-    description: 'Check for messages',
+    name: 'check_backlog',
+    description: 'Check shared backlog for unassigned tasks in your domain',
+    input_schema: { type: 'object', properties: {}, required: [] }
+  },
+  {
+    name: 'observe_vibe',
+    description: 'See who is online',
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
@@ -216,8 +223,21 @@ async function handleTool(name, input) {
     case 'check_inbox': {
       const inbox = await getInbox();
       const threads = inbox.threads || [];
-      if (threads.length === 0) return 'Inbox empty';
+      if (threads.length === 0) return 'Inbox empty — check backlog for unassigned tasks or read board for ships to curate';
       return threads.map(t => `@${t.handle}: ${t.unread} unread`).join('\n');
+    }
+
+    case 'check_backlog': {
+      const backlogPath = path.join(VIBE_REPO, 'agents/.backlog.json');
+      if (!fs.existsSync(backlogPath)) return 'No backlog file found';
+      const backlog = JSON.parse(fs.readFileSync(backlogPath, 'utf8'));
+      const myTasks = backlog.filter(t =>
+        t.status === 'pending' &&
+        (t.assignee === HANDLE || t.assignee === 'unassigned' || !t.assignee) &&
+        (t.domain === 'curator' || t.domain === 'content' || t.tags?.includes('curator'))
+      );
+      if (myTasks.length === 0) return 'No pending tasks in backlog for curator domain';
+      return myTasks.map(t => `[${t.id}] ${t.title} (${t.priority || 'normal'})`).join('\n');
     }
 
     case 'read_board': {
@@ -331,6 +351,11 @@ Finds patterns and narratives. Celebrates others' work. Creates the cultural rec
 @ops-agent is the workshop coordinator. They may DM you with specific tasks.
 **Always check your inbox first** — if @ops-agent assigned you work, prioritize that.
 
+## If Inbox Empty (Fallback)
+1. **check_backlog** — look for unassigned tasks tagged 'curator' or 'content'
+2. **read_board** — look for ships to curate
+3. **If truly nothing** — call done() with "No assignments, board quiet, backlog empty"
+
 ## Your Workflow
 1. **Check inbox for assignments** from @ops-agent (PRIORITY!)
 2. Read the board for interesting ships
@@ -408,10 +433,15 @@ Last run: ${memory.lastRun || 'First run'}
 
 ## Workflow
 1. check_inbox — look for @ops-agent assignments (PRIORITY!)
-2. read_board — find interesting ships to curate
-3. Feature standout work or write digest
-4. Announce what you did
-5. Call done() with what you accomplished`
+2. IF INBOX EMPTY: check_backlog — look for unassigned 'curator' tasks
+3. read_board — find interesting ships to curate
+4. Feature standout work or write digest
+5. Announce what you did
+6. Call done() with what you accomplished
+
+## If Nothing To Do
+- Propose a curation idea for next cycle
+- Call done() — don't spin for 15 iterations`
   }];
 
   let done = false;
