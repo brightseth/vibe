@@ -255,12 +255,23 @@ PROTOCOL: https://airc.chat
             <span class="badge highlight">30 tools</span>
         </div>
 
+        <!-- Genesis scarcity - prominent -->
+        <div style="background: linear-gradient(90deg, #6B8FFF22 0%, transparent 100%); border: 1px solid #6B8FFF33; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+            <div style="font-size: 24px;">🔥</div>
+            <div style="flex: 1;">
+                <div style="font-size: 15px; color: #fff; font-weight: 500;"><span id="remaining-top">57</span>/100 genesis handles left</div>
+                <div style="background: #222; border-radius: 4px; height: 6px; margin-top: 6px; overflow: hidden;">
+                    <div id="progress-bar" style="background: #6B8FFF; height: 100%; width: 43%; transition: width 0.5s;"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="install" style="justify-content: center;">
             <code style="color: #fff;">"go to slashvibe.dev and install /vibe"</code>
         </div>
         <p class="note">Tell Claude that. It reads this page and sets it up.</p>
 
-        <details style="margin-bottom: 40px;">
+        <details style="margin-bottom: 24px;">
             <summary style="color: #888; font-size: 11px; cursor: pointer;">Or install manually</summary>
             <div class="install" style="margin-top: 12px;">
                 <code>curl -fsSL https://slashvibe.dev/install.sh | bash</code>
@@ -268,6 +279,28 @@ PROTOCOL: https://airc.chat
             </div>
             <p class="note">Then restart Claude Code.</p>
         </details>
+
+        <!-- Post-install: What to do next -->
+        <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+            <div style="font-size: 11px; color: #6B8FFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">After install</div>
+            <div style="font-size: 13px; color: #fff; margin-bottom: 8px;">1. Restart Claude Code</div>
+            <div style="font-size: 13px; color: #fff; margin-bottom: 12px;">2. Say: <span style="color: #6B8FFF;">"let's vibe"</span></div>
+            <div style="font-size: 11px; color: #888; padding: 10px 12px; background: #111; border-radius: 4px;">
+                💡 <strong style="color: #aaa;">Your handle = your X username.</strong><br>
+                @seth on X → @seth on /vibe
+            </div>
+        </div>
+
+        <!-- First commands -->
+        <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 16px 20px; margin-bottom: 40px;">
+            <div style="font-size: 11px; color: #6B8FFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">First commands to try</div>
+            <div style="font-size: 12px; line-height: 2; color: #ccc;">
+                <div><span style="color: #6B8FFF;">"vibe who"</span> — see who's online</div>
+                <div><span style="color: #6B8FFF;">"message @seth hello"</span> — say hi</div>
+                <div><span style="color: #6B8FFF;">"vibe inbox"</span> — check messages</div>
+                <div><span style="color: #6B8FFF;">"play tictactoe with @echo"</span> — yes really</div>
+            </div>
+        </div>
 
         <div class="terminal">
             <div><span class="prompt">you:</span> let's vibe</div>
@@ -366,7 +399,13 @@ PROTOCOL: https://airc.chat
             .then(data => {
                 if (data.genesis?.total) document.getElementById('builders').textContent = data.genesis.total;
                 if (data.messages) document.getElementById('messages').textContent = data.messages;
-                if (data.genesis?.genesis_remaining) document.getElementById('remaining').textContent = data.genesis.genesis_remaining;
+                if (data.genesis?.genesis_remaining) {
+                    document.getElementById('remaining').textContent = data.genesis.genesis_remaining;
+                    document.getElementById('remaining-top').textContent = data.genesis.genesis_remaining;
+                    // Update progress bar (100 - remaining = claimed)
+                    const claimed = 100 - parseInt(data.genesis.genesis_remaining);
+                    document.getElementById('progress-bar').style.width = claimed + '%';
+                }
             })
             .catch(() => {});
     </script>
