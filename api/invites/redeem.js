@@ -107,7 +107,7 @@ export default async function handler(req, res) {
   invite.used_by = normalizedHandle;
   invite.used_at = new Date().toISOString();
   invite.status = 'used';
-  await kv.hset('vibe:invites', normalizedCode, JSON.stringify(invite));
+  await kv.hset('vibe:invites', { [normalizedCode]: JSON.stringify(invite) });
 
   // Grant the inviter a bonus code for successful invite
   const inviterCodesKey = 'vibe:invites:by:' + invite.created_by;
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
     bonus_for_inviting: normalizedHandle
   };
 
-  await kv.hset('vibe:invites', bonusCode, JSON.stringify(bonusInvite));
+  await kv.hset('vibe:invites', { [bonusCode]: JSON.stringify(bonusInvite) });
   await kv.sadd(inviterCodesKey, bonusCode);
 
   return res.status(200).json({
