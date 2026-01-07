@@ -1,289 +1,206 @@
 #!/usr/bin/env python3
 """
 Enhanced Streak Analytics Dashboard
-Real-time analytics with trend graphs, distribution statistics, and pattern identification
+Provides deeper insights and pattern recognition for /vibe workshop streaks
 """
 
 import json
-import matplotlib.pyplot as plt
-import numpy as np
 from datetime import datetime, timedelta
-import seaborn as sns
-from pathlib import Path
+import statistics
 
-class EnhancedStreakDashboard:
-    def __init__(self, data_file='streak_data.json'):
+class EnhancedStreakAnalytics:
+    def __init__(self, data_file="streak_data.json"):
         self.data_file = data_file
-        self.data = self.load_streak_data()
-        
-        # Set up plotting style
-        plt.style.use('dark_background')
-        sns.set_palette("husl")
-        
-    def load_streak_data(self):
-        """Load current streak data"""
+        self.load_data()
+    
+    def load_data(self):
+        """Load streak data from JSON file"""
         try:
-            with Path(self.data_file).open('r') as f:
-                return json.load(f)
+            with open(self.data_file, 'r') as f:
+                self.data = json.load(f)
         except FileNotFoundError:
-            return {
-                "streaks": {},
-                "analysis": {"total_users": 0},
-                "insights": [],
-                "milestones": {}
-            }
+            self.data = {"streaks": {}, "analysis": {}, "insights": []}
     
-    def create_distribution_chart(self):
-        """Create streak distribution visualization"""
-        distribution = self.data.get('analysis', {}).get('distribution', {})
+    def analyze_retention_patterns(self):
+        """Analyze user retention patterns and predict churn risk"""
+        streaks = self.data.get("streaks", {})
         
-        labels = ['1 Day', '2-3 Days', '4-7 Days', '8+ Days']
-        values = [
-            distribution.get('1_day', 0),
-            distribution.get('2_3_days', 0), 
-            distribution.get('4_7_days', 0),
-            distribution.get('8_plus', 0)
-        ]
+        # Calculate retention signals
+        retention_analysis = {
+            "total_users": len(streaks),
+            "active_streaks": sum(1 for s in streaks.values() if s["current"] > 0),
+            "retention_rate": 0,
+            "churn_risk": [],
+            "momentum_users": [],
+            "critical_period": []
+        }
         
-        fig, ax = plt.subplots(figsize=(10, 6), facecolor='#0f1419')
-        ax.set_facecolor('#161b22')
+        if retention_analysis["total_users"] > 0:
+            retention_analysis["retention_rate"] = (
+                retention_analysis["active_streaks"] / retention_analysis["total_users"] * 100
+            )
         
-        colors = ['#42a5f5', '#66bb6a', '#ffa726', '#ff6b6b']
-        bars = ax.bar(labels, values, color=colors, alpha=0.8, edgecolor='white', linewidth=0.5)
-        
-        # Add value labels on bars
-        for bar, value in zip(bars, values):
-            height = bar.get_height()
-            ax.annotate(f'{value}',
-                       xy=(bar.get_x() + bar.get_width() / 2, height),
-                       xytext=(0, 3),
-                       textcoords="offset points",
-                       ha='center', va='bottom',
-                       color='white', fontweight='bold')
-        
-        ax.set_title('🔥 Streak Distribution', fontsize=16, color='#58a6ff', pad=20)
-        ax.set_ylabel('Number of Users', color='#c9d1d9')
-        ax.tick_params(colors='#c9d1d9')
-        
-        plt.tight_layout()
-        plt.savefig('streak_distribution.png', facecolor='#0f1419', dpi=150, bbox_inches='tight')
-        plt.close()
-        
-        return 'streak_distribution.png'
-    
-    def create_milestone_progress_chart(self):
-        """Create milestone progress visualization"""
-        milestones = self.data.get('milestones', {})
-        
-        milestone_labels = ['3 Days', '7 Days', '14 Days', '30 Days', '100 Days']
-        approaching = [
-            milestones.get('approaching_3_days', 0),
-            milestones.get('approaching_7_days', 0),
-            milestones.get('approaching_14_days', 0),
-            milestones.get('approaching_30_days', 0),
-            milestones.get('approaching_100_days', 0)
-        ]
-        
-        fig, ax = plt.subplots(figsize=(12, 6), facecolor='#0f1419')
-        ax.set_facecolor('#161b22')
-        
-        colors = ['#66bb6a', '#ffa726', '#ff6b6b', '#58a6ff', '#a78bfa']
-        bars = ax.bar(milestone_labels, approaching, color=colors, alpha=0.8)
-        
-        # Add value labels
-        for bar, value in zip(bars, approaching):
-            height = bar.get_height()
-            if height > 0:
-                ax.annotate(f'{value}',
-                           xy=(bar.get_x() + bar.get_width() / 2, height),
-                           xytext=(0, 3),
-                           textcoords="offset points",
-                           ha='center', va='bottom',
-                           color='white', fontweight='bold')
-        
-        ax.set_title('🎯 Milestone Progress - Users Approaching', fontsize=16, color='#58a6ff', pad=20)
-        ax.set_ylabel('Number of Users', color='#c9d1d9')
-        ax.tick_params(colors='#c9d1d9')
-        
-        plt.tight_layout()
-        plt.savefig('milestone_progress.png', facecolor='#0f1419', dpi=150, bbox_inches='tight')
-        plt.close()
-        
-        return 'milestone_progress.png'
-    
-    def create_user_comparison_chart(self):
-        """Create user streak comparison"""
-        streaks = self.data.get('streaks', {})
-        
-        if not streaks:
-            return None
+        # Identify users by streak stage
+        for user, streak_data in streaks.items():
+            current = streak_data["current"]
             
-        users = list(streaks.keys())
-        current_streaks = [streaks[user]['current'] for user in users]
-        best_streaks = [streaks[user]['best'] for user in users]
+            if current == 0:
+                retention_analysis["churn_risk"].append(user)
+            elif current >= 3 and current < 7:
+                retention_analysis["momentum_users"].append(user)
+            elif current == 1 or current == 2:
+                retention_analysis["critical_period"].append(user)
         
-        fig, ax = plt.subplots(figsize=(12, 8), facecolor='#0f1419')
-        ax.set_facecolor('#161b22')
-        
-        x = np.arange(len(users))
-        width = 0.35
-        
-        bars1 = ax.bar(x - width/2, current_streaks, width, label='Current Streak', 
-                      color='#58a6ff', alpha=0.8)
-        bars2 = ax.bar(x + width/2, best_streaks, width, label='Best Streak',
-                      color='#66bb6a', alpha=0.8)
-        
-        # Add value labels
-        for bars in [bars1, bars2]:
-            for bar in bars:
-                height = bar.get_height()
-                ax.annotate(f'{int(height)}',
-                           xy=(bar.get_x() + bar.get_width() / 2, height),
-                           xytext=(0, 3),
-                           textcoords="offset points",
-                           ha='center', va='bottom',
-                           color='white', fontsize=10)
-        
-        ax.set_title('👥 User Streak Comparison', fontsize=16, color='#58a6ff', pad=20)
-        ax.set_ylabel('Days', color='#c9d1d9')
-        ax.set_xlabel('Users', color='#c9d1d9')
-        ax.set_xticks(x)
-        ax.set_xticklabels([user.replace('@', '') for user in users])
-        ax.legend(facecolor='#161b22', edgecolor='#30363d')
-        ax.tick_params(colors='#c9d1d9')
-        
-        plt.tight_layout()
-        plt.savefig('user_comparison.png', facecolor='#0f1419', dpi=150, bbox_inches='tight')
-        plt.close()
-        
-        return 'user_comparison.png'
+        return retention_analysis
     
-    def generate_insights(self):
-        """Generate actionable insights from current data"""
-        streaks = self.data.get('streaks', {})
-        analysis = self.data.get('analysis', {})
+    def predict_milestone_achievements(self):
+        """Predict upcoming milestone achievements"""
+        streaks = self.data.get("streaks", {})
+        milestones = [3, 7, 14, 30, 100]
+        
+        predictions = {}
+        for milestone in milestones:
+            predictions[f"{milestone}_days"] = []
+            
+            for user, streak_data in streaks.items():
+                current = streak_data["current"]
+                days_to_milestone = milestone - current
+                
+                if 0 < days_to_milestone <= 3:  # Within 3 days of milestone
+                    predictions[f"{milestone}_days"].append({
+                        "user": user,
+                        "current_streak": current,
+                        "days_until": days_to_milestone,
+                        "probability": self.calculate_achievement_probability(current, milestone)
+                    })
+        
+        return predictions
+    
+    def calculate_achievement_probability(self, current_streak, target_milestone):
+        """Calculate probability of reaching milestone based on current streak"""
+        # Base probability on historical patterns (simplified model)
+        if current_streak >= target_milestone * 0.8:
+            return 0.9
+        elif current_streak >= target_milestone * 0.6:
+            return 0.7
+        elif current_streak >= target_milestone * 0.4:
+            return 0.5
+        else:
+            return 0.3
+    
+    def identify_engagement_patterns(self):
+        """Identify patterns in user engagement"""
+        streaks = self.data.get("streaks", {})
+        
+        patterns = {
+            "consistency_champions": [],
+            "comeback_candidates": [],
+            "new_joiners": [],
+            "streak_diversity": {}
+        }
+        
+        # Group users by streak characteristics
+        for user, streak_data in streaks.items():
+            current = streak_data["current"]
+            best = streak_data["best"]
+            
+            if current > 0 and current == best:
+                patterns["new_joiners"].append(user)
+            elif current > best * 0.8:
+                patterns["consistency_champions"].append(user)
+            elif current == 0 and best > 3:
+                patterns["comeback_candidates"].append(user)
+        
+        # Calculate streak diversity
+        all_streaks = [s["current"] for s in streaks.values()]
+        if all_streaks:
+            patterns["streak_diversity"] = {
+                "range": max(all_streaks) - min(all_streaks),
+                "std_dev": statistics.stdev(all_streaks) if len(all_streaks) > 1 else 0,
+                "median": statistics.median(all_streaks)
+            }
+        
+        return patterns
+    
+    def generate_coaching_insights(self):
+        """Generate actionable coaching insights for the community"""
+        retention = self.analyze_retention_patterns()
+        milestones = self.predict_milestone_achievements()
+        patterns = self.identify_engagement_patterns()
         
         insights = []
-        total_users = analysis.get('total_users', 0)
-        avg_current = analysis.get('avg_current', 0)
         
-        # Pattern detection
-        if total_users > 0:
-            active_users = sum(1 for user_data in streaks.values() if user_data['current'] > 0)
-            activity_rate = active_users / total_users
-            
-            if activity_rate >= 0.8:
-                insights.append({
-                    'type': 'High Engagement',
-                    'icon': '🔥',
-                    'message': f'{activity_rate:.0%} of users have active streaks - excellent engagement!',
-                    'action': 'Keep momentum with daily encouragement'
-                })
-            elif activity_rate >= 0.5:
-                insights.append({
-                    'type': 'Good Momentum',
-                    'icon': '📈',
-                    'message': f'{activity_rate:.0%} engagement rate - solid foundation',
-                    'action': 'Focus on consistency rewards'
-                })
-            else:
-                insights.append({
-                    'type': 'Re-engagement Needed',
-                    'icon': '⚠️',
-                    'message': f'Only {activity_rate:.0%} have active streaks',
-                    'action': 'Consider comeback campaigns'
-                })
+        # Retention insights
+        if retention["retention_rate"] > 80:
+            insights.append({
+                "type": "success",
+                "icon": "🎉",
+                "title": "High Retention",
+                "message": f"{retention['retention_rate']:.1f}% retention rate - excellent community health!"
+            })
+        
+        # Critical period alerts
+        if retention["critical_period"]:
+            insights.append({
+                "type": "alert",
+                "icon": "⚠️",
+                "title": "Critical Period",
+                "message": f"{len(retention['critical_period'])} users in days 1-2 - highest churn risk period"
+            })
         
         # Milestone opportunities
-        milestones = self.data.get('milestones', {})
-        approaching_3 = milestones.get('approaching_3_days', 0)
-        approaching_7 = milestones.get('approaching_7_days', 0)
-        
-        if approaching_3 > 0:
+        upcoming_3_day = milestones.get("3_days", [])
+        if upcoming_3_day:
             insights.append({
-                'type': 'Milestone Alert',
-                'icon': '🎯',
-                'message': f'{approaching_3} users approaching 3-day milestone',
-                'action': 'Prepare celebration messages'
+                "type": "opportunity", 
+                "icon": "🌱",
+                "title": "Milestone Alert",
+                "message": f"{len(upcoming_3_day)} users approaching 3-day milestone - prepare celebrations!"
             })
         
-        if approaching_7 > 0:
+        # Pattern insights
+        if patterns["new_joiners"]:
             insights.append({
-                'type': 'Week Streak Alert',
-                'icon': '💪',
-                'message': f'{approaching_7} users nearing one week',
-                'action': 'Highlight consistency achievement'
-            })
-        
-        # Distribution insights
-        distribution = analysis.get('distribution', {})
-        new_users = distribution.get('1_day', 0)
-        
-        if new_users > 0:
-            insights.append({
-                'type': 'New User Focus',
-                'icon': '🌱',
-                'message': f'{new_users} users just starting their journey',
-                'action': 'Focus on day 2-3 retention'
+                "type": "pattern",
+                "icon": "🚀", 
+                "title": "New Member Energy",
+                "message": f"{len(patterns['new_joiners'])} users starting fresh - perfect time for encouragement"
             })
         
         return insights
     
-    def create_comprehensive_report(self):
-        """Generate comprehensive analytics report with visualizations"""
-        print("🔥 GENERATING ENHANCED STREAK DASHBOARD 🔥")
-        print("=" * 50)
-        
-        # Generate all visualizations
-        dist_chart = self.create_distribution_chart()
-        milestone_chart = self.create_milestone_progress_chart()
-        comparison_chart = self.create_user_comparison_chart()
-        
-        # Get current stats
-        analysis = self.data.get('analysis', {})
-        total_users = analysis.get('total_users', 0)
-        avg_current = analysis.get('avg_current', 0)
-        longest_current = analysis.get('longest_current', 0)
-        
-        print(f"📊 DASHBOARD SUMMARY")
-        print(f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"Total Users: {total_users}")
-        print(f"Average Current Streak: {avg_current:.1f} days") 
-        print(f"Longest Current Streak: {longest_current} days")
-        print()
-        
-        # Display insights
-        insights = self.generate_insights()
-        print("🧠 ACTIONABLE INSIGHTS:")
-        for i, insight in enumerate(insights, 1):
-            print(f"{i}. {insight['icon']} {insight['type']}")
-            print(f"   {insight['message']}")
-            print(f"   → Action: {insight['action']}")
-            print()
-        
-        # Chart information
-        charts_created = []
-        if dist_chart:
-            charts_created.append(f"📊 {dist_chart}")
-        if milestone_chart:
-            charts_created.append(f"🎯 {milestone_chart}")
-        if comparison_chart:
-            charts_created.append(f"👥 {comparison_chart}")
-        
-        if charts_created:
-            print("📈 VISUALIZATIONS CREATED:")
-            for chart in charts_created:
-                print(f"   {chart}")
-        
+    def export_coaching_dashboard_data(self):
+        """Export data for coaching dashboard visualization"""
         return {
-            'total_users': total_users,
-            'avg_current': avg_current,
-            'longest_current': longest_current,
-            'insights': insights,
-            'charts': charts_created
+            "timestamp": datetime.now().isoformat(),
+            "retention_analysis": self.analyze_retention_patterns(),
+            "milestone_predictions": self.predict_milestone_achievements(),
+            "engagement_patterns": self.identify_engagement_patterns(),
+            "coaching_insights": self.generate_coaching_insights(),
+            "raw_data": self.data
         }
 
-# Main execution
 if __name__ == "__main__":
-    dashboard = EnhancedStreakDashboard()
-    report = dashboard.create_comprehensive_report()
+    analytics = EnhancedStreakAnalytics()
+    dashboard_data = analytics.export_coaching_dashboard_data()
+    
+    print("🔥 Enhanced Streak Analytics Report")
+    print("=" * 50)
+    
+    # Print coaching insights
+    insights = dashboard_data["coaching_insights"]
+    for insight in insights:
+        print(f"{insight['icon']} {insight['title']}: {insight['message']}")
+    
+    # Print retention overview
+    retention = dashboard_data["retention_analysis"]
+    print(f"\n📊 Retention Overview:")
+    print(f"   Active Users: {retention['active_streaks']}/{retention['total_users']}")
+    print(f"   Retention Rate: {retention['retention_rate']:.1f}%")
+    print(f"   Critical Period: {len(retention['critical_period'])} users")
+    
+    # Save enhanced data
+    with open("enhanced_dashboard_data.json", "w") as f:
+        json.dump(dashboard_data, f, indent=2)
+    
+    print(f"\n✅ Enhanced analytics data exported to enhanced_dashboard_data.json")
