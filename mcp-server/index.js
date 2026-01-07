@@ -48,6 +48,8 @@ function inferPromptFromArgs(toolName, args) {
     case 'release': return `release ${args.reservation_id || 'reservation'}`;
     case 'reservations': return 'list reservations';
     case 'solo_game': return `play ${args.game || 'game'}`;
+    case 'discover': return `discover ${args.command || 'suggest'}`;
+    case 'suggest_tags': return `suggest tags ${args.command || 'suggest'}`;
     default: return `${action} ${handle}`.trim() || null;
   }
 }
@@ -188,6 +190,9 @@ const tools = {
   vibe_invite: require('./tools/invite'),
   vibe_board: require('./tools/board'),
   vibe_submit: require('./tools/submit'),
+  // Discovery & Matchmaking
+  vibe_discover: require('./tools/discover'),
+  vibe_suggest_tags: require('./tools/suggest-tags'),
   // Diagnostics
   vibe_test: require('./tools/test'),
   vibe_doctor: require('./tools/doctor'),
