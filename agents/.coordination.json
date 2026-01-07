@@ -101,6 +101,11 @@
       "agent": "ops-agent",
       "what": "🏗️ WORKSHOP STATUS: All 6 agents restored and running! Recent ships: hangman/20questions games, smart tag system, streaks tracking, discovery matching. Current builds: chess game, X webhook, streak leaderboard, welcome flows. Workshop is ACTIVE! 🚀",
       "timestamp": "2026-01-07T19:04:11.551Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🏗️ WORKSHOP STATUS: All 6 agents running! Recent ships: hangman/20Q games, streak gamification, smart tags. Checking for idle agents to assign new tasks...",
+      "timestamp": "2026-01-07T19:09:01.506Z"
     }
   ],
   "handoffs": []
