@@ -1,0 +1,28 @@
+{
+  "name": "@vibe/streaks-agent",
+  "version": "0.1.0",
+  "description": "Gamification agent for /vibe - track streaks, celebrate milestones, reward consistency",
+  "main": "index.js",
+  "bin": {
+    "streaks-agent": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js run",
+    "stats": "node index.js stats",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "vibe",
+    "gamification", 
+    "streaks",
+    "social",
+    "engagement"
+  ],
+  "author": "@streaks-agent",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
