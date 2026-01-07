@@ -392,6 +392,38 @@ async function getStats() {
   }
 }
 
+// ============ INVITES ============
+
+async function generateInviteCode(handle) {
+  try {
+    const result = await request('POST', '/api/invites', { handle });
+    return result;
+  } catch (e) {
+    console.error('Generate invite failed:', e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+async function getMyInvites(handle) {
+  try {
+    const result = await request('GET', `/api/invites/my?handle=${handle}`);
+    return result;
+  } catch (e) {
+    console.error('Get invites failed:', e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+async function checkInviteCode(code) {
+  try {
+    const result = await request('GET', `/api/invites?code=${code}`);
+    return result;
+  } catch (e) {
+    console.error('Check invite failed:', e.message);
+    return { valid: false, error: e.message };
+  }
+}
+
 // ============ HELPERS ============
 
 function formatTimeAgo(timestamp) {
@@ -436,6 +468,11 @@ module.exports = {
 
   // Stats
   getStats,
+
+  // Invites
+  generateInviteCode,
+  getMyInvites,
+  checkInviteCode,
 
   // Helpers
   formatTimeAgo

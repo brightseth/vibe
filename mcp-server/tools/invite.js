@@ -1,7 +1,10 @@
 /**
- * vibe invite — Generate a shareable invite
+ * vibe invite — Generate invite codes and shareable messages
  *
- * Creates a personalized invite message for sharing with friends.
+ * Actions:
+ * - generate: Create a new invite code
+ * - list: See your existing codes
+ * - (default): Generate a shareable message with your code
  */
 
 const config = require('../config');
@@ -13,6 +16,10 @@ const definition = {
   inputSchema: {
     type: 'object',
     properties: {
+      action: {
+        type: 'string',
+        description: 'Action: "generate" to create code, "list" to see your codes, or omit for shareable message'
+      },
       name: {
         type: 'string',
         description: 'Optional: Friend\'s name for personalized message'
@@ -32,19 +39,111 @@ const INVITE_MESSAGES = [
   "There's a thing called /vibe for Claude Code — we can message while coding"
 ];
 
-async function handler(args) {
+async function handler(args, { store }) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const { name, format } = args;
+  const { action, name, format } = args;
   const myHandle = config.getHandle();
 
-  const url = 'slashvibe.dev';
+  // Generate a new invite code
+  if (action === 'generate') {
+    const result = await store.generateInviteCode(myHandle);
+
+    if (!result.success) {
+      return {
+        display: `## Could not generate invite code
+
+${result.error || result.message || 'Unknown error'}
+
+${result.remaining === 0 ? 'Share your existing codes first, or wait for them to be used.' : ''}`
+      };
+    }
+
+    return {
+      display: `## New Invite Code Generated
+
+**${result.code}**
+
+Share link: ${result.share_url}
+
+Expires: ${result.expires_at}
+Remaining codes: ${result.remaining}
+
+_When your friend redeems this code, you'll earn a bonus code._`
+    };
+  }
+
+  // List existing codes
+  if (action === 'list') {
+    const result = await store.getMyInvites(myHandle);
+
+    if (!result.success) {
+      return {
+        display: `## Could not fetch invites
+
+${result.error || 'Unknown error'}`
+      };
+    }
+
+    if (!result.codes || result.codes.length === 0) {
+      return {
+        display: `## Your Invite Codes
+
+No codes yet. Run \`vibe invite --action generate\` to create one.
+
+You can have up to ${result.max_codes} unused codes at a time.`
+      };
+    }
+
+    const available = result.codes.filter(c => c.status === 'available');
+    const used = result.codes.filter(c => c.status === 'used');
+
+    let display = `## Your Invite Codes
+
+**Available** (${available.length}/${result.max_codes})
+`;
+
+    if (available.length > 0) {
+      for (const code of available) {
+        display += `\n- **${code.code}** — ${code.share_url}`;
+      }
+    } else {
+      display += '\n_No available codes. Generate one or wait for existing codes to be used._';
+    }
+
+    if (used.length > 0) {
+      display += `\n\n**Used** (${used.length})`;
+      for (const code of used) {
+        display += `\n- ${code.code} → @${code.used_by} (${code.used_at?.split('T')[0] || 'unknown'})`;
+      }
+    }
+
+    if (result.can_generate) {
+      display += '\n\n_Run `vibe invite --action generate` to create a new code._';
+    }
+
+    return { display };
+  }
+
+  // Get an available code for the share message
+  let shareCode = null;
+  const codesResult = await store.getMyInvites(myHandle);
+  if (codesResult.success && codesResult.codes) {
+    const available = codesResult.codes.find(c => c.status === 'available');
+    if (available) {
+      shareCode = available.code;
+    }
+  }
+
+  const shareUrl = shareCode
+    ? `slashvibe.dev/invite/${shareCode}`
+    : 'slashvibe.dev';
 
   // Just the link
   if (format === 'link') {
     return {
-      display: `**${url}**
+      display: `**${shareUrl}**
 
 Copy and share this with anyone using Claude Code.`
     };
@@ -58,7 +157,7 @@ Copy and share this with anyone using Claude Code.`
 
 > ${randomMsg}
 >
-> ${url}
+> ${shareUrl}
 
 _Copy the above and send it._`
     };
@@ -87,7 +186,8 @@ ${name ? `Hit me up once you're on — I'm @${myHandle}` : `I'm @${myHandle} if 
 
 ---
 
-**Shareable link**: ${url}
+**Shareable link**: ${shareUrl}
+${shareCode ? `\n_This is your personal invite code. When ${name || 'they'} joins, you'll earn a bonus code._` : '\n_Run `vibe invite --action generate` to get a personal invite code._'}
 
 _Copy and send to a friend who uses Claude Code._`
   };
