@@ -12,6 +12,35 @@
 
 const config = require('../config');
 
+// Discovery-specific actions
+async function suggest_connection(from, to, reason) {
+  try {
+    const userProfiles = require('../store/profiles');
+    await userProfiles.recordConnection(from, to, reason);
+    
+    // You could also send a notification here
+    return { success: true, from, to, reason };
+  } catch (error) {
+    console.warn(`Failed to suggest connection ${from} -> ${to}:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+async function dm_user(handle, message) {
+  try {
+    const store = require('../store');
+    const timestamp = Date.now();
+    
+    // Store the message
+    await store.storeDM('discovery-agent', handle, message, timestamp);
+    
+    return { success: true, to: handle, message };
+  } catch (error) {
+    console.warn(`Failed to DM ${handle}:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // Context-aware action generators
 const actions = {
   // After vibe_start or vibe_who
@@ -56,6 +85,12 @@ const actions = {
 
     // Always available
     result.push({
+      label: 'Find connections',
+      description: 'Discover people with similar interests',
+      command: 'discover suggest'
+    });
+
+    result.push({
       label: 'Share context',
       description: 'Show what you\'re working on',
       command: 'share my context'
@@ -69,6 +104,121 @@ const actions = {
 
     return result.slice(0, 4); // Max 4 options for AskUserQuestion
   },
+
+  // Discovery-specific actions
+  afterDiscovery: (matches = [], searchTerm = null) => {
+    const result = [];
+
+    // If we found matches, suggest connecting to the top one
+    if (matches.length > 0) {
+      const topMatch = matches[0];
+      result.push({
+        label: `Message @${topMatch.handle}`,
+        description: topMatch.reasons?.[0] || 'Strong match for you',
+        command: `message @${topMatch.handle}`
+      });
+
+      // If there are multiple matches, suggest viewing another
+      if (matches.length > 1) {
+        result.push({
+          label: 'See more matches',
+          description: `${matches.length - 1} other good connections`,
+          command: 'discover suggest'
+        });
+      }
+    }
+
+    // Search actions
+    if (searchTerm) {
+      result.push({
+        label: 'Refine search',
+        description: 'Search for something else',
+        command: 'discover search'
+      });
+    } else {
+      result.push({
+        label: 'Search interests',
+        description: 'Find people building specific things',
+        command: 'discover search "ai"'
+      });
+    }
+
+    result.push({
+      label: 'Browse interests',
+      description: 'See popular topics in the community',
+      command: 'discover interests'
+    });
+
+    result.push({
+      label: 'Update profile',
+      description: 'Add interests to get better matches',
+      command: 'update my profile'
+    });
+
+    return result.slice(0, 4);
+  },
+
+  // Profile setup actions
+  profileSetup: (currentProfile = {}) => {
+    const result = [];
+    
+    if (!currentProfile.building) {
+      result.push({
+        label: 'Add project',
+        description: 'Share what you\'re building',
+        command: 'update building'
+      });
+    }
+
+    if (!currentProfile.interests?.length) {
+      result.push({
+        label: 'Add interests',
+        description: 'Help people find you',
+        command: 'update interests'
+      });
+    }
+
+    if (!currentProfile.tags?.length) {
+      result.push({
+        label: 'Add skills',
+        description: 'Tag your technical skills',
+        command: 'update tags'
+      });
+    }
+
+    // Always available
+    result.push({
+      label: 'Find connections',
+      description: 'See who you should meet',
+      command: 'discover suggest'
+    });
+
+    return result.slice(0, 4);
+  },
+
+  // When welcoming new users
+  welcome: (handle) => [
+    {
+      label: 'Set up profile',
+      description: 'Add interests and skills for better matches',
+      command: 'update my profile'
+    },
+    {
+      label: 'Find connections',
+      description: 'See who you should meet',
+      command: 'discover suggest'
+    },
+    {
+      label: 'Browse community',
+      description: 'See what people are interested in',
+      command: 'discover interests'
+    },
+    {
+      label: 'Join conversation',
+      description: 'See who\'s online now',
+      command: 'who'
+    }
+  ],
 
   // After sending a DM
   afterDm: (handle) => [
@@ -88,9 +238,9 @@ const actions = {
       command: `remember something about @${handle}`
     },
     {
-      label: 'Back to dashboard',
-      description: 'See who else is around',
-      command: 'who\'s around'
+      label: 'Find more people',
+      description: 'Discover other connections',
+      command: 'discover suggest'
     }
   ],
 
@@ -119,15 +269,15 @@ const actions = {
     }
 
     result.push({
-      label: 'Who\'s online',
-      description: 'See who\'s building right now',
-      command: 'who\'s around'
+      label: 'Find connections',
+      description: 'Discover people to meet',
+      command: 'discover suggest'
     });
 
     result.push({
-      label: 'Share context',
-      description: 'Show what you\'re working on',
-      command: 'share my context'
+      label: 'Who\'s online',
+      description: 'See who\'s building right now',
+      command: 'who\'s around'
     });
 
     return result.slice(0, 4);
@@ -135,6 +285,16 @@ const actions = {
 
   // When room is empty
   emptyRoom: () => [
+    {
+      label: 'Find your people',
+      description: 'Discover builders with similar interests',
+      command: 'discover suggest'
+    },
+    {
+      label: 'Set up profile',
+      description: 'Add interests to get matched',
+      command: 'update my profile'
+    },
     {
       label: 'Invite someone',
       description: 'Generate a shareable invite link',
@@ -144,16 +304,6 @@ const actions = {
       label: 'Post to board',
       description: 'Share what you\'re building',
       command: 'post to the vibe board'
-    },
-    {
-      label: 'Set status',
-      description: 'Let others know you\'re here',
-      command: 'set my status to shipping'
-    },
-    {
-      label: 'Check X mentions',
-      description: 'See Twitter activity',
-      command: 'check my X mentions'
     }
   ],
 
@@ -224,4 +374,4 @@ function formatActions(actionList) {
   };
 }
 
-module.exports = { actions, formatActions };
+module.exports = { actions, formatActions, suggest_connection, dm_user };
