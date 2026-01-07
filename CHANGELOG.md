@@ -27,6 +27,13 @@
 - `GET /api/waitlist?email=X` — Check position
 - `/waitlist` — Signup page
 
+### Dashboard
+- `/dashboard` — Visual health metrics and agent status
+- Shows: users, activity, invites, waitlist, agent status, announcements
+- Auto-refreshes every 30s
+- Requires ADMIN_SECRET (stored in localStorage)
+- `GET /api/agents/coordination` — Agent coordination state
+
 ---
 
 ## Jan 6, 2026
