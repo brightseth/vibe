@@ -8,10 +8,8 @@
  * Uses Vercel KV (Redis) for persistence
  */
 
-import crypto from 'crypto';
-
-// Check if KV is configured
-const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+const crypto = require('crypto');
+const { cachedKV } = require('./lib/kv-cache');
 
 // Redis keys
 const BOARD_LIST = 'board:entries';  // List of entry IDs (newest first)
@@ -19,17 +17,6 @@ const BOARD_MAX_ENTRIES = 100;       // Keep last 100 entries
 
 // In-memory fallback
 let memoryBoard = [];
-
-// KV wrapper
-async function getKV() {
-  if (!KV_CONFIGURED) return null;
-  try {
-    const { kv } = await import('@vercel/kv');
-    return kv;
-  } catch (e) {
-    return null;
-  }
-}
 
 // Generate entry ID
 function generateEntryId() {
@@ -39,7 +26,6 @@ function generateEntryId() {
 // ============ BOARD STORAGE ============
 
 async function addEntry(entry) {
-  const kv = await getKV();
   const id = generateEntryId();
   const fullEntry = {
     id,
@@ -47,14 +33,17 @@ async function addEntry(entry) {
     timestamp: Date.now()
   };
 
-  if (kv) {
+  try {
+    const kv = await cachedKV();
     // Store entry data
     await kv.set(`board:entry:${id}`, fullEntry);
     // Add to list (prepend)
     await kv.lpush(BOARD_LIST, id);
     // Trim to max entries
     await kv.ltrim(BOARD_LIST, 0, BOARD_MAX_ENTRIES - 1);
-  } else {
+  } catch (e) {
+    // Fallback to memory
+    console.error('[board] KV error, using memory:', e.message);
     memoryBoard.unshift(fullEntry);
     if (memoryBoard.length > BOARD_MAX_ENTRIES) {
       memoryBoard = memoryBoard.slice(0, BOARD_MAX_ENTRIES);
@@ -67,12 +56,12 @@ async function addEntry(entry) {
 async function getEntries(limit = 20, category = null) {
   // Cap limit to prevent abuse
   const cappedLimit = Math.min(Math.max(1, limit), 50);
-  const kv = await getKV();
 
-  if (kv) {
+  try {
+    const kv = await cachedKV();
     // Get entry IDs
     const ids = await kv.lrange(BOARD_LIST, 0, cappedLimit - 1);
-    if (!ids || ids.length === 0) return [];
+    if (!ids || ids.length === 0) return memoryBoard.slice(0, cappedLimit);
 
     // Fetch all entries
     const entries = await Promise.all(
@@ -83,20 +72,20 @@ async function getEntries(limit = 20, category = null) {
     return entries
       .filter(e => e !== null)
       .filter(e => !category || e.category === category);
+  } catch (e) {
+    console.error('[board] KV error, using memory:', e.message);
+    // Memory fallback
+    let results = memoryBoard.slice(0, cappedLimit);
+    if (category) {
+      results = results.filter(e => e.category === category);
+    }
+    return results;
   }
-
-  // Memory fallback
-  let results = memoryBoard.slice(0, cappedLimit);
-  if (category) {
-    results = results.filter(e => e.category === category);
-  }
-  return results;
 }
 
 async function deleteEntry(id, author) {
-  const kv = await getKV();
-
-  if (kv) {
+  try {
+    const kv = await cachedKV();
     const entry = await kv.get(`board:entry:${id}`);
     if (!entry) return { success: false, error: 'Entry not found' };
     if (entry.author !== author) return { success: false, error: 'Not your entry' };
@@ -104,20 +93,21 @@ async function deleteEntry(id, author) {
     await kv.del(`board:entry:${id}`);
     await kv.lrem(BOARD_LIST, 1, id);
     return { success: true };
+  } catch (e) {
+    console.error('[board] KV error in delete:', e.message);
+    // Memory fallback
+    const idx = memoryBoard.findIndex(e => e.id === id);
+    if (idx === -1) return { success: false, error: 'Entry not found' };
+    if (memoryBoard[idx].author !== author) return { success: false, error: 'Not your entry' };
+
+    memoryBoard.splice(idx, 1);
+    return { success: true };
   }
-
-  // Memory fallback
-  const idx = memoryBoard.findIndex(e => e.id === id);
-  if (idx === -1) return { success: false, error: 'Entry not found' };
-  if (memoryBoard[idx].author !== author) return { success: false, error: 'Not your entry' };
-
-  memoryBoard.splice(idx, 1);
-  return { success: true };
 }
 
 // ============ REQUEST HANDLER ============
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
