@@ -80,6 +80,8 @@
     { "source": "/api/webhooks", "destination": "/api/webhooks.js" },
     { "source": "/api/agents/coordination", "destination": "/api/agents/coordination.js" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/docs", "destination": "/docs.html" }
+    { "source": "/docs", "destination": "/docs.html" },
+    { "source": "/chronicle", "destination": "/chronicle.html" },
+    { "source": "/api/chronicle", "destination": "/api/chronicle.js" }
   ]
 }
