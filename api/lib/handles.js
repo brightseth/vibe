@@ -208,7 +208,17 @@ export async function claimHandle(kv, handle, data) {
     };
   }
 
-  return { success: true, record };
+  // Get the new count (this user's spot number)
+  const newCount = await kv.hlen('vibe:handles');
+  const spotsRemaining = GENESIS_CAP > 0 ? Math.max(0, GENESIS_CAP - newCount) : null;
+
+  return {
+    success: true,
+    record,
+    genesis_number: newCount,
+    genesis_cap: GENESIS_CAP,
+    spots_remaining: spotsRemaining
+  };
 }
 
 /**

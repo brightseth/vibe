@@ -4,6 +4,8 @@
  * GET /api/stats - Get current network stats
  */
 
+import { getHandleStats } from './lib/handles.js';
+
 // Check if KV is configured
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
@@ -56,10 +58,21 @@ export default async function handler(req, res) {
       }
     }
 
+    // Get genesis/handle stats
+    let genesis = null;
+    if (kv) {
+      try {
+        genesis = await getHandleStats(kv);
+      } catch (e) {
+        // Keep null
+      }
+    }
+
     return res.status(200).json({
       success: true,
       users,
       messages,
+      genesis,
       storage: KV_CONFIGURED ? 'kv' : 'memory',
       cachedAt: new Date().toISOString()
     });

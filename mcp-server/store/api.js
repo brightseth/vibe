@@ -380,6 +380,18 @@ async function blockUser(from, to) {
   }
 }
 
+// ============ STATS ============
+
+async function getStats() {
+  try {
+    const result = await request('GET', '/api/stats');
+    return result;
+  } catch (e) {
+    console.error('Stats failed:', e.message);
+    return { success: false };
+  }
+}
+
 // ============ HELPERS ============
 
 function formatTimeAgo(timestamp) {
@@ -421,6 +433,9 @@ module.exports = {
   getPendingConsents,
   acceptConsent,
   blockUser,
+
+  // Stats
+  getStats,
 
   // Helpers
   formatTimeAgo

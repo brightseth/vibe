@@ -311,6 +311,49 @@ function getStatus(lastSeen) {
 }
 
 /**
+ * Send welcome DM from @vibe to new users
+ * @param {string} handle - New user's handle
+ * @param {object} claimResult - Result from claimHandle with genesis info
+ */
+async function sendWelcomeDM(handle, claimResult) {
+  const kv = await getKV();
+  if (!kv) return;
+
+  const genesisNum = claimResult?.genesis_number || '?';
+  const spotsLeft = claimResult?.spots_remaining;
+
+  let text = `Hey @${handle}! Welcome to /vibe. You're Genesis #${genesisNum}.\n\n`;
+  text += `Quick start:\n`;
+  text += `• "who's around?" — see active builders\n`;
+  text += `• "message @seth hello" — say hi\n`;
+  text += `• "I'm shipping auth" — share what you're working on\n\n`;
+  text += `Your handle is yours forever. Have fun creating.`;
+
+  if (spotsLeft && spotsLeft <= 20) {
+    text += `\n\n(${spotsLeft} genesis spots remaining)`;
+  }
+
+  const message = {
+    id: 'msg_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
+    from: 'vibe',
+    to: handle,
+    text,
+    createdAt: new Date().toISOString(),
+    read: false,
+    system: true
+  };
+
+  // Store directly in KV (same structure as messages.js)
+  const pipeline = kv.pipeline();
+  pipeline.set(`msg:${message.id}`, message);
+  pipeline.lpush(`inbox:${handle}`, message.id);
+  pipeline.ltrim(`inbox:${handle}`, 0, 99999);
+  await pipeline.exec();
+
+  console.log(`[presence] Welcome DM sent to @${handle}`);
+}
+
+/**
  * Compute builderMode from session signals
  * @param {object} presence - User presence data
  * @returns {string} - "deep-focus" | "focused" | "exploring" | "shipping" | "idle"
@@ -488,12 +531,26 @@ export default async function handler(req, res) {
           }
 
           console.log(`[presence] New handle @${handle} registered`);
+
+          // Send welcome DM from @vibe (async, don't block registration)
+          sendWelcomeDM(handle, claimResult).catch(e => {
+            console.error(`[presence] Failed to send welcome DM to @${handle}:`, e.message);
+          });
         }
 
         // Generate session for new or dev-mode registration
         const serverSessionId = generateServerSessionId();
         const token = generateToken(serverSessionId, handle);
         await registerSession(serverSessionId, handle);
+
+        // Build welcome message with genesis info
+        let welcomeMessage = `Welcome to /vibe, @${handle}!`;
+        if (claimResult && claimResult.genesis_number) {
+          welcomeMessage = `Welcome to /vibe, @${handle}! You're Genesis #${claimResult.genesis_number} of ${claimResult.genesis_cap}.`;
+          if (claimResult.spots_remaining > 0 && claimResult.spots_remaining <= 20) {
+            welcomeMessage += ` Only ${claimResult.spots_remaining} spots left!`;
+          }
+        }
 
         return res.status(201).json({
           success: true,
@@ -502,8 +559,13 @@ export default async function handler(req, res) {
           handle,
           token,
           expiresIn: `${SESSION_TTL}s`,
-          message: `Welcome to /vibe, @${handle}!`,
-          registered: true
+          message: welcomeMessage,
+          registered: true,
+          genesis: claimResult ? {
+            number: claimResult.genesis_number,
+            cap: claimResult.genesis_cap,
+            spots_remaining: claimResult.spots_remaining
+          } : null
         });
       }
 

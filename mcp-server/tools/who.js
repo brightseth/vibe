@@ -190,6 +190,18 @@ _Check back in a bit — builders come and go._`
     display += `\n\n_The room is lively today!_ ⚡`;
   }
 
+  // Genesis spots remaining
+  try {
+    const stats = await store.getStats();
+    if (stats.genesis && stats.genesis.genesis_remaining > 0) {
+      display += `\n\n🌱 **${stats.genesis.genesis_remaining} genesis spots left** of ${stats.genesis.genesis_cap}`;
+    } else if (stats.genesis && stats.genesis.genesis_remaining === 0) {
+      display += `\n\n_Genesis is full — ${stats.genesis.total} builders strong_`;
+    }
+  } catch (e) {
+    // Silent fail — genesis display is nice-to-have
+  }
+
   // Build response with optional hints for structured flows
   const response = { display };
 
