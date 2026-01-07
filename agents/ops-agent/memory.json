@@ -51,6 +51,10 @@
     {
       "timestamp": "2026-01-07T17:47:42.427Z",
       "observation": "Infrastructure check revealed missing agent directories: discovery-agent and bridges-agent were not present in the agents/ directory. Created basic placeholder implementations to ensure all 6 expected agents can be started. The start-all.sh script references different directory paths (AGENTS_DIR vs AGENTS_DIR_ALT) which may have caused the missing agents."
+    },
+    {
+      "timestamp": "2026-01-07T17:51:55.674Z",
+      "observation": "Infrastructure check initiated. User reports 5/6 agents running, expecting 6 (welcome, curator, games, streaks, discovery, bridges). Workshop status shows 0 agents running - critical disconnect between actual processes and workshop monitoring. No one online on /vibe."
     }
   ],
   "interactions": [],
