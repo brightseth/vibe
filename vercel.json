@@ -79,6 +79,7 @@
     { "source": "/api/agents", "destination": "/api/agents.js" },
     { "source": "/api/webhooks", "destination": "/api/webhooks.js" },
     { "source": "/api/agents/coordination", "destination": "/api/agents/coordination.js" },
-    { "source": "/dashboard", "destination": "/dashboard.html" }
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/docs", "destination": "/docs.html" }
   ]
 }

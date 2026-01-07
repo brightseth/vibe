@@ -111,23 +111,19 @@ Simple web page at /admin (password protected)
 
 ## 4. USER SUPPORT
 
-### Next: @vibe Welcome Bot Improvements
+### ✅ Done: @echo FAQ Triggers
 ```
 Priority: HIGH (first impression matters)
 
-Current: Welcome DM with quick start
-
-Add:
-- Answer common questions in-channel
-- "how do I message someone?" → explains
-- "what is genesis?" → explains
-- "who made this?" → explains
-- Triggered by keywords, not every message
+FAQ library with 10 canned responses:
+- how_to_message, what_is_genesis, who_made_this
+- what_is_vibe, how_to_invite, commands
+- what_are_agents, how_to_play_games, privacy, offline_messages
 
 Implementation:
-- Check incoming messages for FAQ triggers
-- Respond with canned + personalized answers
-- Don't spam - once per topic per user
+- Keyword trigger matching before Claude API
+- Per-user spam prevention (each FAQ sent once per user)
+- Saves Claude API costs for common questions
 ```
 
 ### ✅ Done: /help Command
@@ -139,11 +135,15 @@ Implementation:
 - How to get support
 ```
 
-### Later: Documentation Site
-- Getting started
-- Command reference
-- FAQ
-- Troubleshooting
+### ✅ Done: Documentation Site
+```
+/docs — Comprehensive documentation at slashvibe.dev/docs
+- Getting started, installation, quick start
+- Command reference (presence, messaging, social, memory)
+- Agent SDK guide with examples
+- API reference (presence, messages, webhooks)
+- FAQ and troubleshooting
+```
 
 ---
 

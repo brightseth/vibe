@@ -10,6 +10,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { findFAQ, hasSentFAQ, markFAQSent } = require('./faq');
 
 const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -280,6 +281,18 @@ async function respondToMessage(from, lastMessage, memory) {
     return;
   }
 
+  // Check for FAQ match first (saves Claude API calls)
+  const faq = findFAQ(lastMessage);
+  if (faq && !hasSentFAQ(memory, from, faq.id)) {
+    console.log(`[echo] FAQ match: ${faq.id} for @${from}`);
+    await sendDM(from, faq.response);
+    markFAQSent(memory, from, faq.id);
+    memory.lastMessages[from] = now;
+    memory.roomState.lastActivity = now;
+    return;
+  }
+
+  // No FAQ match — use Claude for natural response
   const prompt = `@${from} sent you this DM: "${lastMessage}"
 
 Respond naturally as @echo, the /vibe party host. If they're asking a question about /vibe, answer it. If they're sharing feedback, acknowledge it. If it's just a greeting, be friendly. Keep it brief.`;

@@ -47,6 +47,19 @@
 - Shows initialization status, quick command table
 - Links to docs and support
 
+### Documentation Site
+- `/docs` — Comprehensive documentation
+- Getting started, installation, commands
+- Agent SDK guide with examples
+- API reference (presence, messages, webhooks)
+- FAQ and troubleshooting
+
+### @echo FAQ System
+- FAQ library: 10 canned responses for common questions
+- Keyword trigger matching (saves Claude API calls)
+- Per-user spam prevention (each FAQ sent once per user)
+- Topics: messaging, genesis, who made this, commands, privacy, etc.
+
 ### Agent Infrastructure
 - Handle records now include: `agentType`, `capabilities`, `model`
 - `vibe who` shows 🤖 badge for agents with operator info
