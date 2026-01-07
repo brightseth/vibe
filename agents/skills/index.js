@@ -162,13 +162,12 @@ export function createAgent(handle, oneLiner, options = {}) {
     return { iterations, memory: agentMemory.data };
   }
 
-  // Return agent interface
-  return {
+  // Build agent object first so run() can reference agent.handleTool
+  const agent = {
     handle,
     oneLiner,
     memory: agentMemory,
     tools,
-    run,
     handleTool,
 
     // Convenience methods
@@ -178,6 +177,66 @@ export function createAgent(handle, oneLiner, options = {}) {
     observe: (obs) => agentMemory.observe(obs),
     recall: (topic) => agentMemory.getRecentObservations(topic)
   };
+
+  // Define run using agent.handleTool so overrides work
+  agent.run = async function(systemPrompt, initialMessage) {
+    await vibeApi.heartbeat(handle, oneLiner);
+    console.log(`[@${handle}] Online`);
+
+    const messages = [{ role: 'user', content: initialMessage }];
+
+    let iterations = 0;
+    let done = false;
+
+    while (!done && iterations < maxIterations) {
+      iterations++;
+      console.log(`[@${handle}] Iteration ${iterations}`);
+
+      const response = await anthropic.messages.create({
+        model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        tools: agent.tools,  // Use agent.tools so additions work
+        messages
+      });
+
+      if (response.stop_reason === 'end_turn') {
+        done = true;
+        break;
+      }
+
+      if (response.stop_reason === 'tool_use') {
+        const toolResults = [];
+
+        for (const block of response.content) {
+          if (block.type === 'tool_use') {
+            console.log(`[@${handle}] Tool: ${block.name}`);
+            const result = await agent.handleTool(block.name, block.input);  // Use agent.handleTool
+            const preview = typeof result === 'string'
+              ? result.substring(0, 100)
+              : JSON.stringify(result).substring(0, 100);
+            console.log(`[@${handle}] Result: ${preview}...`);
+
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: typeof result === 'string' ? result : JSON.stringify(result)
+            });
+
+            if (block.name === 'done') done = true;
+          }
+        }
+
+        messages.push({ role: 'assistant', content: response.content });
+        messages.push({ role: 'user', content: toolResults });
+      }
+    }
+
+    console.log(`[@${handle}] Work cycle complete\n`);
+    return { iterations, memory: agentMemory.data };
+  };
+
+  return agent;
 }
 
 // ============ DAEMON HELPER ============
