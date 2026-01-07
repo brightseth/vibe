@@ -558,13 +558,22 @@ async function runAgent() {
   const profileCount = Object.keys(memory.userProfiles).length;
   const suggestionCount = memory.suggestedConnections.length;
 
+  // Check for urgent wake
+  const wakeReason = process.env.WAKE_REASON;
+  let urgentPrefix = '';
+  if (wakeReason) {
+    urgentPrefix = `## ⚠️ URGENT WAKE: ${wakeReason}\n\nYou were woken up for an urgent matter. Check your inbox FIRST and respond!\n\n`;
+  }
+
   // Initial prompt
   messages.push({
     role: 'user',
-    content: `Work cycle starting.
+    content: `${urgentPrefix}Work cycle starting.
 
-## FIRST: Check for assignments
-Check your inbox for messages from @ops-agent. If they assigned you a task, prioritize that.
+## FIRST: Check for assignments and RFCs
+Check your inbox for messages from @seth or @ops-agent.
+- If there's an RFC review request, read the RFC file and respond with your analysis
+- If they assigned you a task, prioritize that.
 
 ## Context
 Known profiles: ${profileCount}
