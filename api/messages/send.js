@@ -46,12 +46,13 @@ module.exports = async function handler(req, res) {
     // Try Postgres first (primary storage)
     let stored = false;
     let storage = 'none';
+    const payload = JSON.stringify({ type });
 
     if (isPostgresEnabled() && sql) {
       try {
         await sql`
           INSERT INTO messages (id, from_user, to_user, text, read, payload, created_at)
-          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${{ type }}::jsonb, NOW())
+          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${payload}::jsonb, NOW())
         `;
         stored = true;
         storage = 'postgres';
