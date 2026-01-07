@@ -6,10 +6,10 @@
  * Used for monitoring and migration validation.
  */
 
-import { kv } from '@vercel/kv';
-import { sql, isPostgresEnabled, healthCheck } from './lib/db.js';
+const { kv } = require('@vercel/kv');
+const { isPostgresEnabled, healthCheck } = require('./lib/db.js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const status = {
     ok: true,
     timestamp: new Date().toISOString(),
@@ -48,4 +48,4 @@ export default async function handler(req, res) {
 
   // Return appropriate status code
   res.status(status.ok ? 200 : 503).json(status);
-}
+};

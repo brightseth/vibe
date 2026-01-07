@@ -8,27 +8,16 @@
  * - DATABASE_URL: Neon Postgres connection string (pooled)
  *
  * Usage:
- *   import { sql, getClient } from './lib/db.js';
+ *   const { sql, isPostgresEnabled } = require('./lib/db.js');
  *
  *   // Simple query
  *   const users = await sql`SELECT * FROM users LIMIT 10`;
  *
  *   // Parameterized query (safe from SQL injection)
  *   const user = await sql`SELECT * FROM users WHERE username = ${handle}`;
- *
- *   // Transaction
- *   const client = await getClient();
- *   try {
- *     await client.query('BEGIN');
- *     await client.query('INSERT INTO users ...');
- *     await client.query('COMMIT');
- *   } catch (e) {
- *     await client.query('ROLLBACK');
- *     throw e;
- *   }
  */
 
-import { neon, neonConfig } from '@neondatabase/serverless';
+const { neon, neonConfig } = require('@neondatabase/serverless');
 
 // Configure for Vercel serverless (WebSocket pooling)
 neonConfig.fetchConnectionCache = true;
@@ -38,32 +27,19 @@ const DATABASE_URL = process.env.DATABASE_URL;
 
 // Create SQL tagged template function
 // Returns null if DATABASE_URL not set (graceful degradation to KV-only mode)
-export const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
+const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
 
 /**
  * Check if Postgres is available
  */
-export function isPostgresEnabled() {
+function isPostgresEnabled() {
   return !!DATABASE_URL;
-}
-
-/**
- * Get a client for transactions (when needed)
- * Note: For most queries, use the `sql` template function instead
- */
-export async function getClient() {
-  if (!DATABASE_URL) {
-    throw new Error('DATABASE_URL not configured');
-  }
-  // For transactions, we'd need @neondatabase/serverless Pool
-  // For now, most operations can use the sql tagged template
-  return { query: sql };
 }
 
 /**
  * Health check - verify database connection
  */
-export async function healthCheck() {
+async function healthCheck() {
   if (!sql) {
     return { ok: false, error: 'DATABASE_URL not configured' };
   }
@@ -88,7 +64,7 @@ const USE_POSTGRES = {
   invites: process.env.USE_POSTGRES_INVITES === 'true',
 };
 
-export function shouldUsePostgres(dataType) {
+function shouldUsePostgres(dataType) {
   return isPostgresEnabled() && USE_POSTGRES[dataType];
 }
 
@@ -96,7 +72,7 @@ export function shouldUsePostgres(dataType) {
  * Dual-write helper: Write to both KV and Postgres during migration
  * Returns results from both systems for validation
  */
-export async function dualWrite(dataType, kvWriteFn, pgWriteFn) {
+async function dualWrite(dataType, kvWriteFn, pgWriteFn) {
   const results = { kv: null, pg: null, match: false };
 
   // Always write to KV (source of truth during migration)
@@ -120,3 +96,11 @@ export async function dualWrite(dataType, kvWriteFn, pgWriteFn) {
 
   return results;
 }
+
+module.exports = {
+  sql,
+  isPostgresEnabled,
+  healthCheck,
+  shouldUsePostgres,
+  dualWrite
+};
