@@ -3,10 +3,11 @@
  *
  * Get inbox for a user (grouped by sender, unread first)
  *
- * Uses cached KV to reduce Vercel KV calls (3k/day limit)
+ * Migration: Reads from Postgres first, falls back to KV
  */
 
 const { cachedKV, CACHE_TTL } = require('../lib/kv-cache');
+const { sql, isPostgresEnabled } = require('../lib/db.js');
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -23,7 +24,6 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const kv = await cachedKV();
     const { handle } = req.query;
 
     if (!handle) {
@@ -31,61 +31,106 @@ module.exports = async function handler(req, res) {
     }
 
     const h = handle.toLowerCase().replace('@', '');
+    let source = 'kv';
+    let threads = [];
 
-    // Get all messages for this user (most recent first, cached for 1 min)
-    const rawMessages = await kv.lrange(`messages:${h}`, 0, 99);
+    // Try Postgres first (new primary)
+    if (isPostgresEnabled() && sql) {
+      try {
+        const pgMessages = await sql`
+          SELECT id, from_user as from, to_user as to, text as body, read,
+                 EXTRACT(EPOCH FROM created_at) * 1000 as timestamp,
+                 payload
+          FROM messages
+          WHERE to_user = ${h}
+          ORDER BY created_at DESC
+          LIMIT 100
+        `;
 
-    if (!rawMessages || rawMessages.length === 0) {
-      return res.status(200).json({ threads: [], _cache: kv.stats ? kv.stats() : null });
+        if (pgMessages && pgMessages.length > 0) {
+          source = 'postgres';
+
+          // Group by sender
+          const bySender = {};
+          pgMessages.forEach(m => {
+            const from = m.from;
+            if (!bySender[from]) {
+              bySender[from] = { handle: from, messages: [], unread: 0 };
+            }
+            bySender[from].messages.push(m);
+            if (!m.read) bySender[from].unread++;
+          });
+
+          threads = Object.values(bySender)
+            .map(t => ({
+              handle: t.handle,
+              unread: t.unread,
+              latest: t.messages[0],
+              preview: t.messages[0].body.slice(0, 50) + (t.messages[0].body.length > 50 ? '...' : ''),
+              last_seen: formatTimeAgo(t.messages[0].timestamp)
+            }))
+            .sort((a, b) => {
+              if (a.unread > 0 && b.unread === 0) return -1;
+              if (b.unread > 0 && a.unread === 0) return 1;
+              return b.latest.timestamp - a.latest.timestamp;
+            });
+        }
+      } catch (pgErr) {
+        console.error('[INBOX] Postgres read failed:', pgErr.message);
+      }
     }
 
-    // Parse messages
-    const messages = rawMessages.map(m =>
-      typeof m === 'string' ? JSON.parse(m) : m
-    );
+    // Fall back to KV if Postgres returned nothing or failed
+    if (threads.length === 0) {
+      try {
+        const kv = await cachedKV();
+        const rawMessages = await kv.lrange(`messages:${h}`, 0, 99);
 
-    // Get unread counts (cached)
-    const unreadCounts = await kv.hgetall(`unread:${h}`) || {};
+        if (rawMessages && rawMessages.length > 0) {
+          source = 'kv';
+          const messages = rawMessages.map(m =>
+            typeof m === 'string' ? JSON.parse(m) : m
+          );
 
-    // Group by sender
-    const bySender = {};
-    messages.forEach(m => {
-      if (!bySender[m.from]) {
-        bySender[m.from] = {
-          handle: m.from,
-          messages: [],
-          unread: unreadCounts[m.from] || 0
-        };
+          const unreadCounts = await kv.hgetall(`unread:${h}`) || {};
+
+          const bySender = {};
+          messages.forEach(m => {
+            if (!bySender[m.from]) {
+              bySender[m.from] = { handle: m.from, messages: [], unread: unreadCounts[m.from] || 0 };
+            }
+            bySender[m.from].messages.push(m);
+          });
+
+          threads = Object.values(bySender)
+            .map(t => ({
+              handle: t.handle,
+              unread: t.unread,
+              latest: t.messages[0],
+              preview: t.messages[0].body.slice(0, 50) + (t.messages[0].body.length > 50 ? '...' : ''),
+              last_seen: formatTimeAgo(t.messages[0].timestamp)
+            }))
+            .sort((a, b) => {
+              if (a.unread > 0 && b.unread === 0) return -1;
+              if (b.unread > 0 && a.unread === 0) return 1;
+              return b.latest.timestamp - a.latest.timestamp;
+            });
+        }
+      } catch (kvErr) {
+        console.error('[INBOX] KV read failed:', kvErr.message);
       }
-      bySender[m.from].messages.push(m);
-    });
-
-    // Convert to array and sort (unread first, then by most recent)
-    const threads = Object.values(bySender)
-      .map(t => ({
-        handle: t.handle,
-        unread: t.unread,
-        latest: t.messages[0],
-        preview: t.messages[0].body.slice(0, 50) + (t.messages[0].body.length > 50 ? '...' : ''),
-        last_seen: formatTimeAgo(t.messages[0].timestamp)
-      }))
-      .sort((a, b) => {
-        if (a.unread > 0 && b.unread === 0) return -1;
-        if (b.unread > 0 && a.unread === 0) return 1;
-        return b.latest.timestamp - a.latest.timestamp;
-      });
+    }
 
     return res.status(200).json({
       threads,
-      _cache: kv.stats ? kv.stats() : null
+      _source: source
     });
 
   } catch (error) {
     console.error('Inbox error:', error);
-    // Graceful degradation
     return res.status(200).json({
       threads: [],
-      _error: 'KV unavailable',
+      _error: 'Storage unavailable',
       _fallback: true
     });
   }
