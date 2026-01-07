@@ -2,9 +2,11 @@
  * GET /api/messages/inbox?handle=xxx
  *
  * Get inbox for a user (grouped by sender, unread first)
+ *
+ * Uses cached KV to reduce Vercel KV calls (3k/day limit)
  */
 
-const { kv } = require('@vercel/kv');
+const { cachedKV, CACHE_TTL } = require('../lib/kv-cache');
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -21,6 +23,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const kv = await cachedKV();
     const { handle } = req.query;
 
     if (!handle) {
@@ -29,11 +32,11 @@ module.exports = async function handler(req, res) {
 
     const h = handle.toLowerCase().replace('@', '');
 
-    // Get all messages for this user (most recent first)
+    // Get all messages for this user (most recent first, cached for 1 min)
     const rawMessages = await kv.lrange(`messages:${h}`, 0, 99);
 
     if (!rawMessages || rawMessages.length === 0) {
-      return res.status(200).json({ threads: [] });
+      return res.status(200).json({ threads: [], _cache: kv.stats ? kv.stats() : null });
     }
 
     // Parse messages
@@ -41,7 +44,7 @@ module.exports = async function handler(req, res) {
       typeof m === 'string' ? JSON.parse(m) : m
     );
 
-    // Get unread counts
+    // Get unread counts (cached)
     const unreadCounts = await kv.hgetall(`unread:${h}`) || {};
 
     // Group by sender
@@ -72,11 +75,19 @@ module.exports = async function handler(req, res) {
         return b.latest.timestamp - a.latest.timestamp;
       });
 
-    return res.status(200).json({ threads });
+    return res.status(200).json({
+      threads,
+      _cache: kv.stats ? kv.stats() : null
+    });
 
   } catch (error) {
     console.error('Inbox error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    // Graceful degradation
+    return res.status(200).json({
+      threads: [],
+      _error: 'KV unavailable',
+      _fallback: true
+    });
   }
 };
 

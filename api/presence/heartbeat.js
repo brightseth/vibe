@@ -3,9 +3,11 @@
  *
  * Register or update presence for a user
  * Now with presence inference!
+ *
+ * Uses cached KV to reduce Vercel KV calls (3k/day limit)
  */
 
-const { kv } = require('@vercel/kv');
+const { cachedKV } = require('../lib/kv-cache');
 
 /**
  * Infer mood from context and activity patterns
@@ -61,6 +63,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const kv = await cachedKV();
     const { handle, one_liner, file, branch, error, note, mood } = req.body;
 
     if (!handle) {
@@ -130,11 +133,21 @@ module.exports = async function handler(req, res) {
       timestamp: now,
       mood: presenceData.mood,
       mood_inferred: presenceData.mood_inferred,
-      mood_reason: presenceData.mood_reason
+      mood_reason: presenceData.mood_reason,
+      _cache: kv.stats ? kv.stats() : null,
+      _fallback: kv.isFallback || false
     });
 
   } catch (error) {
     console.error('Heartbeat error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    // Graceful degradation - return success even if KV fails
+    // The user can still use the app, just presence won't persist
+    return res.status(200).json({
+      success: true,
+      handle: req.body?.handle || 'unknown',
+      timestamp: Date.now(),
+      _error: 'KV unavailable, presence not persisted',
+      _fallback: true
+    });
   }
 };

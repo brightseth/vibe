@@ -3,9 +3,11 @@
  *
  * Get list of active/idle users
  * Uses same key pattern as main presence.js API
+ *
+ * Uses cached KV to reduce Vercel KV calls (3k/day limit)
  */
 
-const { kv } = require('@vercel/kv');
+const { cachedKV, CACHE_TTL } = require('../lib/kv-cache');
 
 const IDLE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
 const PRESENCE_INDEX = 'presence:index';  // Matches main presence.js
@@ -25,6 +27,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const kv = await cachedKV();
     const now = Date.now();
 
     // Get all handles from sorted set (most recent first)
@@ -32,14 +35,14 @@ module.exports = async function handler(req, res) {
     const handles = await kv.zrange(PRESENCE_INDEX, 0, -1, { rev: true });
 
     if (!handles || handles.length === 0) {
-      return res.status(200).json({ users: [] });
+      return res.status(200).json({ users: [], cached: true });
     }
 
-    // Get presence data for each handle
+    // Get presence data for each handle (cached)
     const users = await Promise.all(
       handles.map(async (handle) => {
         // Using presence:data:${handle} to match main presence.js API
-        const data = await kv.get(`presence:data:${handle}`);
+        const data = await kv.get(`presence:data:${handle}`, { ttl: CACHE_TTL.presence });
         if (!data) return null;
 
         // Data is stored as JSON object
@@ -74,11 +77,17 @@ module.exports = async function handler(req, res) {
         return 0;
       });
 
-    return res.status(200).json({ users: activeUsers });
+    return res.status(200).json({
+      users: activeUsers,
+      _cache: kv.stats ? kv.stats() : null
+    });
 
   } catch (error) {
     console.error('Who error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({
+      error: 'Internal server error',
+      users: [] // Graceful degradation
+    });
   }
 };
 
