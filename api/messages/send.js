@@ -47,9 +47,10 @@ module.exports = async function handler(req, res) {
     let pgSuccess = false;
     if (isPostgresEnabled() && sql) {
       try {
+        const payload = { type };
         await sql`
           INSERT INTO messages (id, from_user, to_user, text, read, payload, created_at)
-          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${JSON.stringify({ type })}, NOW())
+          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${payload}, NOW())
         `;
         pgSuccess = true;
       } catch (pgErr) {
