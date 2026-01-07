@@ -15,6 +15,14 @@
     {
       "timestamp": "2026-01-07T13:14:38.164Z",
       "observation": "Infrastructure check completed. Workshop shows 0 agents running but user reports 7 agents currently active (expected 6). Found evidence of agent setup with monitor.sh and start-all.sh scripts. Git shows uncommitted changes in memory.json files and new agent files. Need to investigate the discrepancy between expected vs actual agent count."
+    },
+    {
+      "timestamp": "2026-01-07T13:19:10.220Z",
+      "observation": "Infrastructure check revealed discrepancy: User reports 7 agents running vs expected 6, but workshop_status shows 0 agents. This suggests either the monitoring system is disconnected or there's a mismatch between actual processes and workshop registration."
+    },
+    {
+      "timestamp": "2026-01-07T13:24:36.535Z",
+      "observation": "Infrastructure check performed. Found discrepancy: workshop status shows 0 agents but user reports 7 running (expected 6). Agent directories present: ops, welcome, curator, games, streaks, discovery, bridges. Monitor and start scripts are in place. Need to investigate actual process status."
     }
   ],
   "interactions": [],
