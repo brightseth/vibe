@@ -59,8 +59,10 @@ async function getEntries(limit = 20, category = null) {
 
   try {
     const kv = await cachedKV();
+    console.log('[board] getEntries: KV loaded, isFallback:', kv.isFallback);
     // Get entry IDs
     const ids = await kv.lrange(BOARD_LIST, 0, cappedLimit - 1);
+    console.log('[board] getEntries: lrange returned', ids?.length || 0, 'ids');
     if (!ids || ids.length === 0) return memoryBoard.slice(0, cappedLimit);
 
     // Fetch all entries
