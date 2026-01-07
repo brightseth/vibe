@@ -64,9 +64,13 @@ export default async function handler(req, res) {
 
     // ===== HANDLES =====
     const allHandles = await kv.hgetall('vibe:handles') || {};
-    const handleRecords = Object.values(allHandles).map(h =>
-      typeof h === 'string' ? JSON.parse(h) : h
-    );
+    const handleRecords = Object.values(allHandles).map(h => {
+      try {
+        return typeof h === 'string' ? JSON.parse(h) : h;
+      } catch (e) {
+        return null;
+      }
+    }).filter(Boolean);
 
     const handles = {
       total: handleRecords.length,
@@ -78,9 +82,13 @@ export default async function handler(req, res) {
 
     // ===== WAITLIST =====
     const allWaitlist = await kv.hgetall('vibe:waitlist') || {};
-    const waitlistRecords = Object.values(allWaitlist).map(w =>
-      typeof w === 'string' ? JSON.parse(w) : w
-    );
+    const waitlistRecords = Object.values(allWaitlist).map(w => {
+      try {
+        return typeof w === 'string' ? JSON.parse(w) : w;
+      } catch (e) {
+        return null;
+      }
+    }).filter(Boolean);
 
     const waitlist = {
       total: waitlistRecords.length,
@@ -122,9 +130,13 @@ export default async function handler(req, res) {
 
     // ===== INVITES =====
     const allInvites = await kv.hgetall('vibe:invites') || {};
-    const inviteRecords = Object.values(allInvites).map(i =>
-      typeof i === 'string' ? JSON.parse(i) : i
-    );
+    const inviteRecords = Object.values(allInvites).map(i => {
+      try {
+        return typeof i === 'string' ? JSON.parse(i) : i;
+      } catch (e) {
+        return null;
+      }
+    }).filter(Boolean);
 
     const invites = {
       total: inviteRecords.length,
