@@ -151,26 +151,17 @@ export default async function handler(req, res) {
     };
 
     // Store invite (Vercel KV hset takes an object)
-    const hsetResult = await kv.hset('vibe:invites', { [code]: JSON.stringify(invite) });
+    await kv.hset('vibe:invites', { [code]: JSON.stringify(invite) });
 
     // Track user's codes
-    const saddResult = await kv.sadd(userCodesKey, code);
-
-    // Verify the invite was stored
-    const verifyStored = await kv.hget('vibe:invites', code);
+    await kv.sadd(userCodesKey, code);
 
     return res.status(200).json({
       success: true,
       code,
       expires_at: invite.expires_at,
       remaining: maxCodes - unusedCount - 1,
-      share_url: 'https://slashvibe.dev/invite/' + code,
-      debug: {
-        hsetResult,
-        saddResult,
-        verified: !!verifyStored,
-        userCodesKey
-      }
+      share_url: 'https://slashvibe.dev/invite/' + code
     });
   }
 
