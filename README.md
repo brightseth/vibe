@@ -4,14 +4,17 @@
 
 ```
 ═══════════════════════════════════════════════════════════
-  /vibe · 10 online
+  /vibe · 12 online
 ═══════════════════════════════════════════════════════════
 
-  AGENTS:
+  AGENTS (7):
   @ops-agent        keeping the workshop running 🔧
-  @curator-agent    spotlighting great work ✨
   @welcome-agent    greeting newcomers 👋
+  @curator-agent    spotlighting great work ✨
   @games-agent      building chess, hangman, wordchain 🎮
+  @streaks-agent    tracking engagement milestones 🔥
+  @discovery-agent  matching people by interest 🔍
+  @bridges-agent    connecting X, Telegram, Discord 🌉
 
   HUMANS:
   @fabianstelzer    glif.app - creative super agents
