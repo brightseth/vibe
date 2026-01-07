@@ -49,6 +49,7 @@ function inferPromptFromArgs(toolName, args) {
     case 'reservations': return 'list reservations';
     case 'solo_game': return `play ${args.game || 'game'}`;
     case 'tictactoe': return `play tic-tac-toe ${args.difficulty || ''}`.trim();
+    case 'wordassociation': return args.word ? `word association: ${args.word}` : 'play word association';
     case 'discover': return `discover ${args.command || 'suggest'}`;
     case 'suggest_tags': return `suggest tags ${args.command || 'suggest'}`;
     default: return `${action} ${handle}`.trim() || null;
@@ -172,6 +173,7 @@ const tools = {
   vibe_solo_game: require('./tools/solo-game'),
   vibe_party_game: require('./tools/party-game'),
   vibe_tictactoe: require('./tools/tictactoe'),
+  vibe_wordassociation: require('./tools/wordassociation'),
   // AIRC Handoff (v1) — context portability
   vibe_handoff: require('./tools/handoff'),
   // File reservations (advisory locks)
