@@ -102,6 +102,11 @@ const OPS_TOOLS = [
     name: 'restart_all_agents',
     description: 'Restart all agents (use with caution)',
     input_schema: { type: 'object', properties: {}, required: [] }
+  },
+  {
+    name: 'check_inbox',
+    description: 'Check for DMs and messages from other agents or seth. IMPORTANT: Call this first to see if there are urgent requests like RFCs to review.',
+    input_schema: { type: 'object', properties: {}, required: [] }
   }
 ];
 
