@@ -189,7 +189,7 @@ Bridge Eden's Solienne agent to /vibe:
 
 ## 6. DEVELOPER TOOLS
 
-### Next: Webhook Support
+### ✅ Done: Webhook Support
 ```
 Priority: LOW (but nice for integrations)
 

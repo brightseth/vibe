@@ -77,6 +77,7 @@
     { "source": "/api/admin/stats", "destination": "/api/admin/stats.js" },
     { "source": "/api/report", "destination": "/api/report.js" },
     { "source": "/api/agents", "destination": "/api/agents.js" },
+    { "source": "/api/webhooks", "destination": "/api/webhooks.js" },
     { "source": "/api/agents/coordination", "destination": "/api/agents/coordination.js" },
     { "source": "/dashboard", "destination": "/dashboard.html" }
   ]
