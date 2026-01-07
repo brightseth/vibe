@@ -12,7 +12,7 @@ const store = require('./store');
 const prompts = require('./prompts');
 
 // Tools that shouldn't show presence footer (would be redundant/noisy)
-const SKIP_FOOTER_TOOLS = ['vibe_init', 'vibe_doctor', 'vibe_test', 'vibe_update'];
+const SKIP_FOOTER_TOOLS = ['vibe_init', 'vibe_doctor', 'vibe_test', 'vibe_update', 'vibe_settings'];
 
 // Infer user prompt from tool arguments (for pattern logging)
 function inferPromptFromArgs(toolName, args) {
@@ -196,7 +196,9 @@ const tools = {
   vibe_social_inbox: require('./tools/social-inbox'),
   vibe_social_post: require('./tools/social-post'),
   // Language evolution
-  vibe_patterns: require('./tools/patterns')
+  vibe_patterns: require('./tools/patterns'),
+  // Settings
+  vibe_settings: require('./tools/settings')
 };
 
 /**

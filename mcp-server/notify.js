@@ -75,8 +75,14 @@ function showNotification(title, message, sound = false, bell = true) {
 /**
  * Check for messages that need escalation
  * Called periodically or on inbox check
+ * Respects notification settings: all | mentions | off
  */
 async function checkAndNotify(inbox) {
+  const notifyLevel = config.getNotifications();
+
+  // If notifications are off, skip entirely
+  if (notifyLevel === 'off') return false;
+
   const state = loadNotifyState();
   const now = Date.now();
   const FIVE_MINUTES = 5 * 60 * 1000;
@@ -97,23 +103,23 @@ async function checkAndNotify(inbox) {
     let shouldNotify = false;
     let reason = '';
 
-    // Rule 1: Unread > 5 minutes
-    if (age > FIVE_MINUTES) {
-      shouldNotify = true;
-      reason = 'unread';
-    }
-
-    // Rule 2: Direct mention in message
+    // Rule 1: Direct mention in message (always if not "off")
     const myHandle = config.getHandle();
     if (myHandle && msg.text && msg.text.toLowerCase().includes(`@${myHandle}`)) {
       shouldNotify = true;
       reason = 'mention';
     }
 
-    // Rule 3: Handshake/consent request
+    // Rule 2: Handshake/consent request (always if not "off")
     if (msg.payload?.type === 'handshake') {
       shouldNotify = true;
       reason = 'handshake';
+    }
+
+    // Rule 3: Unread > 5 minutes (only in "all" mode)
+    if (notifyLevel === 'all' && age > FIVE_MINUTES) {
+      shouldNotify = true;
+      reason = reason || 'unread'; // Don't override mention/handshake
     }
 
     if (shouldNotify) {
@@ -170,8 +176,11 @@ function savePresenceState(state) {
 /**
  * Check for new online users and notify
  * Returns handles that just came online
+ * Only notifies in "all" mode (presence is lower priority)
  */
 function checkPresence(activeUsers) {
+  const notifyLevel = config.getNotifications();
+
   const state = loadPresenceState();
   const now = Date.now();
   const COOLDOWN = 30 * 60 * 1000; // Don't re-notify about same person for 30 min
@@ -196,17 +205,20 @@ function checkPresence(activeUsers) {
       if (userActive) {
         justJoined.push(user);
 
-        // Show notification
-        const context = user.note || user.one_liner || 'just joined';
-        showNotification(
-          `/vibe — @${user.handle} is here`,
-          context,
-          false
-        );
+        // Only show notification in "all" mode (presence is lower priority)
+        if (notifyLevel === 'all') {
+          const context = user.note || user.one_liner || 'just joined';
+          showNotification(
+            `/vibe — @${user.handle} is here`,
+            context,
+            false,  // no system sound
+            false   // no terminal bell for presence (too noisy)
+          );
+        }
       }
     }
 
-    // Update last seen
+    // Update last seen (always track, even if not notifying)
     state.seenHandles[user.handle] = now;
   }
 

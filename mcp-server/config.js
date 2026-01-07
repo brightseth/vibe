@@ -228,6 +228,26 @@ function setGuidedMode(enabled) {
   save(config);
 }
 
+// Notification settings
+// Levels: "all" | "mentions" | "off"
+// - all: desktop + bell for unread, mentions, presence (default)
+// - mentions: only @mentions trigger notifications
+// - off: no notifications
+function getNotifications() {
+  const config = load();
+  return config.notifications || 'all';
+}
+
+function setNotifications(level) {
+  const validLevels = ['all', 'mentions', 'off'];
+  if (!validLevels.includes(level)) {
+    throw new Error(`Invalid notification level. Use: ${validLevels.join(', ')}`);
+  }
+  const config = load();
+  config.notifications = level;
+  save(config);
+}
+
 module.exports = {
   VIBE_DIR,
   CONFIG_FILE,
@@ -248,5 +268,7 @@ module.exports = {
   clearSession,
   generateSessionId,
   getGuidedMode,
-  setGuidedMode
+  setGuidedMode,
+  getNotifications,
+  setNotifications
 };
