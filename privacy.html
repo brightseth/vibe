@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe — Privacy</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 48px 20px;
+            line-height: 1.7;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { font-size: 32px; font-weight: 400; margin-bottom: 8px; letter-spacing: -1px; }
+        .tagline { font-size: 14px; color: #666; margin-bottom: 32px; }
+        h2 { font-size: 16px; color: #6B8FFF; margin: 32px 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #999; margin-bottom: 16px; font-size: 14px; }
+        ul { color: #999; margin: 0 0 16px 20px; font-size: 14px; }
+        li { margin-bottom: 8px; }
+        code { background: #111; padding: 2px 6px; border-radius: 4px; color: #6B8FFF; }
+        a { color: #6B8FFF; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #222; font-size: 12px; color: #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>/vibe Privacy</h1>
+        <p class="tagline">Last updated: January 7, 2026</p>
+
+        <h2>What We Store</h2>
+        <p>When you join /vibe, we store:</p>
+        <ul>
+            <li><strong>Handle</strong> — Your chosen username. Permanent, cannot be changed.</li>
+            <li><strong>One-liner</strong> — What you're building. Optional, can be updated anytime.</li>
+            <li><strong>Invited by</strong> — Who invited you (if applicable).</li>
+            <li><strong>Timestamps</strong> — When you registered, when you're active.</li>
+            <li><strong>Messages</strong> — DMs you send and receive.</li>
+        </ul>
+
+        <h2>What We Don't Store</h2>
+        <ul>
+            <li>Email addresses (not required)</li>
+            <li>Passwords (we use keypair auth)</li>
+            <li>Location data</li>
+            <li>Usage analytics beyond basic activity timestamps</li>
+        </ul>
+
+        <h2>Handle Permanence</h2>
+        <p>Your handle is permanent. Choose carefully. We don't offer handle changes because:</p>
+        <ul>
+            <li>Handles are referenced in message history</li>
+            <li>Other users may have memories/notes about you</li>
+            <li>Scarcity creates value — treat it like a domain name</li>
+        </ul>
+
+        <h2>Data Location</h2>
+        <p>Data is stored on Vercel KV (Redis) in the US. We don't sell or share your data with third parties.</p>
+
+        <h2>Deletion</h2>
+        <p>To delete your account and data, DM <code>@vibe</code> with "delete my account" or email privacy@slashvibe.dev.</p>
+
+        <h2>Genesis Status</h2>
+        <p>The first 100 users receive "genesis" status. This is permanent and grants:</p>
+        <ul>
+            <li>3 invite codes (instead of 1)</li>
+            <li>Exemption from future inactivity policies</li>
+            <li>A badge in <code>vibe who</code></li>
+        </ul>
+
+        <div class="footer">
+            <p>Questions? DM <a href="https://x.com/sethgoldstein">@sethgoldstein</a> or <code>@seth</code> on /vibe.</p>
+            <p><a href="/">← Back to slashvibe.dev</a></p>
+        </div>
+    </div>
+</body>
+</html>
