@@ -5,6 +5,7 @@
 const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
+const userProfiles = require('../store/profiles');
 const { trackMessage, checkBurst } = require('./summarize');
 const { requireInit, normalizeHandle, truncate, warning } = require('./_shared');
 const { actions, formatActions } = require('./_actions');
@@ -61,6 +62,17 @@ async function handler(args) {
   const finalMessage = wasTruncated ? trimmed.substring(0, MAX_LENGTH) : trimmed;
 
   await store.sendMessage(myHandle, them, finalMessage || null, 'dm', payload);
+
+  // Record connection in profiles (if first time messaging)
+  try {
+    const hasConnected = await userProfiles.hasBeenConnected(myHandle, them);
+    if (!hasConnected) {
+      await userProfiles.recordConnection(myHandle, them, 'first_message');
+    }
+  } catch (error) {
+    // Don't fail the message if profile update fails
+    console.warn('Failed to update profile connection:', error);
+  }
 
   // Track for session summary
   const activity = trackMessage(myHandle, them, 'sent');
