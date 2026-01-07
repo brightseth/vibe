@@ -217,6 +217,107 @@ function isOpponentPiece(piece1, piece2) {
   return (piece1 >= 'A' && piece1 <= 'Z') !== (piece2 >= 'A' && piece2 <= 'Z');
 }
 
+// Check if a piece is white
+function isWhitePiece(piece) {
+  return piece >= 'A' && piece <= 'Z';
+}
+
+// Find king position
+function findKing(board, isWhite) {
+  const king = isWhite ? 'K' : 'k';
+  for (let rank = 0; rank < 8; rank++) {
+    for (let file = 0; file < 8; file++) {
+      if (board[rank][file] === king) {
+        return [rank, file];
+      }
+    }
+  }
+  return null;
+}
+
+// Check if a square is attacked by opponent
+function isSquareAttacked(board, rank, file, byWhite) {
+  // Check all opponent pieces
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const piece = board[r][f];
+      if (!piece) continue;
+      if (isWhitePiece(piece) !== byWhite) continue;
+
+      // Check if this piece can attack the target square
+      if (canPieceMove(board, piece, r, f, rank, file)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Check if king is in check
+function isKingInCheck(board, isWhiteKing) {
+  const kingPos = findKing(board, isWhiteKing);
+  if (!kingPos) return false;
+  return isSquareAttacked(board, kingPos[0], kingPos[1], !isWhiteKing);
+}
+
+// Get all legal moves for a player
+function getAllLegalMoves(board, isWhiteTurn) {
+  const moves = [];
+
+  for (let fromRank = 0; fromRank < 8; fromRank++) {
+    for (let fromFile = 0; fromFile < 8; fromFile++) {
+      const piece = board[fromRank][fromFile];
+      if (!piece) continue;
+      if (isWhitePiece(piece) !== isWhiteTurn) continue;
+
+      // Try all possible destination squares
+      for (let toRank = 0; toRank < 8; toRank++) {
+        for (let toFile = 0; toFile < 8; toFile++) {
+          if (fromRank === toRank && fromFile === toFile) continue;
+
+          // Check if piece can move there
+          if (!canPieceMove(board, piece, fromRank, fromFile, toRank, toFile)) continue;
+
+          // Check if destination has own piece
+          const destPiece = board[toRank][toFile];
+          if (destPiece && isWhitePiece(destPiece) === isWhiteTurn) continue;
+
+          // Simulate move and check if king is still in check
+          const testBoard = board.map(row => [...row]);
+          testBoard[toRank][toFile] = piece;
+          testBoard[fromRank][fromFile] = '';
+
+          if (!isKingInCheck(testBoard, isWhiteTurn)) {
+            moves.push({
+              from: [fromRank, fromFile],
+              to: [toRank, toFile],
+              piece
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return moves;
+}
+
+// Check for checkmate or stalemate
+function getGameEndState(board, isWhiteTurn) {
+  const legalMoves = getAllLegalMoves(board, isWhiteTurn);
+  const inCheck = isKingInCheck(board, isWhiteTurn);
+
+  if (legalMoves.length === 0) {
+    if (inCheck) {
+      return { checkmate: true, winner: isWhiteTurn ? 'black' : 'white' };
+    } else {
+      return { stalemate: true };
+    }
+  }
+
+  return { check: inCheck };
+}
+
 // Convert move to algebraic notation
 function moveToAlgebraicNotation(board, move) {
   const { from, to, piece } = move;
@@ -319,15 +420,19 @@ function makeMove(gameState, moveNotation) {
     newBoard[rankIndex][rookToFile] = isWhiteTurn ? 'R' : 'r';
   }
 
+  // Check game end state for opponent
+  const nextPlayerIsWhite = !isWhiteTurn;
+  const endState = getGameEndState(newBoard, nextPlayerIsWhite);
+
   const newGameState = {
     board: newBoard,
     turn: isWhiteTurn ? 'black' : 'white',
     moves: moves + 1,
     history: [...history, moveNotation],
-    check: false,
-    checkmate: false,
-    stalemate: false,
-    winner: null,
+    check: endState.check || false,
+    checkmate: endState.checkmate || false,
+    stalemate: endState.stalemate || false,
+    winner: endState.winner || null,
     lastMove: { from, to, notation: moveNotation }
   };
 
@@ -339,5 +444,8 @@ module.exports = {
   makeMove,
   formatChessBoard,
   parseAlgebraicNotation,
-  moveToAlgebraicNotation
+  moveToAlgebraicNotation,
+  isKingInCheck,
+  getAllLegalMoves,
+  getGameEndState
 };

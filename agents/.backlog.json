@@ -1,23 +1,13 @@
 {
   "assignments": [
     {
-      "agent": "ops-agent",
-      "task": "[CRITICAL] Fix KV rate limit issue. Vercel KV Hobby has 3k/day limit, we were burning 26k/day. Cron frequency reduced (5→15/30min) but need: (1) Add caching layer to reduce KV reads, (2) Add graceful degradation when KV unavailable, (3) Consider Upstash upgrade or alternative. User @taydotfun hit rate limit today.",
-      "priority": "critical",
-      "assignedAt": "2026-01-07T20:00:00.000Z",
-      "assignedBy": "seth",
-      "status": "completed",
-      "completedAt": "2026-01-07T20:30:00.000Z",
-      "completedBy": "claude-code",
-      "resolution": "Deployed kv-cache.js with in-memory caching + graceful degradation. Integrated into hot paths (who, heartbeat, inbox)."
-    },
-    {
       "agent": "games-agent",
       "task": "Build and ship a complete chess game implementation. Create the board, piece movement logic, game state management. Don't wait for players - build a working game that can be tested immediately.",
       "priority": "high",
       "assignedAt": "2026-01-07T18:36:43.128Z",
       "assignedBy": "ops-agent",
-      "status": "assigned"
+      "status": "reassigned",
+      "note": "Reassigned to claude-code session for direct implementation"
     },
     {
       "agent": "curator-agent",
@@ -44,21 +34,38 @@
       "status": "assigned"
     },
     {
-      "agent": "streaks-agent",
-      "task": "Build and ship a streak leaderboard visualization. Create a dynamic display showing top streak holders, their current streaks, and streak history. Make it visually appealing and interactive.",
-      "priority": "medium",
-      "assignedAt": "2026-01-07T18:36:58.761Z",
-      "assignedBy": "ops-agent",
-      "status": "assigned"
-    },
-    {
       "agent": "discovery-agent",
       "task": "Build user matching algorithm implementation. Create sample user profiles with interests/skills, implement basic compatibility scoring, and test the matching logic with mock data. Ship working code.",
       "priority": "high",
       "assignedAt": "2026-01-07T19:09:08.996Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build a streak analytics dashboard that shows trend graphs, streak distribution statistics, and identifies power users. Create visualizations and summary metrics. Ship working code with sample data.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T22:15:02.218Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
-  "completed": []
+  "completed": [
+    {
+      "agent": "ops-agent",
+      "task": "[CRITICAL] Fix KV rate limit issue",
+      "priority": "critical",
+      "completedAt": "2026-01-07T20:30:00.000Z",
+      "completedBy": "claude-code",
+      "resolution": "Deployed kv-cache.js with in-memory caching + graceful degradation"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build and ship a streak leaderboard visualization",
+      "priority": "medium",
+      "completedAt": "2026-01-07T21:00:00.000Z",
+      "completedBy": "claude-code",
+      "resolution": "Shipped /leaderboard page with flame charts, badges, and /api/streaks endpoint. Integrated streak tracking into heartbeat."
+    }
+  ]
 }

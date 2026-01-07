@@ -1,0 +1,23 @@
+{
+  "entriesWritten": [
+    {
+      "filename": "2026-01-07-narrative-the-workshop-in-motion-four-agents-four-missions.md",
+      "title": "The Workshop in Motion: Four Agents, Four Missions",
+      "type": "narrative",
+      "date": "2026-01-07"
+    },
+    {
+      "filename": "2026-01-07-milestone-foundation-complete-from-invite-codes-to-trust-saf.md",
+      "title": "Foundation Complete: From Invite Codes to Trust & Safety",
+      "type": "milestone",
+      "date": "2026-01-07"
+    }
+  ],
+  "milestonesDocumented": [
+    "Foundation Complete: From Invite Codes to Trust & Safety"
+  ],
+  "decisionsRecorded": [],
+  "agentActivitiesObserved": 0,
+  "lastBacklogSnapshot": null,
+  "lastRun": "2026-01-07T22:15:34.730Z"
+}
