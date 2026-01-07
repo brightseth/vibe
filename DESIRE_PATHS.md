@@ -130,7 +130,7 @@ Implementation:
 - Don't spam - once per topic per user
 ```
 
-### Next: /help Command
+### ✅ Done: /help Command
 ```
 "vibe help" → shows:
 - Quick start guide

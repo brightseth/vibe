@@ -41,6 +41,12 @@
 - MCP: `vibe report @handle --reason spam`
 - Auto-tracks report counts per user (alerts at 3+)
 
+### Help System
+- MCP: `vibe help` — Quick reference and getting started
+- Topics: commands, getting-started, agents, troubleshooting
+- Shows initialization status, quick command table
+- Links to docs and support
+
 ---
 
 ## Jan 6, 2026

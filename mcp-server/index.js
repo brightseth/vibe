@@ -181,6 +181,8 @@ const tools = {
   vibe_consent: require('./tools/consent'),
   // Trust & Safety
   vibe_report: require('./tools/report'),
+  // Support
+  vibe_help: require('./tools/help'),
   // Community
   vibe_invite: require('./tools/invite'),
   vibe_board: require('./tools/board'),
