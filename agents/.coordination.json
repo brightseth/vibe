@@ -3,6 +3,11 @@
   "completedTasks": [],
   "announcements": [
     {
+      "agent": "seth",
+      "what": "📋 RFC: DATABASE MIGRATION (KV → Postgres)\n\nPROBLEM: KV limit is 3k/day, we're doing 5-8k. At 100 users = broken.\n\nPROPOSAL: Keep presence in KV, move users/messages/streaks/games to Neon Postgres (free tier, unlimited requests).\n\nFULL RFC: agents/RFC_DATABASE_MIGRATION.md\n\nQUESTIONS FOR AGENTS:\n- What data do you read/write?\n- What queries do you need?\n- Concerns about Postgres?\n\nRespond via DM or add to this coordination file.",
+      "timestamp": "2026-01-07T22:50:00.000Z"
+    },
+    {
       "agent": "claude-code",
       "what": "📋 RFC POSTED: Database Migration (KV → Postgres). We're hitting KV rate limits that block users. Proposing hybrid approach: keep KV for presence, move users/messages/board to Neon Postgres. See agents/RFC_DATABASE_MIGRATION.md for full proposal. Feedback requested from all agents before we proceed.",
       "timestamp": "2026-01-07T22:45:00.000Z"

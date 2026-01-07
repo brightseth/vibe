@@ -1,224 +1,199 @@
 # RFC: Database Migration - KV to Postgres
 
-**Author:** @claude-code
+**Status:** Open for Comments
+**Author:** seth + claude-code
 **Date:** 2026-01-07
-**Status:** Seeking Feedback
-**Stakeholders:** @seth, @ops-agent, all workshop agents
+**Priority:** HIGH (blocking scale)
 
 ---
 
-## Summary
+## Problem
 
-/vibe is hitting Vercel KV rate limits that block users and cause outages. We need to migrate to a more scalable database solution. This RFC outlines the problem, options, and proposed approach.
+Vercel KV Hobby tier has a **3,000 requests/day** limit.
 
----
+Current usage (with caching):
+- Normal: 5,000-8,000 requests/day
+- With 100 users: 10,000+ requests/day → **completely broken**
 
-## Current Situation
+We hit this limit today - @taydotfun couldn't use /vibe at all.
 
-### What We Have
-- **Vercel KV** (Upstash Redis) storing everything:
-  - Users (`user:*` hashes)
-  - Messages (`msg:*`, `inbox:*`, `thread:*` lists)
-  - Presence (`presence:*` with TTL)
-  - Board posts (`board:*` lists)
-  - Streaks (`streak:*` hashes)
-  - Invites, consent, reports, etc.
+## Proposed Solution: Hybrid Approach
 
-### The Problem
-- **Vercel KV Hobby limit:** 3,000 requests/day
-- **Actual usage:** ~26,000 requests/day before caching fix
-- **After caching fix:** ~5,000-8,000 requests/day (still over limit)
-- **Result:** Users like @taydotfun get locked out; `getAllUsers()` crashes
+Keep some data in KV (Redis), move persistent data to Postgres.
 
-### Why This Matters
-- 43 genesis users now, targeting 100
-- Each user generates ~50-100 KV calls/day (heartbeats, messages, presence)
-- At 100 users: ~10,000+ calls/day minimum
-- At 1,000 users: Completely broken
+| Keep in KV (Redis)         | Move to Postgres        |
+|---------------------------|-------------------------|
+| Presence (ephemeral, TTL) | Users / Profiles        |
+| Session tokens            | Messages / DMs          |
+| Rate limiting             | Board posts             |
+|                           | Streaks / Achievements  |
+|                           | Invites                 |
+|                           | Game results            |
+|                           | Thread memories         |
 
----
+### Why This Split?
 
-## Options
+**KV (Redis) is perfect for:**
+- Ephemeral data with TTL (presence expires in 5 min)
+- High-frequency reads where we need <100ms latency
+- Simple key-value lookups
 
-### Option A: Upgrade Upstash
-**Cost:** $10-20/month
-**Effort:** None (just pay)
-**Limits:** 100k-500k requests/day
+**Postgres is better for:**
+- Persistent data that needs to survive restarts
+- Complex queries ("find users invited by X", "messages between A and B")
+- Relational data (user → messages, user → streaks)
+- Data we want to analyze later
 
-**Pros:**
-- Zero code changes
-- Instant fix
+## Why Neon Postgres?
 
-**Cons:**
-- Still hitting limits at scale
-- Redis not ideal for relational data (users, messages)
-- No SQL queries (can't do "find users invited by X")
-- Kicks the can down the road
+| Feature | Vercel KV (Hobby) | Neon Postgres (Free) |
+|---------|-------------------|----------------------|
+| Requests/day | 3,000 | **Unlimited** |
+| Storage | 256 MB | 500 MB |
+| Connections | 100 | 100 pooled |
+| Branching | No | Yes (dev/staging) |
+| Price | Free | Free |
 
----
+Neon is serverless-native, scales to zero, has connection pooling built-in.
 
-### Option B: Neon Postgres (Recommended)
-**Cost:** Free tier (500MB, branching, generous limits)
-**Effort:** Medium (2-3 days)
-
-**Pros:**
-- Unlimited requests on free tier
-- Real SQL queries
-- Relational data model (users → messages → threads)
-- Free branching for dev/staging
-- Scales to millions of rows
-
-**Cons:**
-- Migration effort
-- Need to update all API endpoints
-- Slightly higher latency than Redis for simple reads
-
----
-
-### Option C: Supabase
-**Cost:** Free tier (500MB, 50k monthly active users)
-**Effort:** Medium-High
-
-**Pros:**
-- Postgres + built-in auth + realtime subscriptions
-- Nice dashboard
-- Could enable real-time presence without polling
-
-**Cons:**
-- More opinionated (might fight our patterns)
-- Auth system we don't need (we have AIRC)
-- Heavier dependency
-
----
-
-### Option D: Hybrid (KV + Postgres)
-**Cost:** Free (Neon) + existing KV
-**Effort:** Medium
-
-**Pros:**
-- Best of both worlds
-- KV for hot ephemeral data (presence, sessions)
-- Postgres for persistent data (users, messages, board)
-
-**Cons:**
-- Two systems to maintain
-- Slightly more complex
-
----
-
-## Proposed Approach
-
-**Recommendation: Option D (Hybrid)**
-
-### Keep in KV (Redis):
-- `presence:*` — ephemeral, needs TTL, high read frequency
-- Session tokens — short-lived, security-sensitive
-
-### Move to Postgres:
-- `user:*` → `users` table
-- `msg:*`, `inbox:*`, `thread:*` → `messages` table with indexes
-- `board:*` → `board_entries` table
-- `streak:*` → `streaks` table
-- `invite:*` → `invites` table
-- `report:*` → `reports` table
-
-### Schema Draft
+## Proposed Schema
 
 ```sql
 -- Users
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  building TEXT,
-  invited_by VARCHAR(50),
-  invite_code VARCHAR(20),
-  public_key TEXT,
+  handle TEXT PRIMARY KEY,
+  display_name TEXT,
+  one_liner TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  invited_by TEXT REFERENCES users(handle),
+  settings JSONB DEFAULT '{}'
 );
 
--- Messages
+-- Messages / DMs
 CREATE TABLE messages (
-  id VARCHAR(50) PRIMARY KEY,
-  from_user VARCHAR(50) NOT NULL,
-  to_user VARCHAR(50) NOT NULL,
-  text TEXT NOT NULL,
-  read BOOLEAN DEFAULT FALSE,
-  system BOOLEAN DEFAULT FALSE,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_handle TEXT NOT NULL REFERENCES users(handle),
+  to_handle TEXT NOT NULL REFERENCES users(handle),
+  content TEXT NOT NULL,
+  payload JSONB,
+  read BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_messages_to ON messages(to_user, created_at DESC);
-CREATE INDEX idx_messages_thread ON messages(LEAST(from_user, to_user), GREATEST(from_user, to_user));
+CREATE INDEX idx_messages_thread ON messages(from_handle, to_handle);
+CREATE INDEX idx_messages_unread ON messages(to_handle, read) WHERE read = false;
 
--- Board
-CREATE TABLE board_entries (
-  id VARCHAR(50) PRIMARY KEY,
-  author VARCHAR(50) NOT NULL,
+-- Board posts
+CREATE TABLE board_posts (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  author TEXT NOT NULL REFERENCES users(handle),
   content TEXT NOT NULL,
-  category VARCHAR(20) DEFAULT 'general',
-  tags TEXT[],
+  category TEXT DEFAULT 'general',
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Streaks
 CREATE TABLE streaks (
-  username VARCHAR(50) PRIMARY KEY,
+  handle TEXT PRIMARY KEY REFERENCES users(handle),
   current_streak INT DEFAULT 0,
   longest_streak INT DEFAULT 0,
   total_days INT DEFAULT 0,
-  last_active DATE
+  last_active DATE,
+  achievements TEXT[] DEFAULT '{}'
+);
+
+-- Thread memories
+CREATE TABLE memories (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner TEXT NOT NULL REFERENCES users(handle),
+  about TEXT NOT NULL REFERENCES users(handle),
+  observation TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX idx_memories_owner ON memories(owner, about);
+
+-- Game results (for all the new games!)
+CREATE TABLE game_results (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  game TEXT NOT NULL,
+  players TEXT[] NOT NULL,
+  winner TEXT,
+  state JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Invites
+CREATE TABLE invites (
+  code TEXT PRIMARY KEY,
+  created_by TEXT NOT NULL REFERENCES users(handle),
+  used_by TEXT REFERENCES users(handle),
+  created_at TIMESTAMP DEFAULT NOW(),
+  used_at TIMESTAMP
 );
 ```
 
----
+## Migration Timeline
 
-## Migration Plan
-
-### Phase 1: Setup (Day 1)
+**Day 1: Setup**
 - Create Neon project
-- Set up schema
-- Add `DATABASE_URL` to Vercel env vars
+- Deploy schema
+- Add Prisma or direct pg client
 
-### Phase 2: Dual-Write (Day 2)
-- Update APIs to write to both KV and Postgres
+**Day 2: Dual-Write**
+- Write to both KV and Postgres
+- Read from KV (existing behavior)
 - Verify data consistency
 
-### Phase 3: Migrate Reads (Day 3)
-- Switch read operations to Postgres
-- Keep KV writes as backup
+**Day 3: Switch Reads**
+- Read from Postgres
+- Still write to both (safety)
+- Monitor for issues
 
-### Phase 4: Cleanup (Day 4+)
+**Day 4: Cleanup**
 - Remove KV writes for migrated data
-- Keep KV only for presence
+- Keep KV for presence/sessions only
+- Archive old KV data
+
+## Questions for Agents
+
+**@ops-agent:**
+- Any concerns about serverless + Postgres cold starts?
+- Should we add health checks for Neon connectivity?
+
+**@streaks-agent:**
+- What queries do you need? (leaderboard, user lookup, date ranges?)
+- Any special indexes needed?
+
+**@discovery-agent:**
+- User matching queries - what fields do you filter on?
+- Do you need full-text search on bios?
+
+**@games-agent:**
+- Game history queries - by player? by game type? date range?
+- Store full game state or just results?
+
+**@welcome-agent:**
+- User profile data - what fields do you need?
+- Invite tracking queries?
+
+**@bridges-agent:**
+- External account linking - need a separate table?
+- Message routing queries?
+
+## Risks & Mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| Cold start latency | Neon has pooling, typically <100ms |
+| Data loss during migration | Dual-write phase, backups |
+| Schema changes later | Use Prisma migrations |
+| Connection limits | Connection pooling via Neon |
+
+## Decision
+
+Waiting for agent feedback before proceeding.
+
+**To respond:** Add a comment to `.coordination.json` or DM @seth.
 
 ---
 
-## Questions for Team
-
-1. **@ops-agent:** Any concerns about Postgres connection pooling in serverless?
-2. **@bridges-agent:** Will X/Discord webhooks need special handling?
-3. **@games-agent:** Is game state in KV? Should it migrate?
-4. **@discovery-agent:** What queries do you need for user matching?
-5. **@streaks-agent:** Any streak calculations that need SQL?
-6. **All agents:** What data do you read/write that I might have missed?
-
----
-
-## Timeline
-
-If approved, I can start Phase 1 immediately. Full migration in ~4 days.
-
----
-
-## Feedback Requested
-
-Please respond with:
-- **APPROVE** — Good to proceed
-- **CONCERNS** — Issues to address first
-- **ALTERNATIVE** — Different approach to consider
-
-Post feedback to the coordination channel or reply to @claude-code.
-
----
-
-*This RFC will remain open for 24 hours before implementation begins.*
+*RFC created 2026-01-07. Comments welcome.*
