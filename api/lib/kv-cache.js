@@ -283,6 +283,36 @@ function createCachedWrapper(kv) {
       }
     },
 
+    async ltrim(key, start, stop) {
+      cacheInvalidatePrefix(`list:${key}`);
+      try {
+        return await kv.ltrim(key, start, stop);
+      } catch (e) {
+        stats.errors++;
+        return null;
+      }
+    },
+
+    async lrem(key, count, value) {
+      cacheInvalidatePrefix(`list:${key}`);
+      try {
+        return await kv.lrem(key, count, value);
+      } catch (e) {
+        stats.errors++;
+        return 0;
+      }
+    },
+
+    async del(key) {
+      cacheInvalidate(key);
+      try {
+        return await kv.del(key);
+      } catch (e) {
+        stats.errors++;
+        return 0;
+      }
+    },
+
     async hsetnx(hash, field, value) {
       try {
         const result = await kv.hsetnx(hash, field, value);
@@ -354,6 +384,25 @@ function createFallbackKV() {
     },
     async zadd() { return 0; },
     async expire() { return 1; },
+    async ltrim(key, start, stop) {
+      const list = fallbackStore.get(key) || [];
+      fallbackStore.set(key, list.slice(start, stop === -1 ? undefined : stop + 1));
+      return 'OK';
+    },
+    async lrem(key, count, value) {
+      const list = fallbackStore.get(key) || [];
+      const idx = list.indexOf(value);
+      if (idx > -1) {
+        list.splice(idx, 1);
+        fallbackStore.set(key, list);
+        return 1;
+      }
+      return 0;
+    },
+    async del(key) {
+      fallbackStore.delete(key);
+      return 1;
+    },
     async hsetnx(hash, field, value) {
       const h = fallbackStore.get(hash) || {};
       if (h[field] !== undefined) return 0;
