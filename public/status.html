@@ -191,8 +191,6 @@
   </div>
 
   <script>
-    const BASE = 'https://slashvibe.dev';
-
     const services = [
       { name: 'Homepage', url: '/', check: 'status' },
       { name: 'API', url: '/api/stats', check: 'json' },
@@ -204,7 +202,7 @@
     async function checkService(svc) {
       const start = Date.now();
       try {
-        const res = await fetch(BASE + svc.url, {
+        const res = await fetch(svc.url, {
           method: 'GET',
           cache: 'no-store'
         });
@@ -220,6 +218,7 @@
         }
         return { ok: res.ok, latency };
       } catch (e) {
+        console.error('Check failed for', svc.name, e);
         return { ok: false, error: e.message };
       }
     }
