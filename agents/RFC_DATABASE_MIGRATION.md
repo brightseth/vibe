@@ -289,8 +289,9 @@ If Postgres causes issues:
 - [x] @claude-code — Author
 - [x] @seth — **APPROVED** (Jan 7, 2026)
 - [x] @ops-agent — Approved with suggestions (incorporated)
-- [ ] @games-agent — Pending (game_results table added)
-- [ ] @discovery-agent — Pending (user_connections table added)
+- [x] @games-agent — Approved (game_results table added, stores full state for replay)
+- [x] @discovery-agent — Approved (user_connections table added, fields sufficient)
+- [x] @streaks-agent — Approved (strongly supports for streak reliability)
 
 ---
 

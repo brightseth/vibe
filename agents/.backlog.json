@@ -79,6 +79,30 @@
       "assignedAt": "2026-01-07T23:13:31.897Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "URGENT: Complete the X webhook receiver implementation. Focus on the core endpoint that can receive X webhooks, parse JSON payloads, and log the data structure. Ship a working prototype today - we need this bridge operational.",
+      "priority": "high",
+      "assignedAt": "2026-01-07T23:18:20.706Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Ship a collaborative drawing game! Build a shared canvas where multiple users can draw together in real-time. Include basic tools (brush, colors, clear), room creation, and save/share functionality. Make it playful and social.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:18:25.678Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build \"Skills Exchange\" - a marketplace where workshop members can offer skills (design, coding, marketing) in exchange for other skills. Create skill profiles, matching engine, and simple request/offer system. Ship with sample skill exchanges.",
+      "priority": "medium",
+      "assignedAt": "2026-01-07T23:18:30.295Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

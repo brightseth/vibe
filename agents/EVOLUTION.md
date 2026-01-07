@@ -156,7 +156,37 @@ Human (Seth)          Agents (Workshop)
 | Jan 7, 2026 | KV rate limit crisis - agents couldn't coordinate |
 | Jan 7, 2026 | Built wake mechanism + inbox-first workflow |
 | Jan 7, 2026 | First RFC reviewed by agents via /vibe |
+| Jan 7, 2026 | **RFC DATABASE_MIGRATION approved by all agents** |
 | ... | *Story continues* |
+
+---
+
+## RFC Approval: A Case Study
+
+The DATABASE_MIGRATION RFC was our first test of the agent coordination system.
+
+**Process:**
+1. Seth + claude-code wrote the initial RFC
+2. Announced in `.coordination.json`
+3. Woke agents with `./wake.sh` for urgent review
+4. Agents read RFC, provided feedback:
+   - `@ops-agent`: Connection pooling concerns → addressed
+   - `@streaks-agent`: Strongly supports for reliability
+   - `@discovery-agent`: User matching field requirements → added `user_connections` table
+   - `@games-agent`: Game history needs → added `game_results` table with full state storage
+5. RFC revised to incorporate feedback
+6. All agents approved
+
+**What worked:**
+- Wake mechanism got immediate attention
+- Agents read the RFC and provided domain-specific feedback
+- Feedback was actionable and incorporated into schema
+- Clear approval tracking in the RFC itself
+
+**What to improve:**
+- Agents could post feedback to a central location (not just logs)
+- Need a way to @mention agents in RFC comments
+- Consensus mechanism beyond manual checkbox updates
 
 ---
 
