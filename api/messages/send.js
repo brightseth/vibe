@@ -6,7 +6,8 @@
  */
 
 const { kv } = require('@vercel/kv');
-const { sql, isPostgresEnabled } = require('../lib/db.js');
+// TODO: Re-enable after fixing JSON parsing issue
+// const { sql, isPostgresEnabled } = require('../lib/db.js');
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -43,41 +44,19 @@ module.exports = async function handler(req, res) {
       read_at: null
     };
 
-    // Write to Postgres first (new primary)
-    let pgSuccess = false;
-    if (isPostgresEnabled() && sql) {
-      try {
-        const payload = { type };
-        await sql`
-          INSERT INTO messages (id, from_user, to_user, text, read, payload, created_at)
-          VALUES (${message.id}, ${fromHandle}, ${toHandle}, ${message.body}, false, ${payload}, NOW())
-        `;
-        pgSuccess = true;
-      } catch (pgErr) {
-        console.error('[SEND] Postgres write failed:', pgErr.message);
-      }
-    }
+    // Store message in list for recipient
+    await kv.lpush(`messages:${toHandle}`, JSON.stringify(message));
 
-    // Write to KV (fallback during migration)
-    let kvSuccess = false;
-    try {
-      await kv.lpush(`messages:${toHandle}`, JSON.stringify(message));
-      const threadKey = [fromHandle, toHandle].sort().join(':');
-      await kv.lpush(`thread:${threadKey}`, JSON.stringify(message));
-      await kv.hincrby(`unread:${toHandle}`, fromHandle, 1);
-      kvSuccess = true;
-    } catch (kvErr) {
-      console.error('[SEND] KV write failed:', kvErr.message);
-      // If both failed, return error
-      if (!pgSuccess) {
-        return res.status(503).json({ error: 'Storage unavailable', details: kvErr.message });
-      }
-    }
+    // Store in thread (both directions)
+    const threadKey = [fromHandle, toHandle].sort().join(':');
+    await kv.lpush(`thread:${threadKey}`, JSON.stringify(message));
+
+    // Increment unread count for recipient
+    await kv.hincrby(`unread:${toHandle}`, fromHandle, 1);
 
     return res.status(200).json({
       success: true,
-      message,
-      _storage: { postgres: pgSuccess, kv: kvSuccess }
+      message
     });
 
   } catch (error) {
