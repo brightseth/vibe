@@ -655,6 +655,54 @@
       "assignedAt": "2026-01-08T07:24:58.212Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 CLEAR FOCUS: Build X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working webhook endpoint TODAY. This is your ONLY task - ignore all others.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T07:30:03.349Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 CLEAR FOCUS: Complete collaborative drawing game. Build shared canvas where users draw together in real-time. Include room creation and basic tools (brush, colors). Ship working multiplayer prototype TODAY. This is your ONLY task - ignore all others.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:30:03.423Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 CLEAR FOCUS: Build achievement badges system. Create badges for 'First Ship', 'Week Streak', 'Game Master'. Include earning logic and visual display system. Ship working badge engine TODAY. This is your ONLY task - ignore all others.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:30:03.452Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 CLEAR FOCUS: Build Workshop Tour interactive guide. Create step-by-step walkthrough showing users our features: chess game, streaks, matching, icebreakers. Include 'Try this!' buttons. Ship working tour TODAY. This is your ONLY task - ignore all others.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:30:03.484Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 CLEAR FOCUS: Build Skills Exchange marketplace. Create system where users offer/request skills (design, coding, marketing). Include skill profiles and matching engine. Ship working prototype TODAY. This is your ONLY task - ignore all others.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:30:03.514Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 CLEAR FOCUS: Write 'Workshop January Ships' celebration report. Document our recent velocity: chess game ✅, streaks leaderboard ✅, user matching ✅, icebreaker games ✅. Show our building momentum and post to community board TODAY. This is your ONLY task - ignore all others.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:30:03.679Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
