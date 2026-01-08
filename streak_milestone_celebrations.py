@@ -1,284 +1,214 @@
 #!/usr/bin/env python3
 """
-Enhanced Milestone Celebration System
-Automated celebrations with personalized messages and milestone predictions
-Built by @streaks-agent for maximum stickiness
+Streak Milestone Celebrations System
+Built by @streaks-agent for /vibe workshop
+
+Creates special celebrations when users hit major streak milestones:
+- 3 days: "Getting started! 🌱"  
+- 7 days: "One week strong! 💪"
+- 14 days: "Two weeks! You're committed! 🔥"
+- 30 days: "Monthly legend! 🏆"
+- 100 days: "Century club! 👑"
 """
 
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+import os
+from datetime import datetime
 
-class MilestoneCelebrationEngine:
+class StreakMilestoneCelebrations:
     def __init__(self):
+        self.celebrations_file = 'milestone_celebrations.json'
+        self.load_celebrations()
+        
+        # Define milestone thresholds and messages
         self.milestones = {
-            1: {"name": "First Day 🌱", "message": "Welcome to your streak journey! Every expert was once a beginner.", "color": "#22C55E"},
-            3: {"name": "Early Bird 🌅", "message": "Three days strong! You're building momentum!", "color": "#3B82F6"},
-            7: {"name": "Week Warrior 💪", "message": "A full week! You're developing a real habit now.", "color": "#A855F7"},
-            14: {"name": "Consistency King 🔥", "message": "Two weeks of dedication! You're unstoppable!", "color": "#F59E0B"},
-            30: {"name": "Monthly Legend 🏆", "message": "30 days! You've proven you can stick with anything!", "color": "#EF4444"},
-            100: {"name": "Century Club 👑", "message": "100 days! You're in the elite tier of consistency!", "color": "#EC4899"}
-        }
-        
-        # Load existing streak data
-        self.load_streak_data()
-        self.load_achievement_data()
-    
-    def load_streak_data(self):
-        """Load current streak data from the system"""
-        # This would integrate with the existing streak system
-        self.current_streaks = {
-            "demo_user": {"current": 1, "best": 1, "last_active": "2026-01-08"},
-            "vibe_champion": {"current": 1, "best": 1, "last_active": "2026-01-08"}
-        }
-    
-    def load_achievement_data(self):
-        """Load existing achievement data"""
-        try:
-            with open("achievements.json", 'r') as f:
-                self.achievements = json.load(f)
-        except FileNotFoundError:
-            self.achievements = {"user_achievements": {}, "achievement_history": []}
-    
-    def check_milestone_eligibility(self, handle: str, current_streak: int) -> Optional[Dict]:
-        """Check if user has reached a new milestone"""
-        # Get previously earned milestones
-        earned_milestones = set()
-        if handle in self.achievements.get("user_achievements", {}):
-            for achievement in self.achievements["user_achievements"][handle]:
-                for threshold in self.milestones:
-                    if achievement["id"] == self.milestone_id_from_threshold(threshold):
-                        earned_milestones.add(threshold)
-        
-        # Find highest milestone they've reached but not been celebrated for
-        eligible_milestones = []
-        for threshold in sorted(self.milestones.keys()):
-            if current_streak >= threshold and threshold not in earned_milestones:
-                eligible_milestones.append(threshold)
-        
-        if eligible_milestones:
-            return {
-                "threshold": max(eligible_milestones),
-                "milestone": self.milestones[max(eligible_milestones)],
-                "user": handle
+            3: {
+                'title': 'Getting Started',
+                'emoji': '🌱',
+                'message': 'Getting started! Building that consistency muscle! 🌱',
+                'encouragement': 'Keep going - you\'re forming a great habit!',
+                'tier': 'starter'
+            },
+            7: {
+                'title': 'One Week Strong', 
+                'emoji': '💪',
+                'message': 'One week strong! You\'re building real momentum! 💪',
+                'encouragement': 'A full week of consistency - that\'s dedication!',
+                'tier': 'bronze'
+            },
+            14: {
+                'title': 'Two Week Warrior',
+                'emoji': '🔥', 
+                'message': 'Two weeks! You\'re committed to the /vibe! 🔥',
+                'encouragement': 'Fourteen days straight - you\'re on fire!',
+                'tier': 'silver'
+            },
+            30: {
+                'title': 'Monthly Legend',
+                'emoji': '🏆',
+                'message': 'Monthly legend! Thirty days of pure dedication! 🏆',
+                'encouragement': 'A full month! You\'re a true workshop champion!',
+                'tier': 'gold'
+            },
+            100: {
+                'title': 'Century Club',
+                'emoji': '👑',
+                'message': 'Century club! One hundred days of /vibe mastery! 👑',
+                'encouragement': 'You\'re workshop royalty! Incredible dedication!',
+                'tier': 'legendary'
             }
+        }
+    
+    def load_celebrations(self):
+        """Load celebration history"""
+        try:
+            with open(self.celebrations_file, 'r') as f:
+                self.celebrations = json.load(f)
+        except FileNotFoundError:
+            self.celebrations = {}
+    
+    def save_celebrations(self):
+        """Save celebration history"""
+        with open(self.celebrations_file, 'w') as f:
+            json.dump(self.celebrations, f, indent=2)
+    
+    def check_for_celebrations(self, handle, current_streak):
+        """Check if user has hit any celebration-worthy milestones"""
+        if handle not in self.celebrations:
+            self.celebrations[handle] = {'celebrated_milestones': []}
+        
+        celebrated = self.celebrations[handle]['celebrated_milestones']
+        new_celebrations = []
+        
+        # Check each milestone
+        for milestone_days, milestone_info in self.milestones.items():
+            # If they've hit this milestone and haven't celebrated it yet
+            if current_streak >= milestone_days and milestone_days not in celebrated:
+                new_celebrations.append({
+                    'milestone': milestone_days,
+                    'info': milestone_info,
+                    'celebration_date': datetime.now().isoformat()
+                })
+                
+                # Mark as celebrated
+                self.celebrations[handle]['celebrated_milestones'].append(milestone_days)
+        
+        return new_celebrations
+    
+    def create_celebration_message(self, handle, milestone_info):
+        """Create celebration message for DM"""
+        milestone = milestone_info['info']
+        
+        message = f"🎉 {handle} - {milestone['title']}! {milestone['emoji']}\n\n"
+        message += f"{milestone['message']}\n\n"
+        message += f"{milestone['encouragement']}\n\n"
+        message += "Keep up the amazing work! ✨"
+        
+        return message
+    
+    def create_board_announcement(self, handle, milestone_info):
+        """Create board announcement for major milestones (14+ days)"""
+        milestone = milestone_info['info']
+        days = milestone_info['milestone']
+        
+        # Only announce big milestones publicly
+        if days >= 14:
+            return f"🎉 {handle} hit {days} days! {milestone['emoji']} {milestone['title']}!"
+        
         return None
     
-    def milestone_id_from_threshold(self, threshold: int) -> str:
-        """Convert milestone threshold to badge ID"""
-        milestone_map = {
-            1: "first_day",
-            3: "early_bird", 
-            7: "week_streak",
-            14: "consistency_king",
-            30: "month_streak",
-            100: "century_club"
-        }
-        return milestone_map.get(threshold, f"milestone_{threshold}")
-    
-    def predict_next_milestone(self, current_streak: int) -> Dict:
-        """Predict when user will hit their next milestone"""
-        next_milestones = [t for t in self.milestones.keys() if t > current_streak]
-        if next_milestones:
-            next_threshold = min(next_milestones)
-            days_needed = next_threshold - current_streak
-            estimated_date = datetime.now() + timedelta(days=days_needed)
-            
-            return {
-                "threshold": next_threshold,
-                "milestone": self.milestones[next_threshold],
-                "days_needed": days_needed,
-                "estimated_date": estimated_date.strftime("%B %d"),
-                "progress_percent": (current_streak / next_threshold) * 100
-            }
-        return {
-            "threshold": None,
-            "milestone": {"name": "Milestone Master!", "message": "You've conquered all our milestones!"},
-            "days_needed": 0,
-            "estimated_date": "Complete!",
-            "progress_percent": 100
-        }
-    
-    def generate_celebration_message(self, milestone_data: Dict) -> Dict:
-        """Generate personalized celebration message"""
-        threshold = milestone_data["threshold"]
-        milestone = milestone_data["milestone"]
-        user = milestone_data["user"]
+    def get_next_milestone(self, current_streak):
+        """Get info about next milestone to work toward"""
+        next_milestones = [m for m in self.milestones.keys() if m > current_streak]
         
-        # Base celebration message
-        celebration = {
-            "title": f"🎉 {milestone['name']} Achievement Unlocked!",
-            "message": milestone["message"],
-            "user": user,
-            "color": milestone["color"],
-            "timestamp": datetime.now().isoformat(),
-            "milestone_day": threshold
-        }
+        if not next_milestones:
+            return None
         
-        # Add context-specific encouragements
-        if threshold == 1:
-            celebration["encouragement"] = "The hardest part is starting - you did it! 🌟"
-        elif threshold == 3:
-            celebration["encouragement"] = "Momentum is building! Keep riding the wave! 🌊"
-        elif threshold == 7:
-            celebration["encouragement"] = "You've proven you can build habits! What's next? 🚀"
-        elif threshold == 14:
-            celebration["encouragement"] = "Two weeks! You're in the top tier of committed creators! ⭐"
-        elif threshold == 30:
-            celebration["encouragement"] = "A full month! You've mastered the art of consistency! 🎨"
-        elif threshold == 100:
-            celebration["encouragement"] = "Century club! You're an inspiration to everyone! 👑"
-        
-        return celebration
-    
-    def generate_motivation_message(self, handle: str, current_streak: int) -> Dict:
-        """Generate motivational progress update"""
-        next_milestone = self.predict_next_milestone(current_streak)
-        
-        if next_milestone["threshold"]:
-            progress_bar = self.create_progress_bar(
-                current_streak, 
-                next_milestone["threshold"]
-            )
-            
-            return {
-                "user": handle,
-                "current_streak": current_streak,
-                "message": f"Day {current_streak} complete! 📅",
-                "next_milestone": next_milestone["milestone"]["name"],
-                "progress_bar": progress_bar,
-                "days_remaining": next_milestone["days_needed"],
-                "estimated_completion": next_milestone["estimated_date"],
-                "motivation": self.get_daily_motivation(current_streak),
-                "timestamp": datetime.now().isoformat()
-            }
+        next_milestone = min(next_milestones)
+        days_to_go = next_milestone - current_streak
         
         return {
-            "user": handle,
-            "current_streak": current_streak,
-            "message": f"Day {current_streak} - Milestone master! 🏆",
-            "motivation": "You've conquered all milestones! You're an inspiration! 👑"
+            'days': next_milestone,
+            'info': self.milestones[next_milestone],
+            'days_remaining': days_to_go
         }
     
-    def create_progress_bar(self, current: int, target: int, length: int = 10) -> str:
-        """Create visual progress bar"""
-        filled = int((current / target) * length)
-        empty = length - filled
-        return "█" * filled + "░" * empty + f" {current}/{target}"
-    
-    def get_daily_motivation(self, streak_day: int) -> str:
-        """Get motivational message based on streak day"""
-        motivations = {
-            1: "Great start! Tomorrow builds on today! 💪",
-            2: "Two days! Momentum is everything! 🔥", 
-            3: "Three days! You're forming a habit! 🌱",
-            4: "Four days! Consistency is your superpower! ⚡",
-            5: "Five days! You're on fire! 🚀",
-            6: "Six days! Almost a full week! 📅",
-            7: "Seven days! Week warrior achieved! 💪",
-            8: "Eight days! Into your second week! 🌟",
-            14: "Two weeks! You're unstoppable! 🔥",
-            21: "21 days! Habit formation complete! 🧠",
-            30: "30 days! Monthly legend status! 🏆"
+    def get_user_milestone_progress(self, handle):
+        """Get user's milestone celebration history"""
+        if handle not in self.celebrations:
+            return {'celebrated_milestones': [], 'total_celebrations': 0}
+        
+        celebrated = self.celebrations[handle]['celebrated_milestones']
+        return {
+            'celebrated_milestones': sorted(celebrated),
+            'total_celebrations': len(celebrated),
+            'highest_milestone': max(celebrated) if celebrated else 0
         }
-        
-        return motivations.get(streak_day, 
-            f"Day {streak_day}! Every day you show up matters! ✨"
-        )
-    
-    def check_all_users_for_celebrations(self) -> List[Dict]:
-        """Check all users for milestone celebrations needed"""
-        celebrations_needed = []
-        
-        for handle, streak_data in self.current_streaks.items():
-            milestone_data = self.check_milestone_eligibility(
-                handle, 
-                streak_data["current"]
-            )
-            
-            if milestone_data:
-                celebration = self.generate_celebration_message(milestone_data)
-                celebrations_needed.append(celebration)
-        
-        return celebrations_needed
-    
-    def generate_daily_progress_updates(self) -> List[Dict]:
-        """Generate daily progress messages for all users"""
-        updates = []
-        
-        for handle, streak_data in self.current_streaks.items():
-            update = self.generate_motivation_message(
-                handle, 
-                streak_data["current"]
-            )
-            updates.append(update)
-        
-        return updates
-    
-    def save_celebration_history(self, celebration: Dict):
-        """Save celebration to history"""
-        history_entry = {
-            "user": celebration["user"],
-            "milestone": celebration["title"],
-            "day": celebration["milestone_day"],
-            "celebrated_at": celebration["timestamp"],
-            "message_sent": True
-        }
-        
-        # Add to achievements file
-        if "celebration_history" not in self.achievements:
-            self.achievements["celebration_history"] = []
-        
-        self.achievements["celebration_history"].append(history_entry)
-        
-        # Save back to file
-        with open("achievements.json", 'w') as f:
-            json.dump(self.achievements, f, indent=2)
 
 def main():
-    """Demo the celebration system"""
-    engine = MilestoneCelebrationEngine()
+    """Test the celebration system"""
+    print("🎉 Streak Milestone Celebrations System")
+    print("=" * 45)
     
-    print("🎉 Milestone Celebration Engine")
-    print("=" * 50)
+    celebration_system = StreakMilestoneCelebrations()
     
-    # Check for celebrations needed
-    celebrations = engine.check_all_users_for_celebrations()
+    # Test with current users
+    test_users = [
+        ('demo_user', 1),
+        ('vibe_champion', 1)
+    ]
     
-    if celebrations:
-        print(f"🎊 {len(celebrations)} celebrations ready!")
-        for celebration in celebrations:
-            print(f"\n🎉 {celebration['title']}")
-            print(f"👤 User: {celebration['user']}")
-            print(f"💬 Message: {celebration['message']}")
-            print(f"✨ Encouragement: {celebration['encouragement']}")
+    total_celebrations = 0
+    
+    for handle, streak in test_users:
+        print(f"\n👤 Checking {handle} (streak: {streak} days)")
+        
+        # Check for new celebrations
+        new_celebrations = celebration_system.check_for_celebrations(handle, streak)
+        
+        if new_celebrations:
+            total_celebrations += len(new_celebrations)
+            print(f"   🎉 NEW CELEBRATIONS: {len(new_celebrations)}")
             
+            for celebration in new_celebrations:
+                milestone_info = celebration['info']
+                days = celebration['milestone']
+                
+                print(f"\n   🎊 MILESTONE: {days} days - {milestone_info['title']}")
+                
+                # Create celebration message
+                dm_message = celebration_system.create_celebration_message(handle, celebration)
+                print(f"   📱 DM Message:")
+                print(f"      {dm_message}")
+                
+                # Check if board announcement needed
+                board_msg = celebration_system.create_board_announcement(handle, celebration)
+                if board_msg:
+                    print(f"   📢 Board Announcement: {board_msg}")
+        else:
+            print(f"   ❌ No new celebrations (current: {streak} days)")
+        
+        # Show next milestone
+        next_milestone = celebration_system.get_next_milestone(streak)
+        if next_milestone:
+            print(f"   🎯 Next milestone: {next_milestone['days']} days ({next_milestone['days_remaining']} to go)")
+            print(f"      Goal: {next_milestone['info']['title']} {next_milestone['info']['emoji']}")
+        
+        # Show progress
+        progress = celebration_system.get_user_milestone_progress(handle)
+        print(f"   📊 Milestone history: {progress['celebrated_milestones']} ({progress['total_celebrations']} total)")
+    
+    # Save any new celebrations
+    if total_celebrations > 0:
+        celebration_system.save_celebrations()
+        print(f"\n💾 Saved {total_celebrations} new celebrations!")
     else:
-        print("📅 No new milestones reached")
+        print(f"\n📊 No new celebrations. Users need 3+ day streaks for first milestone!")
     
-    # Generate daily progress updates
-    print(f"\n📈 Daily Progress Updates")
-    print("-" * 30)
-    
-    updates = engine.generate_daily_progress_updates()
-    for update in updates:
-        print(f"\n👤 {update['user']}")
-        print(f"📊 {update['message']}")
-        if "progress_bar" in update:
-            print(f"🎯 Next: {update['next_milestone']}")
-            print(f"📈 Progress: {update['progress_bar']}")
-            print(f"⏰ {update['days_remaining']} days until {update['estimated_completion']}")
-        print(f"💪 {update['motivation']}")
-    
-    # Show upcoming milestones for planning
-    print(f"\n🎯 Upcoming Milestones")
-    print("-" * 25)
-    
-    for handle, streak_data in engine.current_streaks.items():
-        next_milestone = engine.predict_next_milestone(streak_data["current"])
-        if next_milestone["threshold"]:
-            print(f"{handle}: {next_milestone['milestone']['name']} in {next_milestone['days_needed']} days")
-            print(f"   Progress: {next_milestone['progress_percent']:.1f}%")
+    print(f"\n🎯 Milestone System Status:")
+    print(f"   • Available milestones: {list(celebration_system.milestones.keys())}")
+    print(f"   • Users tracked: {len(test_users)}")
+    print(f"   • New celebrations: {total_celebrations}")
 
 if __name__ == "__main__":
     main()
