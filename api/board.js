@@ -6,6 +6,7 @@
  * DELETE /api/board - Remove an entry (author only)
  *
  * Migration: Postgres primary, KV fallback
+ * Updated: 2026-01-08
  */
 
 import crypto from 'crypto';
@@ -55,10 +56,13 @@ async function addEntry(entry) {
         INSERT INTO board_entries (id, author, content, category, tags, created_at)
         VALUES (${id}, ${entry.author}, ${entry.content}, ${entry.category || 'general'}, ${entry.tags || []}, NOW())
       `;
+      console.log('[board] Postgres write SUCCESS:', id);
       return { ...fullEntry, _storage: 'postgres' };
     } catch (pgErr) {
-      console.error('[board] Postgres write error:', pgErr.message);
+      console.error('[board] Postgres write ERROR:', pgErr.message);
     }
+  } else {
+    console.log('[board] Postgres disabled. isPostgresEnabled:', isPostgresEnabled(), 'sql:', !!sql);
   }
 
   // Fall back to KV
