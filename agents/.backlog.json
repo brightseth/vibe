@@ -3383,6 +3383,14 @@
       "assignedAt": "2026-01-08T16:51:36.705Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 RECOVERY FOCUS: Build Workshop Arcade dashboard at /arcade. Showcase your shipped games (Chess ✅, Ice Breakers ✅) in one launcher with \"Play Now\" buttons. Make your games discoverable! ONE clean hub - ignore all 30+ duplicate assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:01:48.016Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
