@@ -1,0 +1,157 @@
+{
+  "offers": [
+    {
+      "id": "1704735600000",
+      "handle": "alice",
+      "skill": "react development",
+      "category": "Engineering",
+      "level": "expert",
+      "availability": "flexible",
+      "format": ["chat", "call", "pair"],
+      "description": "5+ years experience with React, hooks, performance optimization, and component libraries",
+      "examples": [],
+      "timestamp": 1704735600000,
+      "status": "active"
+    },
+    {
+      "id": "1704736200000",
+      "handle": "bob",
+      "skill": "python backend",
+      "category": "Engineering", 
+      "level": "expert",
+      "availability": "flexible",
+      "format": ["chat", "call"],
+      "description": "FastAPI, Django, microservices, API design, and database optimization",
+      "examples": [],
+      "timestamp": 1704736200000,
+      "status": "active"
+    },
+    {
+      "id": "1704736800000",
+      "handle": "carol", 
+      "skill": "ui/ux design",
+      "category": "Design",
+      "level": "expert",
+      "availability": "limited",
+      "format": ["chat", "review"],
+      "description": "Figma expert, design systems, user research, and interaction design",
+      "examples": [],
+      "timestamp": 1704736800000,
+      "status": "active"
+    },
+    {
+      "id": "1704737400000",
+      "handle": "dave",
+      "skill": "mobile development",
+      "category": "Engineering",
+      "level": "intermediate",
+      "availability": "flexible", 
+      "format": ["chat", "call", "pair"],
+      "description": "React Native, iOS/Android native, app store optimization",
+      "examples": [],
+      "timestamp": 1704737400000,
+      "status": "active"
+    },
+    {
+      "id": "1704738000000",
+      "handle": "eve",
+      "skill": "content strategy",
+      "category": "Content",
+      "level": "expert",
+      "availability": "busy",
+      "format": ["chat", "review"],
+      "description": "Technical writing, developer documentation, content marketing for dev tools",
+      "examples": [],
+      "timestamp": 1704738000,
+      "status": "active"
+    },
+    {
+      "id": "1704738600000",
+      "handle": "frank",
+      "skill": "devops",
+      "category": "Engineering",
+      "level": "expert",
+      "availability": "limited",
+      "format": ["chat", "call"],
+      "description": "Kubernetes, Docker, CI/CD, cloud infrastructure (AWS, GCP)",
+      "examples": [],
+      "timestamp": 1704738600000,
+      "status": "active"
+    }
+  ],
+  "requests": [
+    {
+      "id": "1704739200000",
+      "handle": "alice",
+      "skill": "machine learning deployment",
+      "category": "Engineering",
+      "urgency": "high",
+      "context": "Need to deploy ML models at scale for production app",
+      "format": ["chat", "call"],
+      "description": "Looking for help with Docker, Kubernetes, and ML model serving",
+      "timestamp": 1704739200000,
+      "status": "active"
+    },
+    {
+      "id": "1704739800000",
+      "handle": "bob",
+      "skill": "frontend ui feedback",
+      "category": "Design",
+      "urgency": "medium",
+      "context": "Backend dev who needs design guidance for user-facing features",
+      "format": ["chat", "review"],
+      "description": "Need help with component design and user experience principles",
+      "timestamp": 1704739800000,
+      "status": "active"
+    },
+    {
+      "id": "1704740400000",
+      "handle": "carol",
+      "skill": "react implementation",
+      "category": "Engineering",
+      "urgency": "medium",
+      "context": "Designer who needs help turning mockups into React components",
+      "format": ["chat", "pair"],
+      "description": "Have detailed Figma designs, need help with React best practices",
+      "timestamp": 1704740400000,
+      "status": "active"
+    },
+    {
+      "id": "1704741000000",
+      "handle": "dave",
+      "skill": "product strategy",
+      "category": "Business",
+      "urgency": "low",
+      "context": "Mobile app ready to launch, need go-to-market guidance",
+      "format": ["chat", "call"],
+      "description": "Looking for help with user acquisition and monetization strategies",
+      "timestamp": 1704741000000,
+      "status": "active"
+    },
+    {
+      "id": "1704741600000",
+      "handle": "eve",
+      "skill": "backend api development",
+      "category": "Engineering",
+      "urgency": "high",
+      "context": "Building AI content tools, need robust API architecture",
+      "format": ["chat", "call", "pair"],
+      "description": "Need help with API design, authentication, and scaling strategies",
+      "timestamp": 1704741600000,
+      "status": "active"
+    },
+    {
+      "id": "1704742200000",
+      "handle": "frank",
+      "skill": "user research",
+      "category": "Design",
+      "urgency": "medium",
+      "context": "DevOps tool needs user validation and feedback collection",
+      "format": ["chat", "review"],
+      "description": "Need help designing user interviews and analyzing feedback",
+      "timestamp": 1704742200000,
+      "status": "active"
+    }
+  ],
+  "exchanges": []
+}

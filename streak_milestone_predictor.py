@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-🔮 Streak Milestone Predictor
-Built by @streaks-agent for /vibe workshop
-
-Predicts when users will reach their next streak milestones
-and provides celebration timing insights.
+🔮 Streak Milestone Predictor for @streaks-agent
+Predicts when users will hit their next major milestones and helps with motivation.
+Built for /vibe workshop gamification.
 """
 
 import json
 from datetime import datetime, timedelta
-from pathlib import Path
+from typing import Dict, List, Tuple, Optional
+import os
 
 class StreakMilestonePredictor:
     def __init__(self):
@@ -21,168 +20,197 @@ class StreakMilestonePredictor:
             100: "Century Club 👑"
         }
         
-        # Load current streak data
-        self.streaks = self.load_streak_data()
-        
-    def load_streak_data(self):
-        """Load current streak data"""
-        # Mock data based on current status
+    def load_streak_data(self) -> Dict:
+        """Load current streak data from @streaks-agent memory"""
+        # In real implementation, this would query the streak system
+        # For now, using known data from context
         return {
-            "demo_user": {"current": 1, "best": 1},
-            "vibe_champion": {"current": 1, "best": 1}
+            "@demo_user": {"current": 1, "best": 1},
+            "@vibe_champion": {"current": 1, "best": 1}
         }
     
-    def predict_milestone_dates(self):
-        """Predict when each user will reach their next milestones"""
-        predictions = {}
-        today = datetime.now()
-        
-        for handle, data in self.streaks.items():
-            current_streak = data["current"]
-            user_predictions = {}
+    def predict_next_milestone(self, current_streak: int) -> Tuple[Optional[int], Optional[str], Optional[datetime]]:
+        """Predict user's next milestone target"""
+        next_milestone = None
+        for milestone_days in sorted(self.milestones.keys()):
+            if milestone_days > current_streak:
+                next_milestone = milestone_days
+                break
+                
+        if next_milestone is None:
+            return None, None, None
             
-            for milestone_days, milestone_name in self.milestones.items():
-                if current_streak < milestone_days:
-                    days_needed = milestone_days - current_streak
-                    predicted_date = today + timedelta(days=days_needed)
-                    
-                    # Calculate confidence based on current performance
-                    confidence = self.calculate_confidence(current_streak, milestone_days)
-                    
-                    user_predictions[milestone_days] = {
-                        "name": milestone_name,
-                        "days_needed": days_needed,
-                        "predicted_date": predicted_date.strftime("%Y-%m-%d"),
-                        "confidence": confidence,
-                        "celebration_ready": days_needed <= 2  # Ready to prepare celebration
-                    }
-            
-            predictions[handle] = user_predictions
+        milestone_name = self.milestones[next_milestone]
+        days_to_go = next_milestone - current_streak
+        target_date = datetime.now() + timedelta(days=days_to_go)
         
-        return predictions
+        return next_milestone, milestone_name, target_date
     
-    def calculate_confidence(self, current_streak, milestone_days):
-        """Calculate confidence level for milestone achievement"""
-        if current_streak == 0:
-            return "Low"
-        elif current_streak >= milestone_days // 2:
-            return "High"
-        elif current_streak >= milestone_days // 3:
-            return "Medium"
+    def calculate_milestone_momentum(self, current_streak: int, best_streak: int) -> Dict:
+        """Calculate momentum indicators for motivation"""
+        momentum = {
+            "is_personal_best": current_streak == best_streak and current_streak > 0,
+            "days_from_pb": best_streak - current_streak if best_streak > current_streak else 0,
+            "motivation_level": "high" if current_streak >= 3 else "building",
+            "streak_phase": self._get_streak_phase(current_streak)
+        }
+        return momentum
+    
+    def _get_streak_phase(self, streak: int) -> str:
+        """Determine what phase of streak building user is in"""
+        if streak == 0:
+            return "fresh_start"
+        elif streak <= 2:
+            return "foundation_building" 
+        elif streak <= 6:
+            return "habit_forming"
+        elif streak <= 13:
+            return "momentum_building"
+        elif streak <= 29:
+            return "consistency_mastery"
         else:
-            return "Low"
+            return "legendary_status"
     
-    def get_celebration_alerts(self):
-        """Get alerts for upcoming celebrations that need preparation"""
-        alerts = []
-        predictions = self.predict_milestone_dates()
+    def generate_motivation_message(self, handle: str, current_streak: int, best_streak: int) -> str:
+        """Generate personalized motivation message"""
+        next_milestone, milestone_name, target_date = self.predict_next_milestone(current_streak)
+        momentum = self.calculate_milestone_momentum(current_streak, best_streak)
         
-        for handle, milestones in predictions.items():
-            for milestone_days, info in milestones.items():
-                if info["celebration_ready"]:
-                    alerts.append({
-                        "handle": handle,
-                        "milestone": info["name"],
-                        "days_until": info["days_needed"],
-                        "date": info["predicted_date"],
-                        "confidence": info["confidence"],
-                        "action": f"Prepare celebration for {handle}'s {info['name']} achievement"
-                    })
+        if not next_milestone:
+            return f"🏆 {handle}, you're already a legend! Keep the streak alive!"
         
-        return alerts
+        days_to_go = next_milestone - current_streak
+        date_str = target_date.strftime("%b %d") if target_date else ""
+        
+        phase_messages = {
+            "fresh_start": "Every expert was once a beginner! 🌱",
+            "foundation_building": "You're building the foundation of greatness! 💪", 
+            "habit_forming": "The habit is taking root! 🌿",
+            "momentum_building": "You're in the flow zone! 🚀",
+            "consistency_mastery": "Master level consistency! 🎯",
+            "legendary_status": "Living legend! 👑"
+        }
+        
+        phase_msg = phase_messages.get(momentum["streak_phase"], "Keep going!")
+        
+        if momentum["is_personal_best"]:
+            return f"🔥 {handle}, you're on a personal best streak! {days_to_go} more days to {milestone_name} by {date_str}. {phase_msg}"
+        else:
+            pb_note = f" (your best was {best_streak} days)" if best_streak > current_streak else ""
+            return f"🎯 {handle}, {days_to_go} days until {milestone_name} on {date_str}! {phase_msg}{pb_note}"
     
-    def generate_analytics_report(self):
-        """Generate comprehensive milestone prediction report"""
-        predictions = self.predict_milestone_dates()
-        alerts = self.get_celebration_alerts()
-        
+    def generate_predictions_report(self) -> Dict:
+        """Generate full predictions report for all users"""
+        streak_data = self.load_streak_data()
         report = {
-            "timestamp": datetime.now().isoformat(),
-            "summary": {
-                "total_users": len(self.streaks),
-                "upcoming_milestones": sum(len(p) for p in predictions.values()),
-                "celebration_alerts": len(alerts)
-            },
-            "predictions": predictions,
-            "celebration_alerts": alerts,
-            "insights": self.generate_insights(predictions, alerts)
+            "generated_at": datetime.now().isoformat(),
+            "total_users": len(streak_data),
+            "predictions": {},
+            "upcoming_milestones": [],
+            "motivation_summary": {}
+        }
+        
+        for handle, data in streak_data.items():
+            current = data["current"]
+            best = data["best"]
+            
+            next_milestone, milestone_name, target_date = self.predict_next_milestone(current)
+            momentum = self.calculate_milestone_momentum(current, best)
+            
+            prediction = {
+                "current_streak": current,
+                "best_streak": best,
+                "next_milestone": {
+                    "days": next_milestone,
+                    "name": milestone_name,
+                    "target_date": target_date.isoformat() if target_date else None,
+                    "days_to_go": next_milestone - current if next_milestone else 0
+                },
+                "momentum": momentum,
+                "motivation_message": self.generate_motivation_message(handle, current, best)
+            }
+            
+            report["predictions"][handle] = prediction
+            
+            if target_date:
+                report["upcoming_milestones"].append({
+                    "user": handle,
+                    "milestone": milestone_name,
+                    "date": target_date.isoformat(),
+                    "days_away": next_milestone - current
+                })
+        
+        # Sort upcoming milestones by date
+        report["upcoming_milestones"].sort(key=lambda x: x["date"])
+        
+        # Generate summary stats
+        active_users = len([u for u in streak_data.values() if u["current"] > 0])
+        avg_streak = sum(u["current"] for u in streak_data.values()) / len(streak_data) if streak_data else 0
+        
+        report["motivation_summary"] = {
+            "active_users": active_users,
+            "average_streak": round(avg_streak, 1),
+            "next_celebration": report["upcoming_milestones"][0]["date"] if report["upcoming_milestones"] else None,
+            "momentum_distribution": self._analyze_momentum_distribution(streak_data)
         }
         
         return report
     
-    def generate_insights(self, predictions, alerts):
-        """Generate actionable insights from prediction data"""
-        insights = []
-        
-        # Next major milestone wave
-        next_milestone_dates = []
-        for user_preds in predictions.values():
-            for milestone_data in user_preds.values():
-                next_milestone_dates.append(milestone_data["predicted_date"])
-        
-        if next_milestone_dates:
-            earliest_date = min(next_milestone_dates)
-            insights.append(f"🎯 Next milestone wave expected: {earliest_date}")
-        
-        # Celebration preparedness
-        if alerts:
-            insights.append(f"🎉 {len(alerts)} celebrations need preparation within 2 days")
-        else:
-            insights.append("✅ No immediate celebrations needed - users building momentum")
-        
-        # User engagement status
-        all_at_day_one = all(data["current"] == 1 for data in self.streaks.values())
-        if all_at_day_one:
-            insights.append("🌱 Critical Day 1 phase - focus on habit formation support")
-        
-        return insights
+    def _analyze_momentum_distribution(self, streak_data: Dict) -> Dict:
+        """Analyze the distribution of users across momentum phases"""
+        distribution = {}
+        for data in streak_data.values():
+            phase = self._get_streak_phase(data["current"])
+            distribution[phase] = distribution.get(phase, 0) + 1
+        return distribution
     
-    def save_report(self, filename="streak_milestone_predictions.json"):
-        """Save prediction report to file"""
-        report = self.generate_analytics_report()
-        
+    def save_predictions(self, filename: str = "streak_predictions.json"):
+        """Save predictions to file"""
+        report = self.generate_predictions_report()
         with open(filename, 'w') as f:
-            json.dump(report, f, indent=2)
-        
-        print(f"📊 Streak milestone predictions saved to {filename}")
-        return report
+            json.dump(report, f, indent=2, default=str)
+        return filename
 
 def main():
-    """Generate and display streak milestone predictions"""
+    """Run streak milestone predictions and display results"""
     predictor = StreakMilestonePredictor()
     
-    print("🔮 Generating Streak Milestone Predictions...")
+    print("🔮 Streak Milestone Predictor")
     print("=" * 50)
     
     # Generate full report
-    report = predictor.save_report()
+    report = predictor.generate_predictions_report()
     
-    # Display key insights
-    print("\\n📈 PREDICTION SUMMARY:")
-    print(f"👥 Users tracked: {report['summary']['total_users']}")
-    print(f"🎯 Upcoming milestones: {report['summary']['upcoming_milestones']}")
-    print(f"🎉 Celebration alerts: {report['summary']['celebration_alerts']}")
+    print(f"\n📊 Current Status ({report['total_users']} users)")
+    print(f"Average streak: {report['motivation_summary']['average_streak']} days")
+    print(f"Active users: {report['motivation_summary']['active_users']}")
     
-    print("\\n💡 KEY INSIGHTS:")
-    for insight in report['insights']:
-        print(f"   {insight}")
+    print("\n🎯 Individual Predictions:")
+    for handle, prediction in report["predictions"].items():
+        current = prediction["current_streak"]
+        milestone = prediction["next_milestone"]
+        print(f"\n{handle}:")
+        print(f"  Current: {current} days (best: {prediction['best_streak']})")
+        if milestone["name"]:
+            print(f"  Next: {milestone['name']} in {milestone['days_to_go']} days")
+            print(f"  Target: {milestone['target_date'][:10]}")
+        print(f"  💬 {prediction['motivation_message']}")
     
-    print("\\n🚨 CELEBRATION ALERTS:")
-    if report['celebration_alerts']:
-        for alert in report['celebration_alerts']:
-            print(f"   📅 {alert['handle']}: {alert['milestone']} in {alert['days_until']} days ({alert['date']})")
-            print(f"      Confidence: {alert['confidence']} | Action: {alert['action']}")
-    else:
-        print("   ✅ No immediate celebrations needed")
+    print(f"\n🗓️ Upcoming Milestones ({len(report['upcoming_milestones'])} scheduled):")
+    for milestone in report["upcoming_milestones"][:5]:  # Show next 5
+        date_str = milestone["date"][:10]
+        print(f"  • {milestone['user']}: {milestone['milestone']} on {date_str} ({milestone['days_away']} days)")
     
-    print("\\n🎯 NEXT MILESTONES:")
-    for handle, milestones in report['predictions'].items():
-        print(f"\\n   {handle}:")
-        for milestone_days, info in list(milestones.items())[:2]:  # Show next 2 milestones
-            print(f"      • {info['name']}: {info['predicted_date']} ({info['days_needed']} days)")
+    print("\n📈 Momentum Distribution:")
+    for phase, count in report["motivation_summary"]["momentum_distribution"].items():
+        print(f"  {phase.replace('_', ' ').title()}: {count} users")
     
-    print(f"\\n✅ Full report saved to: streak_milestone_predictions.json")
-    print("🚀 Ready for strategic celebration planning!")
+    # Save detailed report
+    filename = predictor.save_predictions()
+    print(f"\n💾 Detailed report saved to: {filename}")
+    
+    print("\n" + "=" * 50)
+    print("Built by @streaks-agent for /vibe workshop gamification 🚀")
 
 if __name__ == "__main__":
     main()
