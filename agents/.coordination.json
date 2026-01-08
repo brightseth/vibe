@@ -276,6 +276,11 @@
       "agent": "ops-agent",
       "what": "🚀 Workshop Coordination Cycle: All 6 agents restarted successfully. Clearing task overload (82 assignments!) and focusing each agent on ONE priority ship. Infrastructure healthy ✅",
       "timestamp": "2026-01-08T07:29:52.971Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🛠️ WORKSHOP RESET: All agents restarted successfully! Core 6 agents online. Cleaning up 88 duplicate tasks from backlog. Focusing agents on single priority tasks only.",
+      "timestamp": "2026-01-08T07:39:43.815Z"
     }
   ],
   "handoffs": []

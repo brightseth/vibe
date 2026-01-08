@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Achievement Badges</title>
+    <style>
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 10px 0;
+        }
+        
+        .user-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .user-info h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.8rem;
+        }
+        
+        .user-stats {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+        
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: scale(1);
+            transition: transform 0.2s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .badge-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .badge-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .badge-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .no-badges {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .leaderboard {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .leaderboard h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 2rem;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 10px;
+            border-left: 5px solid;
+        }
+        
+        .leaderboard-item:nth-child(1) { border-color: #ffd700; }
+        .leaderboard-item:nth-child(2) { border-color: #c0c0c0; }
+        .leaderboard-item:nth-child(3) { border-color: #cd7f32; }
+        .leaderboard-item:nth-child(n+4) { border-color: #ddd; }
+        
+        .leaderboard-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .leaderboard-user {
+            flex: 1;
+            margin: 0 15px;
+        }
+        
+        .leaderboard-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        
+        .leaderboard-badges {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .leaderboard-count {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Workshop Achievement Badges</h1>
+            <p>Celebrating consistency, creativity, and community spirit!</p>
+        </div>
+        
+        <!-- Demo User Profiles -->
+        <div class="user-section">
+            <div class="user-header">
+                <div class="user-avatar">🌟</div>
+                <div class="user-info">
+                    <h2>@demo_user</h2>
+                    <div class="user-stats">Current Streak: 1 days • Best Streak: 1 days</div>
+                </div>
+            </div>
+            <div class="badges-grid">
+                <div class="badge">
+                    <span class="badge-emoji">🌱</span>
+                    <div class="badge-name">Getting Started</div>
+                    <div class="badge-description">Showed up for your first day!</div>
+                </div>
+                <!-- More badges will appear as they're earned -->
+            </div>
+        </div>
+        
+        <div class="user-section">
+            <div class="user-header">
+                <div class="user-avatar">⚡</div>
+                <div class="user-info">
+                    <h2>@vibe_champion</h2>
+                    <div class="user-stats">Current Streak: 1 days • Best Streak: 1 days</div>
+                </div>
+            </div>
+            <div class="badges-grid">
+                <div class="badge">
+                    <span class="badge-emoji">🌱</span>
+                    <div class="badge-name">Getting Started</div>
+                    <div class="badge-description">Showed up for your first day!</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <h2>🥇 Badge Leaderboard</h2>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank">1</div>
+                <div class="leaderboard-user">
+                    <div class="leaderboard-name">@demo_user</div>
+                    <div class="leaderboard-badges">🌱 Getting Started</div>
+                </div>
+                <div class="leaderboard-count">1 badge</div>
+            </div>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank">1</div>
+                <div class="leaderboard-user">
+                    <div class="leaderboard-name">@vibe_champion</div>
+                    <div class="leaderboard-badges">🌱 Getting Started</div>
+                </div>
+                <div class="leaderboard-count">1 badge</div>
+            </div>
+        </div>
+        
+        <!-- Available Badges Reference -->
+        <div class="leaderboard">
+            <h2>🎯 Available Badges</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px;">
+                <!-- Streak Badges -->
+                <div style="background: rgba(76,175,80,0.1); padding: 15px; border-radius: 10px;">
+                    <h3 style="color: #4caf50; margin-top: 0;">🔥 Streak Badges</h3>
+                    <div>🌱 Getting Started (1 day)</div>
+                    <div>💪 Week Warrior (7 days)</div>
+                    <div>🔥 Commitment Level (14 days)</div>
+                    <div>🏆 Monthly Legend (30 days)</div>
+                    <div>👑 Century Club (100 days)</div>
+                </div>
+                
+                <!-- Activity Badges -->
+                <div style="background: rgba(33,150,243,0.1); padding: 15px; border-radius: 10px;">
+                    <h3 style="color: #2196f3; margin-top: 0;">🚢 Activity Badges</h3>
+                    <div>🚢 First Ship (1 creation)</div>
+                    <div>⚡ Prolific Shipper (10 ships)</div>
+                    <div>🚀 Shipping Legend (50 ships)</div>
+                </div>
+                
+                <!-- Game Badges -->
+                <div style="background: rgba(156,39,176,0.1); padding: 15px; border-radius: 10px;">
+                    <h3 style="color: #9c27b0; margin-top: 0;">🎮 Game Badges</h3>
+                    <div>🎮 Game Pioneer (1 game)</div>
+                    <div>🎯 Game Master (5 games)</div>
+                    <div>🏗️ Game Architect (10 games)</div>
+                </div>
+                
+                <!-- Social Badges -->
+                <div style="background: rgba(255,152,0,0.1); padding: 15px; border-radius: 10px;">
+                    <h3 style="color: #ff9800; margin-top: 0;">🤝 Social Badges</h3>
+                    <div>🎉 Team Encourager (10 celebrations)</div>
+                    <div>🤝 Workshop Mentor (3 mentorships)</div>
+                    <div>✨ Vibe Keeper (high contributions)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
