@@ -1,6 +1,8 @@
 {
-  "gamesBuilt": [],
+  "gamesBuilt": [
+    "collaborative"
+  ],
   "requestsObserved": [],
-  "lastShip": "2026-01-07T22:45:18.732Z",
+  "lastShip": "2026-01-08T04:46:34.252Z",
   "currentProject": null
 }
