@@ -1,7 +1,7 @@
 /**
- * /api/webhooks/status — Bridge Status Dashboard
+ * /api/webhooks/status — Unified Webhook Health Dashboard
  * 
- * Shows the status of all webhook bridges and social integrations.
+ * Monitor all webhook endpoints and their health status.
  */
 
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -16,125 +16,187 @@ async function getKV() {
   }
 }
 
+/**
+ * Get webhook health for all platforms
+ */
+async function getWebhookHealth() {
+  const kv = await getKV();
+  const webhooks = {};
+
+  // X/Twitter webhook status
+  try {
+    const xStats = kv ? await kv.hgetall('vibe:x_webhook_stats') : null;
+    const xConfig = {
+      webhook_secret: !!process.env.X_WEBHOOK_SECRET,
+      bearer_token: !!process.env.X_BEARER_TOKEN,
+      api_credentials: !!(process.env.X_API_KEY && process.env.X_API_SECRET)
+    };
+
+    let xHealth = 0;
+    if (xConfig.webhook_secret) xHealth += 25;
+    if (xConfig.bearer_token) xHealth += 25;
+    if (xStats?.total_deliveries > 0) xHealth += 25;
+    if (xStats?.last_delivery) {
+      const lastDelivery = new Date(xStats.last_delivery);
+      const hoursSince = (Date.now() - lastDelivery.getTime()) / (1000 * 60 * 60);
+      if (hoursSince < 24) xHealth += 25;
+    }
+
+    webhooks.x = {
+      platform: 'X (Twitter)',
+      endpoint: '/api/webhooks/x',
+      health: xHealth,
+      status: xHealth >= 75 ? 'healthy' : xHealth >= 50 ? 'warning' : 'error',
+      configured: xConfig.webhook_secret && xConfig.bearer_token,
+      stats: {
+        total_deliveries: parseInt(xStats?.total_deliveries) || 0,
+        events_processed: parseInt(xStats?.events_processed) || 0,
+        last_delivery: xStats?.last_delivery || null
+      }
+    };
+  } catch (e) {
+    webhooks.x = {
+      platform: 'X (Twitter)',
+      endpoint: '/api/webhooks/x',
+      health: 0,
+      status: 'error',
+      error: e.message
+    };
+  }
+
+  // Telegram webhook status (placeholder)
+  webhooks.telegram = {
+    platform: 'Telegram',
+    endpoint: '/webhook/telegram',
+    health: process.env.TELEGRAM_BOT_TOKEN ? 50 : 0,
+    status: process.env.TELEGRAM_BOT_TOKEN ? 'configured' : 'not_configured',
+    configured: !!process.env.TELEGRAM_BOT_TOKEN
+  };
+
+  // Discord webhook status (placeholder)
+  webhooks.discord = {
+    platform: 'Discord',
+    endpoint: '/webhook/discord',
+    health: process.env.DISCORD_BOT_TOKEN ? 50 : 0,
+    status: process.env.DISCORD_BOT_TOKEN ? 'configured' : 'not_configured',
+    configured: !!process.env.DISCORD_BOT_TOKEN
+  };
+
+  // Farcaster webhook status (placeholder)
+  webhooks.farcaster = {
+    platform: 'Farcaster',
+    endpoint: '/api/webhooks/farcaster',
+    health: process.env.FARCASTER_PRIVATE_KEY ? 50 : 0,
+    status: process.env.FARCASTER_PRIVATE_KEY ? 'configured' : 'not_configured',
+    configured: !!process.env.FARCASTER_PRIVATE_KEY
+  };
+
+  return webhooks;
+}
+
+/**
+ * Get overall bridge system health
+ */
+async function getSystemHealth(webhooks) {
+  const totalWebhooks = Object.keys(webhooks).length;
+  const configuredWebhooks = Object.values(webhooks).filter(w => w.configured).length;
+  const healthyWebhooks = Object.values(webhooks).filter(w => w.health >= 75).length;
+  const avgHealth = Object.values(webhooks).reduce((sum, w) => sum + w.health, 0) / totalWebhooks;
+
+  return {
+    overall_status: avgHealth >= 75 ? 'healthy' : avgHealth >= 50 ? 'warning' : 'degraded',
+    overall_health: Math.round(avgHealth),
+    configured_count: configuredWebhooks,
+    healthy_count: healthyWebhooks,
+    total_count: totalWebhooks,
+    recommendations: generateRecommendations(webhooks)
+  };
+}
+
+/**
+ * Generate setup recommendations
+ */
+function generateRecommendations(webhooks) {
+  const recommendations = [];
+
+  if (!webhooks.x.configured) {
+    recommendations.push({
+      priority: 'high',
+      action: 'Configure X webhook',
+      description: 'Set X_WEBHOOK_SECRET and X_BEARER_TOKEN to receive X mentions and DMs'
+    });
+  }
+
+  if (webhooks.x.health < 50) {
+    recommendations.push({
+      priority: 'medium',
+      action: 'Test X webhook',
+      description: 'Use /api/webhooks/x/test to verify webhook is working'
+    });
+  }
+
+  if (!webhooks.telegram.configured) {
+    recommendations.push({
+      priority: 'medium',
+      action: 'Set up Telegram bot',
+      description: 'Configure TELEGRAM_BOT_TOKEN to enable Telegram integration'
+    });
+  }
+
+  if (!webhooks.farcaster.configured) {
+    recommendations.push({
+      priority: 'low',
+      action: 'Connect Farcaster',
+      description: 'Set FARCASTER_PRIVATE_KEY for Web3 social integration'
+    });
+  }
+
+  return recommendations;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'GET required' });
   }
 
-  const kv = await getKV();
-  
   try {
-    // X/Twitter Bridge Status
-    const xStats = kv ? await kv.hgetall('vibe:x_webhook_stats') : null;
-    const xConfig = {
-      webhook_secret: !!process.env.X_WEBHOOK_SECRET,
-      bearer_token: !!process.env.X_BEARER_TOKEN,
-      api_credentials: !!(process.env.X_API_KEY && process.env.X_API_SECRET),
-    };
-    
-    // Social Inbox Status
-    const inboxEvents = kv ? await kv.lrange('vibe:social_inbox', 0, 4) : [];
-    const recentXEvents = inboxEvents
-      .map(event => {
-        try {
-          const parsed = JSON.parse(event);
-          return parsed.platform === 'x' ? parsed : null;
-        } catch {
-          return null;
-        }
-      })
-      .filter(event => event !== null);
+    const webhooks = await getWebhookHealth();
+    const systemHealth = await getSystemHealth(webhooks);
 
-    // Bridge Health Scores
-    const bridges = {
-      x: {
-        name: 'X/Twitter',
-        endpoint: '/api/webhooks/x',
-        health_endpoint: '/api/webhooks/x/health',
-        test_endpoint: '/api/webhooks/x/test',
-        configured: xConfig.webhook_secret && xConfig.api_credentials,
-        deliveries: parseInt(xStats?.total_deliveries) || 0,
-        events_processed: parseInt(xStats?.events_processed) || 0,
-        last_delivery: xStats?.last_delivery || null,
-        status: xConfig.webhook_secret ? (xStats?.total_deliveries > 0 ? 'active' : 'ready') : 'needs_config'
-      },
-      telegram: {
-        name: 'Telegram',
-        endpoint: '/api/webhooks/telegram',
-        configured: !!process.env.TELEGRAM_BOT_TOKEN,
-        status: 'planned'
-      },
-      discord: {
-        name: 'Discord',
-        endpoint: '/api/webhooks/discord',
-        configured: !!process.env.DISCORD_WEBHOOK_URL,
-        status: 'planned'
-      },
-      farcaster: {
-        name: 'Farcaster',
-        endpoint: '/api/webhooks/farcaster',
-        configured: false,
-        status: 'planned'
-      }
-    };
-
-    // Overall system health
-    const totalDeliveries = Object.values(bridges).reduce((sum, bridge) => sum + (bridge.deliveries || 0), 0);
-    const activeBridges = Object.values(bridges).filter(bridge => bridge.status === 'active').length;
-    const readyBridges = Object.values(bridges).filter(bridge => bridge.status === 'ready').length;
-    
-    const systemHealth = {
-      status: activeBridges > 0 ? 'operational' : readyBridges > 0 ? 'ready' : 'setup_required',
-      score: Math.round((activeBridges * 100 + readyBridges * 50) / Object.keys(bridges).length),
-      kv_available: !!kv,
-      total_deliveries: totalDeliveries,
-      active_bridges: activeBridges,
-      ready_bridges: readyBridges
-    };
-
-    // Setup instructions for unconfigured bridges
-    const setupInstructions = {};
-    
-    if (!xConfig.webhook_secret) {
-      setupInstructions.x = [
-        'Set X_WEBHOOK_SECRET in environment variables',
-        'Set X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET',
-        `Configure webhook URL: https://${req.headers.host}/api/webhooks/x`,
-        'Test with: curl -X POST /api/webhooks/x/test'
-      ];
-    }
-
-    const response = {
-      status: systemHealth.status,
-      health_score: systemHealth.score,
-      bridges,
+    // Return comprehensive dashboard data
+    return res.status(200).json({
+      timestamp: new Date().toISOString(),
       system: systemHealth,
-      recent_events: {
-        x: recentXEvents.slice(0, 3).map(event => ({
-          type: event.type,
-          from: event.from?.handle || 'unknown',
-          timestamp: event.timestamp,
-          processed: event.processed
-        }))
+      webhooks,
+      setup_guide: {
+        priority_order: [
+          { platform: 'x', reason: 'Most common platform for mentions' },
+          { platform: 'telegram', reason: 'Popular for community chat' },
+          { platform: 'discord', reason: 'Developer community platform' },
+          { platform: 'farcaster', reason: 'Web3 social networking' }
+        ],
+        next_steps: [
+          '1. Configure X webhook first (highest impact)',
+          '2. Test webhook delivery with /api/webhooks/x/test',
+          '3. Check social inbox with GET /api/social',
+          '4. Set up additional platforms as needed'
+        ]
       },
-      urls: {
-        x_webhook: `https://${req.headers.host}/api/webhooks/x`,
-        x_health: `https://${req.headers.host}/api/webhooks/x/health`,
-        x_test: `https://${req.headers.host}/api/webhooks/x/test`,
-        social_inbox: `https://${req.headers.host}/api/social/inbox`,
-        webhook_registration: `https://${req.headers.host}/api/webhooks`
-      },
-      setup_instructions: Object.keys(setupInstructions).length > 0 ? setupInstructions : null,
-      last_updated: new Date().toISOString()
-    };
-
-    return res.status(200).json(response);
+      monitoring: {
+        health_check_url: '/api/webhooks/status',
+        individual_health: Object.fromEntries(
+          Object.entries(webhooks).map(([key, webhook]) => [
+            key,
+            webhook.endpoint + (webhook.endpoint.includes('/api/webhooks/') ? '/health' : '/health')
+          ])
+        )
+      }
+    });
 
   } catch (error) {
     return res.status(500).json({
-      status: 'error',
-      error: error.message,
-      health_score: 0
+      error: 'Failed to get webhook status',
+      message: error.message
     });
   }
 }
