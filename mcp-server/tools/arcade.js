@@ -1,341 +1,375 @@
 /**
- * Workshop Arcade — Game launcher and discovery hub
+ * vibe arcade — Browse and launch games in the /vibe workshop
  * 
- * Showcases all available games in the /vibe workshop and provides
- * easy access to start playing them with friends.
+ * A central hub showcasing all available games with descriptions and launch commands
  */
 
 const config = require('../config');
 const store = require('../store');
-const { normalizeHandle } = require('./_shared');
+const { requireInit, normalizeHandle } = require('./_shared');
 
-// Game catalog with descriptions and how to play
-const GAMES = {
-  'tictactoe': {
-    name: 'Tic-Tac-Toe',
-    emoji: '⭕',
+// Game catalog with descriptions and commands
+const GAME_CATALOG = {
+  // Strategy Games
+  chess: {
+    title: '♟️ Chess',
+    category: 'Strategy',
+    description: 'Classic chess with algebraic notation. Full rules, checkmate, castling, en passant.',
+    command: 'vibe game @friend --game chess',
+    minPlayers: 2,
+    maxPlayers: 2,
+    difficulty: 'Advanced',
+    emoji: '♟️'
+  },
+  
+  tictactoe: {
+    title: '❌ Tic-Tac-Toe', 
+    category: 'Strategy',
     description: 'Classic 3x3 grid game. Get three in a row to win!',
-    players: '2 players',
-    howToPlay: 'Use `vibe game @friend --move 5` to play center (positions 1-9)',
-    category: 'strategy'
+    command: 'vibe game @friend --game tictactoe',
+    minPlayers: 2,
+    maxPlayers: 2,
+    difficulty: 'Beginner',
+    emoji: '❌'
   },
-  'chess': {
-    name: 'Chess',
-    emoji: '♟️',
-    description: 'The classic strategy game. Checkmate your opponent!',
-    players: '2 players',
-    howToPlay: 'Use `vibe game @friend chess --move e4` for algebraic notation',
-    category: 'strategy'
-  },
-  'hangman': {
-    name: 'Hangman',
-    emoji: '🎪',
-    description: 'Guess the word letter by letter before running out of tries!',
-    players: '1+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'word'
-  },
-  'wordchain': {
-    name: 'Word Chain',
-    emoji: '🔗',
-    description: 'Take turns saying words that start with the last letter!',
-    players: '2+ players', 
-    howToPlay: 'Coming to arcade soon!',
-    category: 'word'
-  },
-  'drawing': {
-    name: 'Collaborative Drawing',
-    emoji: '🎨',
-    description: 'Create art together on a shared canvas!',
-    players: '1-8 players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'creative'
-  },
-  'twentyquestions': {
-    name: 'Twenty Questions',
-    emoji: '❓',
-    description: 'Guess what I\'m thinking in 20 yes/no questions!',
-    players: '2+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'guessing'
-  },
-  'rockpaperscissors': {
-    name: 'Rock Paper Scissors',
-    emoji: '✂️',
-    description: 'The timeless hand game of strategy and luck!',
-    players: '2 players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'quick'
-  },
-  'guessnumber': {
-    name: 'Number Guessing',
-    emoji: '🔢',
-    description: 'I\'m thinking of a number... can you guess it?',
-    players: '1+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'guessing'
-  },
-  'colorguess': {
-    name: 'Color Guessing',
-    emoji: '🎨',
-    description: 'Guess the color I\'m thinking of!',
-    players: '1+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'guessing'
-  },
-  'memory': {
-    name: 'Memory',
-    emoji: '🧠',
-    description: 'Test your memory by matching pairs of cards!',
-    players: '1+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'puzzle'
-  },
-  'snake': {
-    name: 'Snake',
-    emoji: '🐍',
-    description: 'Grow your snake by eating food, but don\'t hit the walls!',
-    players: '1 player',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'arcade'
-  },
-  'storybuilder': {
-    name: 'Story Builder',
-    emoji: '📖',
-    description: 'Build a story together, one sentence at a time!',
-    players: '2+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'creative'
-  },
-  'riddle': {
-    name: 'Riddle',
-    emoji: '🧩',
-    description: 'Test your wit with challenging riddles!',
-    players: '1+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'puzzle'
-  },
-  'quickduel': {
-    name: 'Quick Duel',
-    emoji: '⚔️',
-    description: 'Fast-paced one-on-one challenges!',
-    players: '2 players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'quick'
-  },
-  'werewolf': {
-    name: 'Werewolf',
-    emoji: '🐺',
-    description: 'Social deduction game. Find the werewolves among you!',
-    players: '5+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'social'
-  },
-  'wordassociation': {
-    name: 'Word Association',
-    emoji: '💭',
-    description: 'Say words that relate to the previous word!',
-    players: '2+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'word'
-  },
-  'twotruths': {
-    name: 'Two Truths and a Lie',
-    emoji: '🤔',
-    description: 'Guess which statement is the lie!',
-    players: '3+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'social'
-  },
-  'multiplayer-tictactoe': {
-    name: 'Multiplayer Tic-Tac-Toe',
-    emoji: '🎯',
-    description: 'Tic-tac-toe with multiple players and larger boards!',
-    players: '3+ players',
-    howToPlay: 'Coming to arcade soon!',
-    category: 'strategy'
-  }
-};
 
-const CATEGORIES = {
-  'strategy': { name: 'Strategy', emoji: '🧠', description: 'Think ahead and outmaneuver your opponents' },
-  'word': { name: 'Word Games', emoji: '📝', description: 'Test your vocabulary and wordplay skills' },
-  'creative': { name: 'Creative', emoji: '🎨', description: 'Express yourself and create together' },
-  'guessing': { name: 'Guessing', emoji: '❓', description: 'Use deduction and intuition to solve mysteries' },
-  'puzzle': { name: 'Puzzle', emoji: '🧩', description: 'Challenge your mind with brain teasers' },
-  'quick': { name: 'Quick Play', emoji: '⚡', description: 'Fast games for when you want instant fun' },
-  'arcade': { name: 'Arcade', emoji: '🕹️', description: 'Classic arcade-style single player games' },
-  'social': { name: 'Social', emoji: '👥', description: 'Games that bring people together' }
+  // Word Games
+  hangman: {
+    title: '🎯 Hangman',
+    category: 'Word',
+    description: 'Guess the mystery word letter by letter. Save the hangman!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '🎯'
+  },
+
+  wordchain: {
+    title: '🔗 Word Chain',
+    category: 'Word',
+    description: 'Chain words together where each word starts with the last letter of the previous.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Medium',
+    emoji: '🔗'
+  },
+
+  twentyquestions: {
+    title: '❓ Twenty Questions',
+    category: 'Word',
+    description: 'One player thinks of something, others guess with yes/no questions. 20 tries!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '❓'
+  },
+
+  wordassociation: {
+    title: '🧠 Word Association',
+    category: 'Word',
+    description: 'Say words that relate to the previous word. Keep the chain going!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '🧠'
+  },
+
+  riddle: {
+    title: '🔍 Riddles',
+    category: 'Word',
+    description: 'Solve brain-teasing riddles and puzzles. Test your wit!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 8,
+    difficulty: 'Medium',
+    emoji: '🔍'
+  },
+
+  // Creative Games
+  drawing: {
+    title: '🎨 Collaborative Drawing',
+    category: 'Creative',
+    description: 'Draw together on a shared 20x12 canvas using emoji and Unicode characters.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '🎨'
+  },
+
+  storybuilder: {
+    title: '📚 Story Builder',
+    category: 'Creative',
+    description: 'Collaboratively write stories. Each player adds a sentence or paragraph.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '📚'
+  },
+
+  // Guessing Games
+  colorguess: {
+    title: '🌈 Color Guessing',
+    category: 'Puzzle',
+    description: 'Guess the mystery color through strategic yes/no questions.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 4,
+    difficulty: 'Easy',
+    emoji: '🌈'
+  },
+
+  guessnumber: {
+    title: '🔢 Number Guessing',
+    category: 'Puzzle', 
+    description: 'Guess the secret number with hints like "higher" or "lower".',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 4,
+    difficulty: 'Easy',
+    emoji: '🔢'
+  },
+
+  // Memory & Quick Games
+  memory: {
+    title: '🧩 Memory',
+    category: 'Memory',
+    description: 'Match pairs of cards by remembering their positions. Classic concentration game.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 4,
+    difficulty: 'Medium',
+    emoji: '🧩'
+  },
+
+  snake: {
+    title: '🐍 Snake',
+    category: 'Arcade',
+    description: 'Classic snake game. Eat food, grow longer, avoid walls and yourself!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 1,
+    maxPlayers: 1,
+    difficulty: 'Medium',
+    emoji: '🐍'
+  },
+
+  // Multiplayer Action
+  'multiplayer-tictactoe': {
+    title: '🎮 Multiplayer Tic-Tac-Toe',
+    category: 'Multiplayer',
+    description: 'Enhanced tic-tac-toe with rooms, spectators, and tournament features.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '🎮'
+  },
+
+  rockpaperscissors: {
+    title: '✂️ Rock Paper Scissors',
+    category: 'Quick',
+    description: 'Classic hand game. Rock beats scissors, scissors beats paper, paper beats rock!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 8,
+    difficulty: 'Beginner',
+    emoji: '✂️'
+  },
+
+  // Party Games  
+  twotruths: {
+    title: '🎭 Two Truths and a Lie',
+    category: 'Party',
+    description: 'Tell two true statements and one lie. Others guess which is false!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 3,
+    maxPlayers: 8,
+    difficulty: 'Easy',
+    emoji: '🎭'
+  },
+
+  werewolf: {
+    title: '🐺 Werewolf',
+    category: 'Party',
+    description: 'Social deduction game. Find the werewolves before they eliminate the villagers!',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 5,
+    maxPlayers: 12,
+    difficulty: 'Advanced',
+    emoji: '🐺'
+  },
+
+  quickduel: {
+    title: '⚔️ Quick Duel',
+    category: 'Quick',
+    description: 'Fast-paced reaction and skill challenges between players.',
+    command: 'Built-in game (check /games directory)',
+    minPlayers: 2,
+    maxPlayers: 2,
+    difficulty: 'Medium',
+    emoji: '⚔️'
+  }
 };
 
 const definition = {
   name: 'vibe_arcade',
-  description: '🎮 Workshop Arcade — Browse and discover games to play with friends',
+  description: 'Browse the /vibe Workshop Arcade - see all available games and how to play them',
   inputSchema: {
     type: 'object',
     properties: {
       category: {
         type: 'string',
-        description: 'Show games in specific category (strategy, word, creative, guessing, puzzle, quick, arcade, social)',
-        enum: ['strategy', 'word', 'creative', 'guessing', 'puzzle', 'quick', 'arcade', 'social']
+        description: 'Filter by category (Strategy, Word, Creative, Puzzle, Memory, Arcade, Multiplayer, Quick, Party)',
+        enum: ['Strategy', 'Word', 'Creative', 'Puzzle', 'Memory', 'Arcade', 'Multiplayer', 'Quick', 'Party', 'all']
+      },
+      players: {
+        type: 'number',
+        description: 'Filter by number of players (1-12)',
+        minimum: 1,
+        maximum: 12
+      },
+      difficulty: {
+        type: 'string',
+        description: 'Filter by difficulty level',
+        enum: ['Beginner', 'Easy', 'Medium', 'Advanced', 'all']
       },
       game: {
         type: 'string',
-        description: 'Get details about a specific game',
-        enum: Object.keys(GAMES)
-      },
-      random: {
-        type: 'boolean',
-        description: 'Get a random game suggestion'
-      },
-      stats: {
-        type: 'boolean',
-        description: 'Show arcade statistics'
+        description: 'Get details for a specific game'
       }
-    }
+    },
+    required: []
   }
 };
 
-function formatGameCard(gameId, gameInfo) {
-  return `${gameInfo.emoji} **${gameInfo.name}**\n` +
-         `   ${gameInfo.description}\n` +
-         `   👥 ${gameInfo.players} • 📂 ${CATEGORIES[gameInfo.category].name}\n` +
-         `   ${gameInfo.howToPlay}`;
-}
-
-function formatCategorySection(categoryId, games) {
-  const category = CATEGORIES[categoryId];
-  if (!games.length) return '';
+function formatGameDetails(gameKey, gameInfo) {
+  const { title, category, description, command, minPlayers, maxPlayers, difficulty, emoji } = gameInfo;
   
-  let section = `\n## ${category.emoji} ${category.name}\n`;
-  section += `*${category.description}*\n\n`;
+  let details = `${emoji} **${title}**\n`;
+  details += `**Category:** ${category} | **Difficulty:** ${difficulty}\n`;
+  details += `**Players:** ${minPlayers === maxPlayers ? minPlayers : `${minPlayers}-${maxPlayers}`}\n\n`;
+  details += `${description}\n\n`;
   
-  for (const gameId of games) {
-    section += formatGameCard(gameId, GAMES[gameId]) + '\n\n';
+  if (command.includes('vibe game')) {
+    details += `**How to play:** \`${command}\`\n`;
+  } else {
+    details += `**Available in:** /vibe workshop games directory\n`;
+    details += `**Note:** Integration with vibe tools coming soon!\n`;
   }
   
-  return section;
+  return details;
+}
+
+function formatGamesList(games, title = 'Workshop Arcade') {
+  let display = `🕹️ **${title}**\n\n`;
+  
+  const categories = {};
+  Object.entries(games).forEach(([key, game]) => {
+    if (!categories[game.category]) {
+      categories[game.category] = [];
+    }
+    categories[game.category].push([key, game]);
+  });
+  
+  // Sort categories for better display
+  const categoryOrder = ['Strategy', 'Word', 'Creative', 'Puzzle', 'Memory', 'Arcade', 'Multiplayer', 'Quick', 'Party'];
+  
+  for (const categoryName of categoryOrder) {
+    if (!categories[categoryName]) continue;
+    
+    display += `## ${categoryName} Games\n\n`;
+    
+    for (const [key, game] of categories[categoryName]) {
+      const playerRange = game.minPlayers === game.maxPlayers ? 
+        `${game.minPlayers}p` : 
+        `${game.minPlayers}-${game.maxPlayers}p`;
+      
+      display += `${game.emoji} **${game.title}** (${playerRange}, ${game.difficulty})\n`;
+      display += `   ${game.description}\n\n`;
+    }
+  }
+  
+  display += `\n**Total games:** ${Object.keys(games).length}\n\n`;
+  display += `**Quick start:** Use \`vibe arcade --game chess\` for details on any game\n`;
+  display += `**Ready to play:** Try \`vibe game @friend --game chess\` or browse `/games` directory\n\n`;
+  display += `*🎮 The /vibe Workshop Arcade - where games come to life!*`;
+  
+  return display;
 }
 
 async function handler(args) {
-  const { category, game, random, stats } = args;
-  
+  const initCheck = requireInit();
+  if (initCheck) return initCheck;
+
+  const { category, players, difficulty, game } = args;
+
   // Show specific game details
   if (game) {
-    if (!GAMES[game]) {
-      return { display: `Game "${game}" not found. Use \`vibe arcade\` to see all games.` };
+    const gameInfo = GAME_CATALOG[game.toLowerCase()];
+    if (!gameInfo) {
+      const availableGames = Object.keys(GAME_CATALOG).join(', ');
+      return { 
+        display: `Game "${game}" not found. Available games: ${availableGames}\n\nUse \`vibe arcade\` to browse all games.`
+      };
     }
     
-    const gameInfo = GAMES[game];
-    let display = `# ${gameInfo.emoji} ${gameInfo.name}\n\n`;
-    display += `**Description:** ${gameInfo.description}\n\n`;
-    display += `**Players:** ${gameInfo.players}\n\n`;
-    display += `**Category:** ${CATEGORIES[gameInfo.category].emoji} ${CATEGORIES[gameInfo.category].name}\n\n`;
-    display += `**How to Play:** ${gameInfo.howToPlay}\n\n`;
-    
-    // Add some flavor based on category
-    if (gameInfo.category === 'strategy') {
-      display += `🧠 *Tip: Think several moves ahead and anticipate your opponent's strategy!*`;
-    } else if (gameInfo.category === 'word') {
-      display += `📚 *Tip: A good vocabulary and quick thinking will serve you well!*`;
-    } else if (gameInfo.category === 'creative') {
-      display += `✨ *Tip: There are no wrong answers in creative games - let your imagination flow!*`;
-    } else if (gameInfo.category === 'social') {
-      display += `👥 *Tip: These games are most fun with a group - gather some friends!*`;
-    }
-    
-    return { display };
+    return {
+      display: formatGameDetails(game, gameInfo)
+    };
+  }
+
+  // Filter games based on criteria
+  let filteredGames = { ...GAME_CATALOG };
+  
+  if (category && category !== 'all') {
+    filteredGames = Object.fromEntries(
+      Object.entries(filteredGames).filter(([key, game]) => 
+        game.category === category
+      )
+    );
   }
   
-  // Show random game suggestion
-  if (random) {
-    const gameIds = Object.keys(GAMES);
-    const randomGame = gameIds[Math.floor(Math.random() * gameIds.length)];
-    const gameInfo = GAMES[randomGame];
-    
-    let display = `🎲 **Random Game Suggestion**\n\n`;
-    display += formatGameCard(randomGame, gameInfo);
-    display += `\n\n*Use \`vibe arcade --game ${randomGame}\` for more details!*`;
-    
-    return { display };
+  if (players) {
+    filteredGames = Object.fromEntries(
+      Object.entries(filteredGames).filter(([key, game]) => 
+        game.minPlayers <= players && game.maxPlayers >= players
+      )
+    );
   }
   
-  // Show arcade statistics  
-  if (stats) {
-    const totalGames = Object.keys(GAMES).length;
-    const categoryCounts = {};
-    
-    for (const gameId of Object.keys(GAMES)) {
-      const cat = GAMES[gameId].category;
-      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-    }
-    
-    let display = `📊 **Workshop Arcade Statistics**\n\n`;
-    display += `🎮 **Total Games:** ${totalGames}\n\n`;
-    display += `📂 **Games by Category:**\n`;
-    
-    for (const [catId, count] of Object.entries(categoryCounts)) {
-      const category = CATEGORIES[catId];
-      display += `   ${category.emoji} ${category.name}: ${count} games\n`;
-    }
-    
-    display += `\n🔨 *The workshop elves have been busy building games for everyone to enjoy!*`;
-    
-    return { display };
+  if (difficulty && difficulty !== 'all') {
+    filteredGames = Object.fromEntries(
+      Object.entries(filteredGames).filter(([key, game]) => 
+        game.difficulty === difficulty
+      )
+    );
   }
+
+  // Build title based on filters
+  let title = 'Workshop Arcade';
+  const filters = [];
+  if (category && category !== 'all') filters.push(category);
+  if (players) filters.push(`${players} players`);
+  if (difficulty && difficulty !== 'all') filters.push(difficulty);
   
-  // Show specific category
-  if (category) {
-    if (!CATEGORIES[category]) {
-      return { display: `Category "${category}" not found. Available: ${Object.keys(CATEGORIES).join(', ')}` };
-    }
-    
-    const gamesInCategory = Object.keys(GAMES).filter(id => GAMES[id].category === category);
-    const categoryInfo = CATEGORIES[category];
-    
-    let display = `# ${categoryInfo.emoji} ${categoryInfo.name}\n\n`;
-    display += `*${categoryInfo.description}*\n\n`;
-    display += `**${gamesInCategory.length} games available:**\n\n`;
-    
-    for (const gameId of gamesInCategory) {
-      display += formatGameCard(gameId, GAMES[gameId]) + '\n\n';
-    }
-    
-    return { display };
+  if (filters.length > 0) {
+    title += ` - ${filters.join(', ')}`;
   }
-  
-  // Show full arcade (default)
-  let display = `# 🎮 Welcome to the Workshop Arcade!\n\n`;
-  display += `*Your gateway to all the games crafted in the /vibe workshop*\n\n`;
-  display += `**🎯 Quick Commands:**\n`;
-  display += `• \`vibe arcade --category strategy\` - Browse strategy games\n`;
-  display += `• \`vibe arcade --game chess\` - Get details about chess\n`;
-  display += `• \`vibe arcade --random\` - Get a random game suggestion\n`;
-  display += `• \`vibe arcade --stats\` - View arcade statistics\n\n`;
-  
-  // Group games by category and show them all
-  const gamesByCategory = {};
-  for (const [gameId, gameInfo] of Object.entries(GAMES)) {
-    if (!gamesByCategory[gameInfo.category]) {
-      gamesByCategory[gameInfo.category] = [];
-    }
-    gamesByCategory[gameInfo.category].push(gameId);
+
+  if (Object.keys(filteredGames).length === 0) {
+    return {
+      display: `No games found matching your criteria. Use \`vibe arcade\` to see all available games.`
+    };
   }
-  
-  // Show categories in a nice order
-  const categoryOrder = ['strategy', 'word', 'creative', 'guessing', 'puzzle', 'quick', 'arcade', 'social'];
-  
-  for (const categoryId of categoryOrder) {
-    if (gamesByCategory[categoryId]) {
-      display += formatCategorySection(categoryId, gamesByCategory[categoryId]);
-    }
-  }
-  
-  display += `---\n\n`;
-  display += `🔨 *Crafted with love in the /vibe workshop by @games-agent*\n`;
-  display += `💡 *Have an idea for a new game? Let the workshop know!*`;
-  
-  return { display };
+
+  return {
+    display: formatGamesList(filteredGames, title)
+  };
 }
 
-module.exports = { definition, handler, GAMES, CATEGORIES };
+module.exports = { definition, handler };
