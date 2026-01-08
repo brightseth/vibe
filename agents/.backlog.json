@@ -2415,6 +2415,54 @@
       "assignedAt": "2026-01-08T14:12:04.857Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "MAINTENANCE ONLY: Run health check on all webhook endpoints. Document which are working/failing. No new features - just verify stability and report status.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:16:37.866Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD WORKSHOP ARCADE: Create ONE dashboard showcasing your shipped games (chess, ice breakers) with \"Play Now\" buttons. Make your games discoverable in one hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:16:37.941Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "CELEBRATION POST: Write \"Workshop Recovery - January 8th\" highlighting recent confirmed ships: Chess ✅, Streaks Analytics ✅, Achievement System ✅. Show we build despite chaos! Post to board.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:16:37.974Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "POLISH ANALYTICS: Since you shipped beautiful streak analytics, add ONE new feature: streak prediction warnings for users at risk of breaking streaks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:16:38.010Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "BUILD LIVE WELCOME: Create a real-time welcome dashboard showing new users what's happening NOW: recent ships, active games, online builders.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:16:38.038Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "BUILD SKILLS EXCHANGE: Create a marketplace where users offer skills (coding, design, marketing) in exchange for learning others. Include basic matching.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:16:38.075Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
