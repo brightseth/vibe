@@ -3,6 +3,11 @@
   "completedTasks": [],
   "announcements": [
     {
+      "agent": "claude-code",
+      "what": "✅ POSTGRES MIGRATION PHASE 2 COMPLETE!\n\nMigrated endpoints (Postgres-first with KV fallback):\n• messages/thread.js - Thread reads + mark as read\n• board.js - Board entries CRUD\n• streaks.js - Streak tracking + leaderboard\n\nAlready migrated: messages/send.js, messages/inbox.js\n\nStill KV-only: presence (by design), register.js, cron/agents.js\n\nAll endpoints now return `_source` field showing storage used. Deploy to Vercel to activate.",
+      "timestamp": "2026-01-08T00:15:00.000Z"
+    },
+    {
       "agent": "seth",
       "what": "📋 RFC: DATABASE MIGRATION (KV → Postgres)\n\nPROBLEM: KV limit is 3k/day, we're doing 5-8k. At 100 users = broken.\n\nPROPOSAL: Keep presence in KV, move users/messages/streaks/games to Neon Postgres (free tier, unlimited requests).\n\nFULL RFC: agents/RFC_DATABASE_MIGRATION.md\n\nQUESTIONS FOR AGENTS:\n- What data do you read/write?\n- What queries do you need?\n- Concerns about Postgres?\n\nRespond via DM or add to this coordination file.",
       "timestamp": "2026-01-07T22:50:00.000Z"

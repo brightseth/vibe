@@ -3,7 +3,11 @@
  *
  * GET /api/streaks - Get leaderboard
  * POST /api/streaks/checkin - Record daily checkin (called by presence heartbeat)
+ *
+ * Migration: Postgres primary, KV fallback
  */
+
+import { sql, isPostgresEnabled } from './lib/db.js';
 
 // Check if KV is configured
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -44,32 +48,123 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const { handle, limit = '20' } = req.query;
+      const limitNum = parseInt(limit);
+      let source = 'none';
 
       // If specific handle requested
       if (handle) {
-        if (!kv) {
+        // Try Postgres first
+        if (isPostgresEnabled() && sql) {
+          try {
+            const result = await sql`
+              SELECT username, current_streak, longest_streak, total_days, last_active
+              FROM streaks WHERE username = ${handle}
+            `;
+            if (result && result.length > 0) {
+              const s = result[0];
+              const isActive = s.last_active && getDaysBetween(s.last_active, getDateKey()) <= 1;
+              return res.status(200).json({
+                handle,
+                currentStreak: isActive ? s.current_streak : 0,
+                longestStreak: s.longest_streak,
+                lastActive: s.last_active,
+                totalDays: s.total_days,
+                _source: 'postgres'
+              });
+            }
+          } catch (pgErr) {
+            console.error('[streaks] Postgres error:', pgErr.message);
+          }
+        }
+
+        // Fall back to KV
+        if (kv) {
+          const streakData = await kv.hgetall(`streak:${handle}`) || {};
           return res.status(200).json({
             handle,
-            currentStreak: 0,
-            longestStreak: 0,
-            lastActive: null,
-            totalDays: 0
+            currentStreak: parseInt(streakData.current || '0'),
+            longestStreak: parseInt(streakData.longest || '0'),
+            lastActive: streakData.lastActive || null,
+            totalDays: parseInt(streakData.totalDays || '0'),
+            _source: 'kv'
           });
         }
 
-        const streakData = await kv.hgetall(`streak:${handle}`) || {};
         return res.status(200).json({
           handle,
-          currentStreak: parseInt(streakData.current || '0'),
-          longestStreak: parseInt(streakData.longest || '0'),
-          lastActive: streakData.lastActive || null,
-          totalDays: parseInt(streakData.totalDays || '0')
+          currentStreak: 0,
+          longestStreak: 0,
+          lastActive: null,
+          totalDays: 0,
+          _source: 'none'
         });
       }
 
-      // Get leaderboard
-      if (!kv) {
-        // Return sample data for development
+      // Get leaderboard - try Postgres first
+      let streaks = [];
+
+      if (isPostgresEnabled() && sql) {
+        try {
+          const pgStreaks = await sql`
+            SELECT username, current_streak, longest_streak, total_days, last_active
+            FROM streaks
+            WHERE username NOT LIKE '%-agent'
+            ORDER BY current_streak DESC, longest_streak DESC
+            LIMIT ${limitNum}
+          `;
+
+          if (pgStreaks && pgStreaks.length > 0) {
+            streaks = pgStreaks.map(s => {
+              const isActive = s.last_active && getDaysBetween(s.last_active, getDateKey()) <= 1;
+              return {
+                handle: s.username,
+                currentStreak: isActive ? s.current_streak : 0,
+                longestStreak: s.longest_streak,
+                lastActive: s.last_active,
+                badge: getStreakBadge(isActive ? s.current_streak : 0)
+              };
+            });
+            source = 'postgres';
+          }
+        } catch (pgErr) {
+          console.error('[streaks] Postgres leaderboard error:', pgErr.message);
+        }
+      }
+
+      // Fall back to KV if Postgres returned nothing
+      if (streaks.length === 0 && kv) {
+        const keys = await kv.keys('streak:*');
+
+        for (const key of keys.slice(0, 100)) {
+          const h = key.replace('streak:', '');
+          if (h.includes('-agent')) continue;
+
+          const data = await kv.hgetall(key) || {};
+          const current = parseInt(data.current || '0');
+          const longest = parseInt(data.longest || '0');
+          const lastActive = data.lastActive;
+          const isActive = lastActive && getDaysBetween(lastActive, getDateKey()) <= 1;
+
+          streaks.push({
+            handle: h,
+            currentStreak: isActive ? current : 0,
+            longestStreak: longest,
+            lastActive,
+            badge: getStreakBadge(isActive ? current : 0)
+          });
+        }
+
+        streaks.sort((a, b) => {
+          if (b.currentStreak !== a.currentStreak) return b.currentStreak - a.currentStreak;
+          return b.longestStreak - a.longestStreak;
+        });
+
+        streaks = streaks.slice(0, limitNum);
+        source = 'kv';
+      }
+
+      // Sample data fallback
+      if (streaks.length === 0) {
         return res.status(200).json({
           leaderboard: [
             { rank: 1, handle: 'seth', currentStreak: 7, longestStreak: 14, badge: 'Strong' },
@@ -77,51 +172,16 @@ export default async function handler(req, res) {
             { rank: 3, handle: 'solienne', currentStreak: 3, longestStreak: 30, badge: 'Growing' }
           ],
           total: 3,
-          storage: 'sample'
+          _source: 'sample'
         });
       }
 
-      // Get all streak data
-      const keys = await kv.keys('streak:*');
-      const streaks = [];
-
-      for (const key of keys.slice(0, 100)) {
-        const handle = key.replace('streak:', '');
-        if (handle.includes('-agent')) continue; // Skip agents
-
-        const data = await kv.hgetall(key) || {};
-        const current = parseInt(data.current || '0');
-        const longest = parseInt(data.longest || '0');
-        const lastActive = data.lastActive;
-
-        // Check if streak is still active (within 48 hours to be generous)
-        const isActive = lastActive && getDaysBetween(lastActive, getDateKey()) <= 1;
-
-        streaks.push({
-          handle,
-          currentStreak: isActive ? current : 0,
-          longestStreak: longest,
-          lastActive,
-          badge: getStreakBadge(isActive ? current : 0)
-        });
-      }
-
-      // Sort by current streak, then longest
-      streaks.sort((a, b) => {
-        if (b.currentStreak !== a.currentStreak) return b.currentStreak - a.currentStreak;
-        return b.longestStreak - a.longestStreak;
-      });
-
-      const limitNum = parseInt(limit);
-      const leaderboard = streaks.slice(0, limitNum).map((s, i) => ({
-        rank: i + 1,
-        ...s
-      }));
+      const leaderboard = streaks.map((s, i) => ({ rank: i + 1, ...s }));
 
       return res.status(200).json({
         leaderboard,
         total: streaks.length,
-        storage: 'kv',
+        _source: source,
         generatedAt: new Date().toISOString()
       });
 
@@ -139,63 +199,122 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Handle required' });
       }
 
-      if (!kv) {
-        return res.status(200).json({
-          success: true,
-          message: 'KV not configured, streak not recorded',
-          storage: 'none'
-        });
-      }
-
       const today = getDateKey();
-      const key = `streak:${handle}`;
+      let current = 0;
+      let longest = 0;
+      let totalDays = 0;
+      let source = 'none';
 
-      // Get current streak data
-      const existing = await kv.hgetall(key) || {};
-      const lastActive = existing.lastActive;
-      let current = parseInt(existing.current || '0');
-      let longest = parseInt(existing.longest || '0');
-      let totalDays = parseInt(existing.totalDays || '0');
+      // Try Postgres first
+      if (isPostgresEnabled() && sql) {
+        try {
+          // Get existing streak data
+          const existing = await sql`
+            SELECT current_streak, longest_streak, total_days, last_active
+            FROM streaks WHERE username = ${handle}
+          `;
 
-      // Calculate new streak
-      if (lastActive === today) {
-        // Already checked in today
-        return res.status(200).json({
-          success: true,
-          message: 'Already checked in today',
-          currentStreak: current,
-          longestStreak: longest
-        });
+          if (existing && existing.length > 0) {
+            const s = existing[0];
+            const lastActive = s.last_active;
+
+            // Already checked in today?
+            if (lastActive === today) {
+              return res.status(200).json({
+                success: true,
+                message: 'Already checked in today',
+                currentStreak: s.current_streak,
+                longestStreak: s.longest_streak,
+                _source: 'postgres'
+              });
+            }
+
+            // Calculate new streak
+            if (lastActive) {
+              const daysSince = getDaysBetween(lastActive, today);
+              current = daysSince === 1 ? s.current_streak + 1 : 1;
+            } else {
+              current = 1;
+            }
+
+            longest = Math.max(current, s.longest_streak);
+            totalDays = s.total_days + 1;
+
+            // Update
+            await sql`
+              UPDATE streaks
+              SET current_streak = ${current},
+                  longest_streak = ${longest},
+                  total_days = ${totalDays},
+                  last_active = ${today}
+              WHERE username = ${handle}
+            `;
+          } else {
+            // First checkin - insert
+            current = 1;
+            longest = 1;
+            totalDays = 1;
+
+            await sql`
+              INSERT INTO streaks (username, current_streak, longest_streak, total_days, last_active)
+              VALUES (${handle}, ${current}, ${longest}, ${totalDays}, ${today})
+            `;
+          }
+
+          source = 'postgres';
+        } catch (pgErr) {
+          console.error('[streaks] Postgres checkin error:', pgErr.message);
+        }
       }
 
-      if (lastActive) {
-        const daysSince = getDaysBetween(lastActive, today);
-        if (daysSince === 1) {
-          // Continue streak
-          current += 1;
+      // Fall back to KV if Postgres failed
+      if (source === 'none' && kv) {
+        const key = `streak:${handle}`;
+        const existing = await kv.hgetall(key) || {};
+        const lastActive = existing.lastActive;
+
+        // Already checked in today?
+        if (lastActive === today) {
+          return res.status(200).json({
+            success: true,
+            message: 'Already checked in today',
+            currentStreak: parseInt(existing.current || '0'),
+            longestStreak: parseInt(existing.longest || '0'),
+            _source: 'kv'
+          });
+        }
+
+        current = parseInt(existing.current || '0');
+        longest = parseInt(existing.longest || '0');
+        totalDays = parseInt(existing.totalDays || '0');
+
+        if (lastActive) {
+          const daysSince = getDaysBetween(lastActive, today);
+          current = daysSince === 1 ? current + 1 : 1;
         } else {
-          // Streak broken
           current = 1;
         }
-      } else {
-        // First checkin
-        current = 1;
+
+        longest = Math.max(current, longest);
+        totalDays += 1;
+
+        await kv.hset(key, {
+          current: current.toString(),
+          longest: longest.toString(),
+          lastActive: today,
+          totalDays: totalDays.toString()
+        });
+
+        source = 'kv';
       }
 
-      // Update longest
-      if (current > longest) {
-        longest = current;
+      if (source === 'none') {
+        return res.status(200).json({
+          success: true,
+          message: 'Storage not configured, streak not recorded',
+          _source: 'none'
+        });
       }
-
-      totalDays += 1;
-
-      // Save
-      await kv.hset(key, {
-        current: current.toString(),
-        longest: longest.toString(),
-        lastActive: today,
-        totalDays: totalDays.toString()
-      });
 
       // Milestone notifications
       let milestone = null;
@@ -209,7 +328,8 @@ export default async function handler(req, res) {
         longestStreak: longest,
         totalDays,
         milestone,
-        badge: getStreakBadge(current)
+        badge: getStreakBadge(current),
+        _source: source
       });
 
     } catch (e) {

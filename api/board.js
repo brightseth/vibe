@@ -5,10 +5,11 @@
  * GET /api/board - Get recent entries
  * DELETE /api/board - Remove an entry (author only)
  *
- * Uses Vercel KV (Redis) for persistence
+ * Migration: Postgres primary, KV fallback
  */
 
 import crypto from 'crypto';
+import { sql, isPostgresEnabled } from './lib/db.js';
 
 // Check if KV is configured
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -40,7 +41,6 @@ function generateEntryId() {
 // ============ BOARD STORAGE ============
 
 async function addEntry(entry) {
-  const kv = await getKV();
   const id = generateEntryId();
   const fullEntry = {
     id,
@@ -48,74 +48,142 @@ async function addEntry(entry) {
     timestamp: Date.now()
   };
 
-  if (kv) {
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
     try {
-      // Store entry data
-      await kv.set(`board:entry:${id}`, fullEntry);
-      // Add to list (prepend)
-      await kv.lpush(BOARD_LIST, id);
-      // Trim to max entries
-      await kv.ltrim(BOARD_LIST, 0, BOARD_MAX_ENTRIES - 1);
-    } catch (e) {
-      console.error('[board] KV write error:', e.message);
-      // Fall back to memory
-      memoryBoard.unshift(fullEntry);
-      if (memoryBoard.length > BOARD_MAX_ENTRIES) {
-        memoryBoard = memoryBoard.slice(0, BOARD_MAX_ENTRIES);
-      }
-    }
-  } else {
-    memoryBoard.unshift(fullEntry);
-    if (memoryBoard.length > BOARD_MAX_ENTRIES) {
-      memoryBoard = memoryBoard.slice(0, BOARD_MAX_ENTRIES);
+      await sql`
+        INSERT INTO board_entries (id, author, content, category, tags, created_at)
+        VALUES (${id}, ${entry.author}, ${entry.content}, ${entry.category || 'general'}, ${entry.tags || []}, NOW())
+      `;
+      return { ...fullEntry, _storage: 'postgres' };
+    } catch (pgErr) {
+      console.error('[board] Postgres write error:', pgErr.message);
     }
   }
 
-  return fullEntry;
+  // Fall back to KV
+  const kv = await getKV();
+  if (kv) {
+    try {
+      await kv.set(`board:entry:${id}`, fullEntry);
+      await kv.lpush(BOARD_LIST, id);
+      await kv.ltrim(BOARD_LIST, 0, BOARD_MAX_ENTRIES - 1);
+      return { ...fullEntry, _storage: 'kv' };
+    } catch (e) {
+      console.error('[board] KV write error:', e.message);
+    }
+  }
+
+  // Memory fallback
+  memoryBoard.unshift(fullEntry);
+  if (memoryBoard.length > BOARD_MAX_ENTRIES) {
+    memoryBoard = memoryBoard.slice(0, BOARD_MAX_ENTRIES);
+  }
+  return { ...fullEntry, _storage: 'memory' };
 }
 
 async function getEntries(limit = 20, category = null) {
   // Cap limit to prevent abuse
   const cappedLimit = Math.min(Math.max(1, limit), 50);
-  const kv = await getKV();
+  let entries = [];
+  let source = 'none';
 
-  if (kv) {
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
     try {
-      // Get entry IDs
-      const ids = await kv.lrange(BOARD_LIST, 0, cappedLimit - 1);
-      if (!ids || ids.length === 0) return [];
-
-      // Fetch all entries
-      const entries = await Promise.all(
-        ids.map(id => kv.get(`board:entry:${id}`))
-      );
-
-      // Filter nulls and optionally by category
-      return entries
-        .filter(e => e !== null)
-        .filter(e => !category || e.category === category);
-    } catch (e) {
-      console.error('[board] KV read error:', e.message);
-      // Fall back to memory
-      let results = memoryBoard.slice(0, cappedLimit);
-      if (category) {
-        results = results.filter(e => e.category === category);
+      let pgEntries;
+      if (category && category !== 'all') {
+        pgEntries = await sql`
+          SELECT id, author, content, category, tags,
+                 EXTRACT(EPOCH FROM created_at) * 1000 as timestamp
+          FROM board_entries
+          WHERE category = ${category}
+          ORDER BY created_at DESC
+          LIMIT ${cappedLimit}
+        `;
+      } else {
+        pgEntries = await sql`
+          SELECT id, author, content, category, tags,
+                 EXTRACT(EPOCH FROM created_at) * 1000 as timestamp
+          FROM board_entries
+          ORDER BY created_at DESC
+          LIMIT ${cappedLimit}
+        `;
       }
-      return results;
+
+      if (pgEntries && pgEntries.length > 0) {
+        entries = pgEntries.map(e => ({
+          id: e.id,
+          author: e.author,
+          content: e.content,
+          category: e.category,
+          tags: e.tags || [],
+          timestamp: parseInt(e.timestamp)
+        }));
+        source = 'postgres';
+      }
+    } catch (pgErr) {
+      console.error('[board] Postgres read error:', pgErr.message);
+    }
+  }
+
+  // Fall back to KV if Postgres returned nothing
+  if (entries.length === 0) {
+    const kv = await getKV();
+    if (kv) {
+      try {
+        const ids = await kv.lrange(BOARD_LIST, 0, cappedLimit - 1);
+        if (ids && ids.length > 0) {
+          const kvEntries = await Promise.all(
+            ids.map(id => kv.get(`board:entry:${id}`))
+          );
+          entries = kvEntries
+            .filter(e => e !== null)
+            .filter(e => !category || category === 'all' || e.category === category);
+          source = 'kv';
+        }
+      } catch (e) {
+        console.error('[board] KV read error:', e.message);
+      }
     }
   }
 
   // Memory fallback
-  let results = memoryBoard.slice(0, cappedLimit);
-  if (category) {
-    results = results.filter(e => e.category === category);
+  if (entries.length === 0 && memoryBoard.length > 0) {
+    entries = memoryBoard.slice(0, cappedLimit);
+    if (category && category !== 'all') {
+      entries = entries.filter(e => e.category === category);
+    }
+    source = 'memory';
   }
-  return results;
+
+  return { entries, _source: source };
 }
 
 async function deleteEntry(id, author) {
-  const kv = await getKV();
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      // Check ownership first
+      const entry = await sql`
+        SELECT author FROM board_entries WHERE id = ${id}
+      `;
+      if (!entry || entry.length === 0) {
+        return { success: false, error: 'Entry not found' };
+      }
+      if (entry[0].author !== author) {
+        return { success: false, error: 'Not your entry' };
+      }
 
+      await sql`DELETE FROM board_entries WHERE id = ${id}`;
+      return { success: true, _storage: 'postgres' };
+    } catch (pgErr) {
+      console.error('[board] Postgres delete error:', pgErr.message);
+    }
+  }
+
+  // Fall back to KV
+  const kv = await getKV();
   if (kv) {
     try {
       const entry = await kv.get(`board:entry:${id}`);
@@ -124,7 +192,7 @@ async function deleteEntry(id, author) {
 
       await kv.del(`board:entry:${id}`);
       await kv.lrem(BOARD_LIST, 1, id);
-      return { success: true };
+      return { success: true, _storage: 'kv' };
     } catch (e) {
       console.error('[board] KV delete error:', e.message);
       return { success: false, error: 'KV error' };
@@ -137,7 +205,7 @@ async function deleteEntry(id, author) {
   if (memoryBoard[idx].author !== author) return { success: false, error: 'Not your entry' };
 
   memoryBoard.splice(idx, 1);
-  return { success: true };
+  return { success: true, _storage: 'memory' };
 }
 
 // ============ REQUEST HANDLER ============
@@ -158,12 +226,13 @@ export default async function handler(req, res) {
       const limit = parseInt(req.query.limit) || 20;
       const category = req.query.category || null;
 
-      const entries = await getEntries(limit, category);
+      const result = await getEntries(limit, category);
 
       return res.status(200).json({
         success: true,
-        entries,
-        count: entries.length
+        entries: result.entries,
+        count: result.entries.length,
+        _source: result._source
       });
     }
 
