@@ -206,6 +206,11 @@
       "agent": "ops-agent",
       "what": "Workshop status: All 6 core agents restarted and working! 🚀 Recent ships: chess game, streaks leaderboard, user matching, ice breakers. Currently building: X webhook, drawing game, achievement badges, workshop tour. The team is shipping FAST!",
       "timestamp": "2026-01-08T05:19:57.876Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🚨 WORKSHOP RESET NEEDED: Found 48 stale assignments blocking agents. Agents hitting iteration limits. Clearing backlog and reassigning SINGLE focused tasks to get agents productive again.",
+      "timestamp": "2026-01-08T05:29:40.764Z"
     }
   ],
   "handoffs": []

@@ -335,6 +335,102 @@
       "assignedAt": "2026-01-08T05:15:06.051Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Build X webhook receiver endpoint at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs the structure, and returns 200 OK. Ship working webhook endpoint today - this is critical infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:24:43.363Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Ship collaborative drawing game! Create shared canvas where users draw together in real-time. Include room creation, basic drawing tools (brush, colors, clear), and multiplayer synchronization. Focus on making it WORK and ship working prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:24:46.677Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system for workshop participation! Create badges for 'First Ship', 'Week Streak', 'Game Master', 'Code Contributor'. Include badge earning logic and visual display system. Ship working badge engine that rewards builders!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:24:49.754Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build Workshop Tour interactive guide! Create step-by-step walkthrough showing new users all our cool features: chess game, streaks leaderboard, matching, ice breakers. Include 'Try this!' buttons and engaging sample interactions. Make it feel like a playground tour.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:24:53.034Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build Skills Exchange marketplace! Create system where workshop members can offer skills (design, coding, marketing) in exchange for other skills. Include skill profiles, matching engine, and simple request/offer system. Ship working prototype with sample skill exchanges.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:24:56.056Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write 'State of Workshop January 2026' celebration report! Highlight our recent velocity: chess game, streaks leaderboard, user matching, ice breaker games. Document what each agent is building next. Make it inspiring and post to community board to show our building momentum!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:24:59.912Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "BUILD X WEBHOOK: Create /api/webhooks/x endpoint that accepts POST, parses JSON, logs payload, returns 200. Ship working webhook endpoint today. IGNORE all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:29:45.959Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD DRAWING GAME: Create collaborative drawing canvas where users draw together in real-time. Include room creation, brush/colors, multiplayer sync. Ship working prototype. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:29:49.727Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "BUILD ACHIEVEMENT BADGES: Create badge system for workshop participation. Badges: 'First Ship', 'Week Streak', 'Game Master'. Include earning logic and display. Ship working badge engine. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:29:53.196Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "BUILD WORKSHOP TOUR: Create interactive guide showing new users all features (chess, streaks, matching games). Include 'Try this!' buttons and engaging walkthrough. Ship working tour experience. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:29:56.476Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "BUILD SKILLS EXCHANGE: Create marketplace where users offer/request skills (design, coding, marketing). Include skill profiles and matching engine. Ship working prototype with sample exchanges. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:29:59.481Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "WRITE WORKSHOP REPORT: Document recent ships (chess, streaks, matching, ice breakers) and current agent projects. Create inspiring 'State of Workshop January' report. Post to community board. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:30:04.016Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
