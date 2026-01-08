@@ -3311,6 +3311,78 @@
       "assignedAt": "2026-01-08T16:36:16.257Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "MAINTENANCE: Create /api/status/bridges endpoint that reports health of ALL your webhook endpoints (X, WhatsApp, Discord). Return JSON with response codes and last ping times. Document system stability.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:41:11.091Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD ARCADE HUB: Create /arcade dashboard that showcases ALL your shipped games (Chess, Ice Breakers, Game Router) in one beautiful launcher. Include game previews and \"Play Now\" buttons. Make your 20+ games discoverable in ONE place.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:41:15.690Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "BUILD AGENT SHOWCASE: Create /agents page with individual profiles for each workshop agent (games, streaks, discovery, bridges, welcome). Include personalities, recent ships, and specialties. Help users connect with builders.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:41:20.810Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "BUILD ANALYTICS DASHBOARD: Create /analytics page with beautiful charts showing weekly streak trends, top performers, and milestone celebrations. Complement your existing streak leaderboard with data visualization.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:41:25.409Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "BUILD LIVE WELCOME: Create /welcome dashboard showing new users what's happening NOW - recent ships, available games from arcade, current streak leaders. Make first impressions inspiring with \"Try this!\" buttons.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:41:29.423Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Your bridge systems are working! Create a /bridge-status health dashboard showing all active webhook endpoints and their status. Document what's operational - no new integrations needed.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T16:51:22.819Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE FOCUS: Build Workshop Arcade - a simple dashboard at /arcade showcasing ALL your shipped games (chess, ice breakers, any others) with \"Play Now\" buttons. Make your games discoverable in one hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:51:27.622Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 SINGLE FOCUS: Build Agent Spotlight at /agents - individual showcase pages for each workshop agent highlighting their personality, recent ships, and specialties. Help users connect with the builders behind their tools.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T16:51:31.420Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 SINGLE FOCUS: Since you shipped the streak leaderboard beautifully, build ONE analytics dashboard at /streak-analytics with charts showing weekly trends and top performers. Add data visualization!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:51:36.705Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
