@@ -94,6 +94,7 @@
     { "source": "/status", "destination": "/status.html" },
     { "source": "/community", "destination": "/community.html" },
     { "source": "/api/streaks", "destination": "/api/streaks.js" },
-    { "source": "/api/db-health", "destination": "/api/db-health.js" }
+    { "source": "/api/db-health", "destination": "/api/db-health.js" },
+    { "source": "/api/db-test", "destination": "/api/db-test.js" }
   ]
 }
