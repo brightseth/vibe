@@ -1,142 +1,141 @@
 #!/usr/bin/env python3
 """
-🏆 Achievement Status Dashboard
-Built by @streaks-agent for /vibe workshop
-
-Quick visual overview of badge system status and user progress.
+Achievement Status Dashboard for /vibe workshop
+Shows current badges, streaks, and upcoming milestones
 """
 
 import json
-import datetime
-from typing import Dict, List
+from datetime import datetime
 
-class AchievementDashboard:
-    def __init__(self):
-        self.streak_file = "streak_data.json"
-        self.achievements_file = "achievements.json"
-        
-    def load_data(self):
-        """Load current streak and achievement data"""
-        try:
-            with open(self.streak_file, 'r') as f:
-                streaks = json.load(f)
-        except FileNotFoundError:
-            streaks = {}
-            
-        try:
-            with open(self.achievements_file, 'r') as f:
-                achievements = json.load(f)
-        except FileNotFoundError:
-            achievements = {"badges": {}, "user_achievements": {}, "achievement_history": []}
-            
-        return streaks, achievements
+def load_json(filepath, default=None):
+    """Load JSON with fallback"""
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default if default is not None else {}
+
+def generate_dashboard():
+    """Generate comprehensive achievement dashboard"""
     
-    def generate_status_report(self):
-        """Generate comprehensive status report"""
-        streaks, achievements = self.load_data()
-        
-        # Parse streak data
-        parsed_streaks = {}
-        for user, streak_data in streaks.items():
-            if isinstance(streak_data, dict):
-                current = streak_data.get('current', 0)
-                best = streak_data.get('best', 0)
-            else:
-                current = streak_data
-                best = current
-            parsed_streaks[user] = {'current': current, 'best': best}
-        
-        # Calculate badge progress for each user
-        user_progress = {}
-        for user in parsed_streaks:
-            clean_user = user.replace('@', '')
-            user_badges = achievements.get('user_achievements', {}).get(clean_user, [])
-            earned_count = len(user_badges)
-            total_badges = len(achievements.get('badges', {}))
-            
-            # Calculate next milestone
-            current_streak = parsed_streaks[user]['current']
-            next_milestone = None
-            
-            streak_thresholds = [1, 3, 7, 14, 30, 100]
-            for threshold in streak_thresholds:
-                if current_streak < threshold:
-                    days_needed = threshold - current_streak
-                    next_milestone = {'threshold': threshold, 'days_needed': days_needed}
-                    break
-            
-            user_progress[user] = {
-                'current_streak': current_streak,
-                'best_streak': parsed_streaks[user]['best'],
-                'badges_earned': earned_count,
-                'badges_available': total_badges,
-                'badge_progress': f"{earned_count}/{total_badges}",
-                'next_milestone': next_milestone
-            }
-        
-        # Recent achievements
-        recent_achievements = achievements.get('achievement_history', [])[-5:]
-        
-        return {
-            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'summary': {
-                'total_users': len(parsed_streaks),
-                'active_streaks': len([s for s in parsed_streaks.values() if s['current'] > 0]),
-                'total_badges_available': len(achievements.get('badges', {})),
-                'total_achievements_earned': sum(len(badges) for badges in achievements.get('user_achievements', {}).values())
-            },
-            'user_progress': user_progress,
-            'recent_achievements': recent_achievements
-        }
+    # Load all data
+    streak_data = load_json('streak_data.json', {})
+    achievements = load_json('achievements.json', {})
+    badges_data = load_json('badges.json', {})
     
-    def print_dashboard(self):
-        """Print formatted dashboard to console"""
-        report = self.generate_status_report()
+    print("🎖️ ACHIEVEMENT STATUS DASHBOARD")
+    print("=" * 50)
+    print(f"📅 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Overall stats
+    total_users = len(streak_data.get('streaks', {}))
+    total_badges = badges_data.get('stats', {}).get('total_badges_awarded', 0)
+    
+    print(f"\n📊 OVERALL STATS")
+    print(f"   👥 Total Users: {total_users}")
+    print(f"   🏆 Total Badges Awarded: {total_badges}")
+    print(f"   📈 Average Badges per User: {total_badges / total_users if total_users > 0 else 0:.1f}")
+    
+    # Badge distribution
+    print(f"\n🎖️ BADGE DISTRIBUTION")
+    badge_counts = {}
+    for user_badges in badges_data.get('user_badges', {}).values():
+        for badge in user_badges:
+            badge_counts[badge] = badge_counts.get(badge, 0) + 1
+    
+    if badge_counts:
+        for badge, count in sorted(badge_counts.items(), key=lambda x: x[1], reverse=True):
+            print(f"   {badge}: {count} users")
+    else:
+        print("   No badges awarded yet")
+    
+    # User progress
+    print(f"\n👤 USER PROGRESS")
+    streaks = streak_data.get('streaks', {})
+    user_achievements = achievements.get('user_achievements', {})
+    
+    for user in streaks.keys():
+        current_streak = streaks[user]['current']
+        best_streak = streaks[user]['best'] 
+        user_badges = user_achievements.get(user, [])
         
-        print("🏆 ACHIEVEMENT SYSTEM DASHBOARD")
-        print("=" * 50)
-        print(f"📅 Generated: {report['timestamp']}")
-        print()
+        print(f"\n   {user}")
+        print(f"   └─ Current Streak: {current_streak} days")
+        print(f"   └─ Best Streak: {best_streak} days")
+        print(f"   └─ Badges Earned ({len(user_badges)}):")
         
-        # Summary stats
-        summary = report['summary']
-        print("📊 SUMMARY STATS:")
-        print(f"   👥 Total Users: {summary['total_users']}")
-        print(f"   🔥 Active Streaks: {summary['active_streaks']}")  
-        print(f"   🏅 Available Badges: {summary['total_badges_available']}")
-        print(f"   🎯 Total Achievements: {summary['total_achievements_earned']}")
-        print()
-        
-        # User progress
-        print("👤 USER PROGRESS:")
-        for user, progress in report['user_progress'].items():
-            print(f"   {user}:")
-            print(f"     🔥 Current Streak: {progress['current_streak']} days")
-            print(f"     🏆 Best Streak: {progress['best_streak']} days")
-            print(f"     🏅 Badges: {progress['badge_progress']}")
-            
-            if progress['next_milestone']:
-                milestone = progress['next_milestone']
-                print(f"     🎯 Next Milestone: {milestone['days_needed']} days to {milestone['threshold']}-day badge")
-            else:
-                print(f"     👑 All major milestones achieved!")
-            print()
-        
-        # Recent achievements
-        if report['recent_achievements']:
-            print("🎉 RECENT ACHIEVEMENTS:")
-            for achievement in report['recent_achievements']:
-                badge = achievement['badge']
-                timestamp = achievement.get('timestamp', 'Unknown time')
-                print(f"   {badge['name']} → @{achievement['handle']} ({timestamp[:10]})")
+        if user_badges:
+            for badge in user_badges:
+                print(f"      • {badge.get('name', 'Unknown Badge')}")
         else:
-            print("🎉 NO RECENT ACHIEVEMENTS")
+            print(f"      • No badges yet")
         
-        print("\n✨ Badge system operational and tracking progress!")
+        # Next milestone
+        next_milestone = None
+        if current_streak < 3:
+            next_milestone = f"🌅 Early Bird (need {3 - current_streak} more days)"
+        elif current_streak < 7:
+            next_milestone = f"💪 Week Warrior (need {7 - current_streak} more days)"
+        elif current_streak < 14:
+            next_milestone = f"🔥 Consistency King (need {14 - current_streak} more days)"
+        elif current_streak < 30:
+            next_milestone = f"🏆 Monthly Legend (need {30 - current_streak} more days)"
+        elif current_streak < 100:
+            next_milestone = f"👑 Century Club (need {100 - current_streak} more days)"
+        
+        if next_milestone:
+            print(f"   └─ Next Milestone: {next_milestone}")
+        else:
+            print(f"   └─ Next Milestone: All streak badges earned! 🏆")
+    
+    # Recent achievements
+    print(f"\n📈 RECENT ACHIEVEMENTS")
+    recent_achievements = achievements.get('achievement_history', [])[-10:]  # Last 10
+    
+    if recent_achievements:
+        for achievement in recent_achievements:
+            user = achievement['handle']
+            badge_name = achievement['badge']['name']
+            timestamp = achievement['timestamp'][:10]  # Just date
+            print(f"   {timestamp}: {user} earned {badge_name}")
+    else:
+        print("   No achievements yet")
+    
+    # Engagement insights
+    print(f"\n💡 ENGAGEMENT INSIGHTS")
+    
+    # Days until next milestones
+    approaching_milestones = []
+    for user in streaks.keys():
+        current = streaks[user]['current']
+        if current == 2:
+            approaching_milestones.append(f"{user} (1 day from Early Bird)")
+        elif current == 6:
+            approaching_milestones.append(f"{user} (1 day from Week Warrior)")
+        elif current == 13:
+            approaching_milestones.append(f"{user} (1 day from Consistency King)")
+    
+    if approaching_milestones:
+        print("   🎯 Users close to milestones:")
+        for milestone in approaching_milestones:
+            print(f"      • {milestone}")
+    else:
+        print("   📊 No users close to major milestones")
+    
+    # Growth opportunities
+    print(f"\n🚀 GROWTH OPPORTUNITIES")
+    if total_users < 5:
+        print("   • Consider inviting more workshop members")
+    if total_badges < total_users * 2:
+        print("   • Users ready for more achievement opportunities")
+    if max(streaks[user]['current'] for user in streaks.keys()) < 7:
+        print("   • Focus on helping users reach their first week milestone")
+    
+    print(f"\n✅ Dashboard generated successfully!")
 
 def main():
-    dashboard = AchievementDashboard()
-    dashboard.print_dashboard()
+    """Generate and display dashboard"""
+    generate_dashboard()
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Ensure Skills Exchange is bootstrapped
- * Run this to populate the marketplace if it's empty
+ * Ensure Skills Exchange is bootstrapped with sample data
  */
 
 const { bootstrapSkillsExchange } = require('./bootstrap-skills-exchange.js');
@@ -10,13 +9,11 @@ const { bootstrapSkillsExchange } = require('./bootstrap-skills-exchange.js');
 console.log('🔍 Checking Skills Exchange marketplace...\n');
 
 try {
-  // This will only bootstrap if the file is empty
+  // This will only create sample data if none exists
   bootstrapSkillsExchange();
   
-  console.log('✅ Skills Exchange marketplace ready!\n');
-  console.log('📊 Run dashboard: node skills-exchange-dashboard.js');
+  console.log('\n✅ Skills Exchange is ready for users!');
   
 } catch (error) {
-  console.error('❌ Failed to ensure bootstrap:', error.message);
-  process.exit(1);
+  console.error('❌ Bootstrap check failed:', error.message);
 }
