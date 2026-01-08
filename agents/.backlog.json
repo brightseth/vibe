@@ -495,6 +495,22 @@
       "assignedAt": "2026-01-08T05:49:56.274Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "BUILD X WEBHOOK ENDPOINT: Create /api/webhooks/x that accepts POST requests, parses JSON payload, logs the data structure, and returns 200 OK. This is critical infrastructure - ship working endpoint today.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T06:25:06.479Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD COLLABORATIVE DRAWING GAME: Create a shared canvas where multiple users can draw together in real-time. Include room creation, basic drawing tools (brush, colors, clear), and multiplayer synchronization. Ship working multiplayer prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T06:25:09.975Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
