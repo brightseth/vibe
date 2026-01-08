@@ -101,7 +101,11 @@ async function getKV() {
 async function getPresence(username) {
   const kv = await getKV();
   if (kv) {
-    return await kv.get(`presence:data:${username}`);
+    try {
+      return await kv.get(`presence:data:${username}`);
+    } catch (e) {
+      console.error('[presence] KV getPresence failed:', e.message);
+    }
   }
   return memoryPresence[username] || null;
 }
@@ -111,16 +115,22 @@ async function setPresence(username, data, options = {}) {
   const timestamp = Date.now();
 
   if (kv) {
-    // Use pipeline for atomic operations
-    const pipeline = kv.pipeline();
+    try {
+      // Use pipeline for atomic operations
+      const pipeline = kv.pipeline();
 
-    // Store user data with TTL
-    pipeline.set(`presence:data:${username}`, data, options);
+      // Store user data with TTL
+      pipeline.set(`presence:data:${username}`, data, options);
 
-    // Update sorted set index (score = timestamp for sorting)
-    pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
+      // Update sorted set index (score = timestamp for sorting)
+      pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
 
-    await pipeline.exec();
+      await pipeline.exec();
+    } catch (e) {
+      console.error('[presence] KV setPresence failed:', e.message);
+      // Fall through to memory storage
+      memoryPresence[username] = { ...data, _timestamp: timestamp };
+    }
   } else {
     memoryPresence[username] = { ...data, _timestamp: timestamp };
   }
@@ -130,34 +140,39 @@ async function getAllPresence() {
   const kv = await getKV();
 
   if (kv) {
-    // Get all users from sorted set, newest first
-    // Using ZRANGE with REV to get descending order by score
-    const usernames = await kv.zrange(PRESENCE_INDEX, 0, -1, { rev: true });
+    try {
+      // Get all users from sorted set, newest first
+      // Using ZRANGE with REV to get descending order by score
+      const usernames = await kv.zrange(PRESENCE_INDEX, 0, -1, { rev: true });
 
-    if (!usernames || usernames.length === 0) return [];
+      if (!usernames || usernames.length === 0) return [];
 
-    // Batch fetch all user data
-    const keys = usernames.map(u => `presence:data:${u}`);
-    const data = await kv.mget(...keys);
+      // Batch fetch all user data
+      const keys = usernames.map(u => `presence:data:${u}`);
+      const data = await kv.mget(...keys);
 
-    // Filter out expired/null entries and clean up stale index entries
-    const validData = [];
-    const staleUsers = [];
+      // Filter out expired/null entries and clean up stale index entries
+      const validData = [];
+      const staleUsers = [];
 
-    for (let i = 0; i < usernames.length; i++) {
-      if (data[i]) {
-        validData.push(data[i]);
-      } else {
-        staleUsers.push(usernames[i]);
+      for (let i = 0; i < usernames.length; i++) {
+        if (data[i]) {
+          validData.push(data[i]);
+        } else {
+          staleUsers.push(usernames[i]);
+        }
       }
-    }
 
-    // Clean up stale index entries (data expired but index remains)
-    if (staleUsers.length > 0) {
-      await kv.zrem(PRESENCE_INDEX, ...staleUsers);
-    }
+      // Clean up stale index entries (data expired but index remains)
+      if (staleUsers.length > 0) {
+        await kv.zrem(PRESENCE_INDEX, ...staleUsers).catch(() => {});
+      }
 
-    return validData;
+      return validData;
+    } catch (e) {
+      console.error('[presence] KV getAllPresence failed:', e.message);
+      // Fall through to memory fallback
+    }
   }
 
   // Memory fallback: sort by timestamp
@@ -171,14 +186,19 @@ async function getActivePresence(cutoffSeconds = 1800) {
   const cutoffTime = Date.now() - (cutoffSeconds * 1000);
 
   if (kv) {
-    // Get users with score > cutoffTime (active within cutoff)
-    const usernames = await kv.zrangebyscore(PRESENCE_INDEX, cutoffTime, '+inf');
+    try {
+      // Get users with score > cutoffTime (active within cutoff)
+      const usernames = await kv.zrangebyscore(PRESENCE_INDEX, cutoffTime, '+inf');
 
-    if (!usernames || usernames.length === 0) return [];
+      if (!usernames || usernames.length === 0) return [];
 
-    const keys = usernames.map(u => `presence:data:${u}`);
-    const data = await kv.mget(...keys);
-    return data.filter(d => d !== null);
+      const keys = usernames.map(u => `presence:data:${u}`);
+      const data = await kv.mget(...keys);
+      return data.filter(d => d !== null);
+    } catch (e) {
+      console.error('[presence] KV getActivePresence failed:', e.message);
+      // Fall through to memory fallback
+    }
   }
 
   // Memory fallback
@@ -189,10 +209,14 @@ async function getActivePresence(cutoffSeconds = 1800) {
 async function deletePresence(username) {
   const kv = await getKV();
   if (kv) {
-    const pipeline = kv.pipeline();
-    pipeline.del(`presence:data:${username}`);
-    pipeline.zrem(PRESENCE_INDEX, username);
-    await pipeline.exec();
+    try {
+      const pipeline = kv.pipeline();
+      pipeline.del(`presence:data:${username}`);
+      pipeline.zrem(PRESENCE_INDEX, username);
+      await pipeline.exec();
+    } catch (e) {
+      console.error('[presence] KV deletePresence failed:', e.message);
+    }
   }
   delete memoryPresence[username];
 }
@@ -266,7 +290,11 @@ async function registerSession(sessionId, handle) {
   const kv = await getKV();
   const data = { handle, registeredAt: new Date().toISOString() };
   if (kv) {
-    await kv.set(`session:${sessionId}`, data, { ex: SESSION_TTL });
+    try {
+      await kv.set(`session:${sessionId}`, data, { ex: SESSION_TTL });
+    } catch (e) {
+      console.error('[presence] KV registerSession failed:', e.message);
+    }
   }
   memorySessions[sessionId] = data;
   return data;
@@ -275,7 +303,11 @@ async function registerSession(sessionId, handle) {
 async function getSession(sessionId) {
   const kv = await getKV();
   if (kv) {
-    return await kv.get(`session:${sessionId}`);
+    try {
+      return await kv.get(`session:${sessionId}`);
+    } catch (e) {
+      console.error('[presence] KV getSession failed:', e.message);
+    }
   }
   return memorySessions[sessionId] || null;
 }
@@ -283,11 +315,15 @@ async function getSession(sessionId) {
 async function refreshSession(sessionId) {
   const kv = await getKV();
   if (kv) {
-    const session = await kv.get(`session:${sessionId}`);
-    if (session) {
-      await kv.set(`session:${sessionId}`, session, { ex: SESSION_TTL });
+    try {
+      const session = await kv.get(`session:${sessionId}`);
+      if (session) {
+        await kv.set(`session:${sessionId}`, session, { ex: SESSION_TTL });
+      }
+      return session;
+    } catch (e) {
+      console.error('[presence] KV refreshSession failed:', e.message);
     }
-    return session;
   }
   return memorySessions[sessionId] || null;
 }
@@ -641,7 +677,11 @@ export default async function handler(req, res) {
         const recipient = typingTo.toLowerCase().replace('@', '');
         // kv already available from rate limit check above
         if (kv) {
-          await kv.set(`typing:${user}:${recipient}`, Date.now(), { ex: 5 }); // 5 second TTL
+          try {
+            await kv.set(`typing:${user}:${recipient}`, Date.now(), { ex: 5 }); // 5 second TTL
+          } catch (e) {
+            console.error('[presence] KV typing indicator failed:', e.message);
+          }
         }
         return res.status(200).json({
           success: true,
@@ -739,14 +779,18 @@ export default async function handler(req, res) {
     if (typing === 'true' && forUser) {
       const kv = await getKV();
       if (kv) {
-        const keys = await kv.keys(`typing:*:${forUser}`);
-        const typingUsers = keys.map(k => k.split(':')[1]);
-        return res.status(200).json({
-          success: true,
-          typingTo: forUser,
-          typingUsers,
-          count: typingUsers.length
-        });
+        try {
+          const keys = await kv.keys(`typing:*:${forUser}`);
+          const typingUsers = keys.map(k => k.split(':')[1]);
+          return res.status(200).json({
+            success: true,
+            typingTo: forUser,
+            typingUsers,
+            count: typingUsers.length
+          });
+        } catch (e) {
+          console.error('[presence] KV typing query failed:', e.message);
+        }
       }
       return res.status(200).json({
         success: true,
