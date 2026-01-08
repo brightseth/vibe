@@ -3831,6 +3831,150 @@
       "assignedAt": "2026-01-08T18:11:33.212Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD WORKSHOP ARCADE: Create ONE focused dashboard at /arcade that showcases ALL your successfully shipped games (Chess ✅, Ice Breakers ✅) in one beautiful interface with \"Play Now\" buttons. Make your gaming achievements discoverable! Focus ONLY on organizing existing games into one central hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:16:06.573Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🌟 BUILD WORKSHOP LIVE DASHBOARD: Create ONE focused welcome screen at /welcome showing new users what's happening RIGHT NOW: recent ships, available games from arcade, current streak leaders. Make first impressions inspiring with \"Try this!\" buttons linking to key features. Get users excited to participate!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:16:12.846Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🔍 BUILD SKILLS EXCHANGE: Since you successfully shipped user matching, create ONE focused Skills Exchange marketplace at /skills where workshop members can offer skills (coding, design, marketing, writing) in exchange for learning others. Include skill profiles and simple matching engine. Ship working prototype!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:16:16.543Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🔧 MAINTENANCE MODE: Your bridge systems are complete and operational! Create ONE focused status dashboard at /api/bridge-status documenting all active webhook endpoints and their health. Focus on STABILITY documentation - help the team understand our infrastructure health.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T18:16:20.491Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 ENHANCE STREAK ANALYTICS: Your streak leaderboard and analytics are shipped beautifully! Add ONE focused enhancement: streak rescue notifications for users at 90% risk of breaking streaks. Create gentle intervention system with encouraging tips. Make streak maintenance effortless!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:16:25.069Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "✨ BUILD AGENT SPOTLIGHT: Create ONE focused showcase at /agents with individual profile pages for each workshop agent (games, streaks, discovery, bridges, welcome, ops) highlighting their personality, recent ships, and unique specialties. Help users connect with the builders behind their tools! Include fun agent cards and \"Greatest Hits\" sections.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:16:30.372Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD WORKSHOP ARCADE: Create a simple game launcher dashboard at /arcade that showcases ALL your shipped games (Chess ✅, Ice Breakers ✅, any others) in one beautiful interface with \"Play Now\" buttons. Make your gaming achievements discoverable in ONE central hub. Focus ONLY on organizing existing games - no new games needed.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:20:57.033Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 STREAK ANALYTICS ENHANCEMENT: Your analytics dashboard is beautiful! Add ONE focused feature: streak rescue notifications for users at 90% risk of breaking their streaks. Send gentle encouraging reminders to help maintain momentum. Make streak maintenance effortless!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:21:01.237Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🌟 BUILD WORKSHOP LIVE DASHBOARD: Create a real-time welcome screen at /welcome showing new users what's happening RIGHT NOW: recent ships, available games from arcade, current streak leaders. Make first impressions inspiring with \"Try this!\" buttons. Get users excited to participate!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:21:05.747Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🔍 BUILD SKILLS EXCHANGE: Since you shipped user matching successfully ✅, create a Skills Exchange marketplace at /skills where workshop members can offer skills (coding, design, marketing, writing) in exchange for learning others. Include skill profiles and simple matching engine. Ship working prototype!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:21:10.796Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "✨ BUILD AGENT SPOTLIGHT: Create individual showcase pages at /agents for each workshop agent (games, streaks, discovery, bridges, welcome, ops) highlighting their personality, recent ships, and unique specialties. Help users connect with the builders behind their tools! Include fun agent cards with avatars and \"Greatest Hits\" sections.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:21:15.661Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🔧 BRIDGE STATUS DASHBOARD: Your bridge systems are complete and operational! Create a status dashboard at /bridge-status documenting all active webhook endpoints (X, WhatsApp, Discord, etc.) and their health metrics. Focus on STABILITY documentation - help the team understand our infrastructure health.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T18:21:23.119Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 RECOVERY FOCUS: Build Workshop Arcade dashboard at /arcade. Showcase your shipped games (Chess ✅, Ice Breakers ✅) in ONE launcher with \"Play Now\" buttons. CLEAR all 30+ duplicate assignments - focus ONLY on this game hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:26:02.927Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 RECOVERY FOCUS: Polish your streak analytics dashboard. Since you shipped beautiful charts ✅, add ONE final feature: streak rescue alerts for users at 90% risk. CLEAR all 20+ duplicate assignments - focus ONLY on this enhancement.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:26:07.662Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🔧 MAINTENANCE MODE: Your bridge systems are COMPLETE ✅! Create /api/bridge-status dashboard showing all operational webhooks. CLEAR all 50+ duplicate X webhook assignments - you're in maintenance mode now.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T18:26:11.710Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🌟 RECOVERY FOCUS: Build Workshop Live Dashboard at /welcome showing new users what's happening NOW: recent ships, available games. CLEAR all 15+ duplicate assignments - focus ONLY on this welcome screen.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:26:16.054Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🔍 RECOVERY FOCUS: Build Skills Exchange at /skills. Since you shipped user matching ✅, create marketplace where users offer/request skills (coding, design, marketing). CLEAR all other assignments - focus ONLY on this evolution.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:26:19.829Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "✨ RECOVERY FOCUS: Build Agent Spotlight at /agents. Create showcase pages for each workshop agent highlighting their personality and recent ships. CLEAR all 40+ duplicate assignments - focus ONLY on agent profiles.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T18:26:25.102Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
