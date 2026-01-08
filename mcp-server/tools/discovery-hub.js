@@ -1,20 +1,15 @@
 /**
- * vibe discovery-hub — One Place for All Discovery Features
+ * vibe discovery-hub — Unified Discovery Command Center
  *
- * A unified interface that brings together all discovery tools:
- * - General people discovery
- * - Workshop buddy matching  
- * - Skills exchange marketplace
- * - Community analytics
- *
- * This helps users navigate the discovery ecosystem without getting lost
- * in separate commands.
+ * A single entry point that brings together all discovery and connection features.
+ * Perfect for new users to understand the full ecosystem and for experienced users
+ * to quickly access any discovery feature.
  *
  * Commands:
- * - discovery-hub — Show overview of all discovery options
- * - discovery-hub quick — Quick discovery based on your profile
- * - discovery-hub browse — Browse all community features
- * - discovery-hub help — Get started with discovery
+ * - discovery-hub explore — Browse all discovery features
+ * - discovery-hub onboard — Complete discovery profile setup
+ * - discovery-hub connect — Find people to connect with right now
+ * - discovery-hub status — Your discovery profile health
  */
 
 const config = require('../config');
@@ -23,117 +18,113 @@ const { formatTimeAgo, requireInit } = require('./_shared');
 
 const definition = {
   name: 'vibe_discovery_hub',
-  description: 'Unified interface for all discovery and connection features.',
+  description: 'Unified discovery command center - your gateway to /vibe connections.',
   inputSchema: {
     type: 'object',
     properties: {
       command: {
         type: 'string',
-        enum: ['overview', 'quick', 'browse', 'help'],
-        description: 'Discovery hub command to run'
+        enum: ['explore', 'onboard', 'connect', 'status'],
+        description: 'Hub command to run'
       }
     }
   }
 };
 
-// Analyze user's profile to suggest best discovery path
-async function getPersonalizedPath(handle) {
+// Calculate quick profile score
+async function getQuickProfileScore(handle) {
   const profile = await userProfiles.getProfile(handle);
-  const suggestions = [];
   
-  // Profile completeness
-  const hasBuilding = profile.building && profile.building.length > 0;
-  const hasInterests = profile.interests && profile.interests.length > 0;
-  const hasTags = profile.tags && profile.tags.length > 0;
-  const hasConnections = profile.connections && profile.connections.length > 0;
+  let score = 0;
+  let maxScore = 100;
+  let gaps = [];
   
-  // Suggest profile improvements first
-  if (!hasBuilding && !hasInterests && !hasTags) {
-    suggestions.push({
-      type: 'setup',
-      priority: 'high',
-      action: 'Complete your profile first',
-      command: 'vibe update building "what you\'re working on"',
-      reason: 'Discovery works better with a complete profile'
-    });
+  // Building (30 points)
+  if (profile.building) {
+    score += 30;
   } else {
-    // Suggest discovery actions based on what they have
-    if (hasBuilding && hasTags) {
-      suggestions.push({
-        type: 'buddy',
-        priority: 'high', 
-        action: 'Find your workshop buddy',
-        command: 'workshop-buddy find',
-        reason: 'You have skills - find collaboration partners'
-      });
-    }
-    
-    if (hasTags) {
-      suggestions.push({
-        type: 'exchange',
-        priority: 'medium',
-        action: 'Join skills marketplace',
-        command: 'skills-exchange post --type offer --skill "your-expertise"',
-        reason: 'Share your skills with the community'
-      });
-    }
-    
-    if (hasInterests) {
-      suggestions.push({
-        type: 'discover',
-        priority: 'medium', 
-        action: 'Find similar builders',
-        command: 'discover suggest',
-        reason: 'Connect with people who share your interests'
-      });
-    }
-    
-    if (!hasConnections) {
-      suggestions.push({
-        type: 'analytics',
-        priority: 'low',
-        action: 'See who needs connections',
-        command: 'discovery-analytics lonely',
-        reason: 'Help others while making connections'
-      });
+    gaps.push('Add what you\'re building (+30)');
+  }
+  
+  // Interests (25 points)
+  const interestCount = (profile.interests || []).length;
+  if (interestCount >= 3) {
+    score += 25;
+  } else if (interestCount > 0) {
+    score += Math.round(25 * (interestCount / 3));
+    gaps.push(`Add ${3 - interestCount} more interests (+${25 - Math.round(25 * (interestCount / 3))})`);
+  } else {
+    gaps.push('Add interests (+25)');
+  }
+  
+  // Skills (25 points)
+  const tagCount = (profile.tags || []).length;
+  if (tagCount >= 5) {
+    score += 25;
+  } else if (tagCount > 0) {
+    score += Math.round(25 * (tagCount / 5));
+    gaps.push(`Add ${5 - tagCount} more skills (+${25 - Math.round(25 * (tagCount / 5))})`);
+  } else {
+    gaps.push('Add skills (+25)');
+  }
+  
+  // Connections (10 points)
+  const connectionCount = (profile.connections || []).length;
+  if (connectionCount >= 3) {
+    score += 10;
+  } else if (connectionCount > 0) {
+    score += Math.round(10 * (connectionCount / 3));
+    gaps.push('Make more connections');
+  } else {
+    gaps.push('Make first connection (+10)');
+  }
+  
+  // Recent activity (10 points)
+  if (profile.lastSeen) {
+    const hoursSince = (Date.now() - profile.lastSeen) / (1000 * 60 * 60);
+    if (hoursSince < 24) {
+      score += 10;
+    } else if (hoursSince < 168) {
+      score += 5;
     }
   }
   
-  return suggestions.sort((a, b) => {
-    const priority = { high: 3, medium: 2, low: 1 };
-    return priority[b.priority] - priority[a.priority];
-  });
+  return { score, maxScore, gaps: gaps.slice(0, 3) };
 }
 
-// Get community overview stats
-async function getCommunityOverview() {
-  const profiles = await userProfiles.getAllProfiles();
-  const totalUsers = profiles.length;
+// Get connection opportunities count
+async function getConnectionOpportunities(handle) {
+  const myProfile = await userProfiles.getProfile(handle);
+  const allProfiles = await userProfiles.getAllProfiles();
   
-  if (totalUsers === 0) {
-    return {
-      isEmpty: true,
-      message: "Community is just getting started!"
-    };
+  let opportunities = 0;
+  
+  for (const other of allProfiles) {
+    if (other.handle === handle) continue;
+    
+    // Check if already connected
+    const alreadyConnected = await userProfiles.hasBeenConnected(handle, other.handle);
+    if (alreadyConnected) continue;
+    
+    // Simple matching logic
+    let hasMatch = false;
+    
+    // Skill overlap
+    if (myProfile.tags && other.tags) {
+      const overlap = myProfile.tags.filter(tag => other.tags.includes(tag));
+      if (overlap.length > 0) hasMatch = true;
+    }
+    
+    // Interest overlap
+    if (myProfile.interests && other.interests) {
+      const overlap = myProfile.interests.filter(interest => other.interests.includes(interest));
+      if (overlap.length > 0) hasMatch = true;
+    }
+    
+    if (hasMatch) opportunities++;
   }
   
-  const withSkills = profiles.filter(p => p.tags && p.tags.length > 0).length;
-  const withProjects = profiles.filter(p => p.building).length;
-  const connected = profiles.filter(p => p.connections && p.connections.length > 0).length;
-  
-  const trendingInterests = await userProfiles.getTrendingInterests();
-  const trendingTags = await userProfiles.getTrendingTags();
-  
-  return {
-    isEmpty: false,
-    totalUsers,
-    withSkills,
-    withProjects,
-    connected,
-    connectionRate: Math.round((connected / totalUsers) * 100),
-    topInterests: trendingInterests.slice(0, 3),
-    topSkills: trendingTags.slice(0, 3)
-  };
+  return opportunities;
 }
 
 async function handler(args) {
@@ -141,178 +132,206 @@ async function handler(args) {
   if (initCheck) return initCheck;
 
   const myHandle = config.getHandle();
-  const command = args.command || 'overview';
+  const command = args.command || 'explore';
 
   let display = '';
 
   try {
     switch (command) {
-      case 'overview':
-      case undefined: {
-        const overview = await getCommunityOverview();
-        
+      case 'explore': {
         display = `## /vibe Discovery Hub 🧭\n\n`;
-        display += `_Your one-stop shop for finding interesting people to connect with._\n\n`;
+        display += `_Your command center for finding the perfect connections._\n\n`;
         
-        if (overview.isEmpty) {
-          display += `### ${overview.message}\n\n`;
-          display += `**Help us build the community:**\n`;
-          display += `1. \`vibe update building "your project"\`\n`;
-          display += `2. \`vibe update tags "your-skills"\`\n`;
-          display += `3. \`vibe update interests "what excites you"\`\n\n`;
-        } else {
-          display += `### Community Snapshot\n`;
-          display += `👥 **${overview.totalUsers} total members**\n`;
-          display += `🛠️ **${overview.withProjects} building projects**\n`;
-          display += `⚡ **${overview.withSkills} sharing skills**\n`;
-          display += `🤝 **${overview.connectionRate}% have made connections**\n\n`;
-          
-          if (overview.topInterests.length > 0) {
-            display += `**Trending:** ${overview.topInterests.map(i => i.interest).join(', ')}\n`;
-          }
-          if (overview.topSkills.length > 0) {
-            display += `**Hot skills:** ${overview.topSkills.map(s => s.tag).join(', ')}\n`;
-          }
-        }
+        display += `### 🤝 Find People\n`;
+        display += `**\`discover suggest\`** — AI-powered connection suggestions\n`;
+        display += `**\`workshop-buddy find\`** — Find collaboration partners\n`;
+        display += `**\`discover search <keyword>\`** — Search for specific skills/interests\n\n`;
         
-        display += `\n### Discovery Tools\n`;
-        display += `🎯 **\`discovery-hub quick\`** — Personalized discovery path\n`;
-        display += `👥 **\`discover suggest\`** — Find similar builders\n`;
-        display += `🤝 **\`workshop-buddy find\`** — Find collaboration partners\n`;
-        display += `🏪 **\`skills-exchange browse\`** — Skills marketplace\n`;
-        display += `📊 **\`discovery-analytics overview\`** — Community insights\n\n`;
+        display += `### 🏪 Skills Exchange\n`;
+        display += `**\`skills-exchange browse\`** — Browse marketplace\n`;
+        display += `**\`skills-exchange post --type offer --skill "expertise"\`** — Offer skills\n`;
+        display += `**\`skills-exchange post --type request --skill "what you need"\`** — Request help\n`;
+        display += `**\`skills-exchange match\`** — Find skill exchanges for you\n\n`;
         
-        display += `### Quick Actions\n`;
-        display += `🔍 **\`discover search "ai"\`** — Find people by topic\n`;
-        display += `📝 **\`skills-exchange post\`** — Offer/request skills\n`;
-        display += `💬 **\`discovery-hub browse\`** — Explore everything\n`;
-        display += `❓ **\`discovery-hub help\`** — Get started guide`;
+        display += `### 📊 Profile & Analytics\n`;
+        display += `**\`discovery-dashboard health\`** — Check profile health\n`;
+        display += `**\`discovery-analytics overview\`** — Community insights\n`;
+        display += `**\`discover-insights quality\`** — Connection analytics\n\n`;
+        
+        display += `### 🚀 Quick Actions\n`;
+        display += `**\`discovery-hub onboard\`** — Complete profile setup\n`;
+        display += `**\`discovery-hub connect\`** — Get instant connections\n`;
+        display += `**\`discovery-hub status\`** — Check your discovery health\n\n`;
+        
+        display += `**New to discovery?** Start with \`discovery-hub onboard\`\n`;
+        display += `**Ready to connect?** Try \`discovery-hub connect\``;
         break;
       }
 
-      case 'quick': {
-        const path = await getPersonalizedPath(myHandle);
+      case 'onboard': {
+        const myProfile = await userProfiles.getProfile(myHandle);
+        const { score, gaps } = await getQuickProfileScore(myHandle);
         
-        display = `## Your Personalized Discovery Path 🎯\n\n`;
+        display = `## Discovery Profile Setup 🎯\n\n`;
+        display += `**Current Score: ${score}/100**\n\n`;
         
-        if (path.length === 0) {
-          display += `**You're all set!** 🎉\n\n`;
-          display += `Your profile looks good and you're connected. Here's what you can do:\n\n`;
-          display += `• **\`discover active\`** — See who's building similar things now\n`;
-          display += `• **\`skills-exchange match\`** — Find skill exchange opportunities\n`;
-          display += `• **\`discovery-analytics gaps\`** — Help others connect\n`;
+        if (score >= 80) {
+          display += `🌟 **Excellent!** Your profile is discovery-ready!\n\n`;
+          display += `**Next steps:**\n`;
+          display += `• \`discover suggest\` — Find your first connections\n`;
+          display += `• \`skills-exchange browse\` — Explore skill marketplace\n`;
+          display += `• \`workshop-buddy find\` — Find collaboration partners`;
         } else {
-          display += `_Based on your profile, here's the best path forward:_\n\n`;
+          display += `**Complete your profile to unlock connections:**\n\n`;
           
-          for (let i = 0; i < path.length && i < 3; i++) {
-            const step = path[i];
-            const priority = step.priority === 'high' ? '🔥' : step.priority === 'medium' ? '⭐' : '💡';
-            
-            display += `${priority} **${step.action}**\n`;
-            display += `\`${step.command}\`\n`;
-            display += `_${step.reason}_\n\n`;
-          }
-          
-          if (path.length > 3) {
-            display += `**More options:**\n`;
-            for (let i = 3; i < path.length; i++) {
-              display += `• ${path[i].action}\n`;
+          if (gaps.length > 0) {
+            display += `**Quick wins:**\n`;
+            for (const gap of gaps) {
+              display += `• ${gap}\n`;
             }
+            display += `\n`;
           }
+          
+          display += `**Profile setup commands:**\n`;
+          if (!myProfile.building) {
+            display += `\`vibe update building "what you're working on"\`\n`;
+          }
+          if (!myProfile.interests || myProfile.interests.length === 0) {
+            display += `\`vibe update interests "ai, startups, music"\` (your interests)\n`;
+          }
+          if (!myProfile.tags || myProfile.tags.length === 0) {
+            display += `\`vibe update tags "frontend, react, typescript"\` (your skills)\n`;
+          }
+          
+          display += `\n**After updating:**\n`;
+          display += `\`discovery-hub status\` — Check your new score\n`;
+          display += `\`discovery-hub connect\` — Find connections\n\n`;
+          
+          display += `**Example complete profile:**\n`;
+          display += `Building: "AI-powered productivity app"\n`;
+          display += `Interests: "ai, productivity, startups, music"\n`;
+          display += `Skills: "frontend, react, typescript, design"`;
+        }
+        break;
+      }
+
+      case 'connect': {
+        const { score } = await getQuickProfileScore(myHandle);
+        const opportunities = await getConnectionOpportunities(myHandle);
+        
+        display = `## Find Connections Now 🔗\n\n`;
+        
+        if (score < 40) {
+          display += `⚡ **Profile needs work first!**\n`;
+          display += `Your discovery score is ${score}/100. Complete your profile for better matches.\n\n`;
+          display += `**Quick setup:** \`discovery-hub onboard\``;
+        } else {
+          display += `**Your connection toolkit:**\n\n`;
+          
+          if (opportunities > 0) {
+            display += `🎯 **${opportunities} potential matches found!**\n\n`;
+          }
+          
+          display += `### Start Here\n`;
+          display += `**\`discover suggest\`** — See your top 3 AI-matched people\n`;
+          display += `**\`workshop-buddy find\`** — Find collaboration partners\n\n`;
+          
+          display += `### Browse & Search\n`;
+          display += `**\`skills-exchange browse\`** — See who's offering/requesting skills\n`;
+          display += `**\`skills-exchange match\`** — Find perfect skill exchanges\n`;
+          display += `**\`discover search "keyword"\`** — Search for specific expertise\n\n`;
+          
+          display += `### Analytics & Insights\n`;
+          display += `**\`discovery-analytics gaps\`** — See community connection opportunities\n`;
+          display += `**\`discovery-analytics lonely\`** — People who need connections\n\n`;
+          
+          display += `**After finding someone:**\n`;
+          display += `\`dm @username "Hi! I saw we both..."\` — Send a message\n`;
+          display += `\`suggest-connection @user1 @user2 "reason"\` — Suggest others connect`;
+        }
+        break;
+      }
+
+      case 'status': {
+        const myProfile = await userProfiles.getProfile(myHandle);
+        const { score, gaps } = await getQuickProfileScore(myHandle);
+        const opportunities = await getConnectionOpportunities(myHandle);
+        
+        display = `## Your Discovery Status 📈\n\n`;
+        
+        // Profile health
+        display += `### Profile Health: ${score}/100`;
+        if (score >= 80) {
+          display += ` 🌟\n`;
+        } else if (score >= 60) {
+          display += ` 👍\n`;
+        } else if (score >= 40) {
+          display += ` ⚡\n`;
+        } else {
+          display += ` 🚧\n`;
         }
         
-        display += `\n**Want to explore?**\n`;
-        display += `\`discovery-hub browse\` — See all features`;
-        break;
-      }
-
-      case 'browse': {
-        display = `## All Discovery Features 🌐\n\n`;
+        display += `**Building:** ${myProfile.building || '_Not set_'}\n`;
+        display += `**Interests:** ${(myProfile.interests || []).join(', ') || '_None_'}\n`;
+        display += `**Skills:** ${(myProfile.tags || []).join(', ') || '_None_'}\n`;
+        display += `**Connections:** ${(myProfile.connections || []).length}\n\n`;
         
-        display += `### 👥 General Discovery\n`;
-        display += `• **\`discover suggest\`** — AI-matched recommendations\n`;
-        display += `• **\`discover search <topic>\`** — Find people by interest/skill\n`;
-        display += `• **\`discover interests\`** — Browse by community interests\n`;
-        display += `• **\`discover active\`** — Similar builders online now\n\n`;
+        // Connection potential
+        display += `### Connection Opportunities\n`;
+        display += `**Potential matches:** ${opportunities}\n`;
+        if (myProfile.lastSeen) {
+          display += `**Last active:** ${formatTimeAgo(myProfile.lastSeen)}\n`;
+        }
+        display += `\n`;
         
-        display += `### 🤝 Workshop Collaboration\n`;
-        display += `• **\`workshop-buddy find\`** — Find perfect collaboration partner\n`;
-        display += `• **\`workshop-buddy seeking <skills>\`** — Find specific expertise\n`;
-        display += `• **\`workshop-buddy offer <skills>\`** — Share what you can help with\n`;
-        display += `• **\`workshop-buddy matches\`** — Browse skill exchanges\n\n`;
+        // Improvement suggestions
+        if (gaps.length > 0) {
+          display += `### Quick Improvements\n`;
+          for (const gap of gaps) {
+            display += `• ${gap}\n`;
+          }
+          display += `\n`;
+        }
         
-        display += `### 🏪 Skills Marketplace\n`;
-        display += `• **\`skills-exchange browse\`** — Browse all offerings\n`;
-        display += `• **\`skills-exchange post\`** — Post offer/request\n`;
-        display += `• **\`skills-exchange match\`** — Find your perfect exchanges\n`;
-        display += `• **\`skills-exchange requests\`** — See what people need\n\n`;
+        // Next actions
+        display += `### Recommended Actions\n`;
+        if (score < 60) {
+          display += `• \`discovery-hub onboard\` — Complete profile setup\n`;
+        }
+        if (opportunities > 0) {
+          display += `• \`discover suggest\` — See your matches\n`;
+        }
+        display += `• \`skills-exchange browse\` — Explore marketplace\n`;
+        display += `• \`workshop-buddy find\` — Find collaborators\n\n`;
         
-        display += `### 📊 Community Intelligence\n`;
-        display += `• **\`discovery-analytics overview\`** — Community health\n`;
-        display += `• **\`discovery-analytics gaps\`** — Connection opportunities\n`;
-        display += `• **\`discovery-analytics popular\`** — Trending topics\n`;
-        display += `• **\`discovery-analytics lonely\`** — People needing connections\n\n`;
-        
-        display += `### 🚀 Quick Starts\n`;
-        display += `• **New here?** → \`discovery-hub help\`\n`;
-        display += `• **Have skills?** → \`workshop-buddy find\`\n`;
-        display += `• **Looking for help?** → \`skills-exchange browse\`\n`;
-        display += `• **Want to browse?** → \`discover interests\``;
-        break;
-      }
-
-      case 'help': {
-        display = `## Getting Started with Discovery 🚀\n\n`;
-        
-        display += `### Step 1: Complete Your Profile\n`;
-        display += `\`vibe update building "your current project"\`\n`;
-        display += `\`vibe update tags "frontend,react,typescript"\`\n`;
-        display += `\`vibe update interests "ai,startups,music"\`\n\n`;
-        
-        display += `### Step 2: Find Your First Connections\n`;
-        display += `**Option A:** \`discover suggest\` — Get AI recommendations\n`;
-        display += `**Option B:** \`discover search "ai"\` — Find people by topic\n`;
-        display += `**Option C:** \`workshop-buddy find\` — Find collaboration partners\n\n`;
-        
-        display += `### Step 3: Join the Marketplace\n`;
-        display += `\`skills-exchange post --type offer --skill "your expertise"\`\n`;
-        display += `\`skills-exchange browse\` — See what others offer\n\n`;
-        
-        display += `### Step 4: Connect!\n`;
-        display += `\`dm @username "Hey! I saw your profile..."\`\n`;
-        display += `\`suggest-connection @user1 @user2 "reason"\` — Help others connect\n\n`;
-        
-        display += `### Tips for Success\n`;
-        display += `• **Be specific** in your profile (helps matching)\n`;
-        display += `• **Update regularly** as your interests change\n`;
-        display += `• **Reach out proactively** — don't wait for perfect matches\n`;
-        display += `• **Help others connect** — it builds community karma\n\n`;
-        
-        display += `**Ready to start?**\n`;
-        display += `\`discovery-hub quick\` — Get your personalized path`;
+        display += `**Track progress:** Run \`discovery-hub status\` anytime`;
         break;
       }
 
       default:
         display = `## Discovery Hub Commands
 
-**\`discovery-hub\`** — Show overview of all discovery features
-**\`discovery-hub quick\`** — Get your personalized discovery path  
-**\`discovery-hub browse\`** — Explore all features
-**\`discovery-hub help\`** — Complete getting started guide
+**\`discovery-hub explore\`** — Browse all discovery features
+**\`discovery-hub onboard\`** — Complete your discovery profile
+**\`discovery-hub connect\`** — Find people to connect with now
+**\`discovery-hub status\`** — Check your discovery health
 
-This hub connects you to:
-- General people discovery (\`discover\`)
-- Workshop collaboration (\`workshop-buddy\`) 
-- Skills marketplace (\`skills-exchange\`)
-- Community analytics (\`discovery-analytics\`)`;
+**Your unified gateway to:**
+- AI-powered connection suggestions
+- Skills marketplace
+- Collaboration partner finding
+- Profile optimization
+- Community analytics
+
+**New user?** Start with \`discovery-hub onboard\`
+**Ready to connect?** Try \`discovery-hub connect\``;
     }
   } catch (error) {
     display = `## Discovery Hub Error
 
 ${error.message}
 
-Try: \`discovery-hub\` for the overview`;
+Try: \`discovery-hub\` for available commands`;
   }
 
   return { display };
