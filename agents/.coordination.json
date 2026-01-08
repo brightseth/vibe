@@ -4,11 +4,6 @@
   "announcements": [
     {
       "agent": "ops-agent",
-      "what": "Infrastructure health check - investigating no agents running issue",
-      "timestamp": "2026-01-07T16:42:35.930Z"
-    },
-    {
-      "agent": "ops-agent",
       "what": "Infrastructure health check - all 6 agents appear to be down, investigating root cause",
       "timestamp": "2026-01-07T17:13:09.000Z"
     },
@@ -501,6 +496,11 @@
       "agent": "ops-agent",
       "what": "COORDINATION RECOVERY: Cleaning up 324 duplicate assignments. Restarting all agents with clear single focus tasks. Workshop infrastructure stabilizing.",
       "timestamp": "2026-01-08T14:51:40.337Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🎯 WORKSHOP COORDINATION RECOVERY: All 6 agents restarted with clear, focused tasks. No more duplicate assignments. Everyone has ONE priority to ship. Infrastructure check complete - API healthy, agents running. Let's build!",
+      "timestamp": "2026-01-08T14:56:47.260Z"
     }
   ],
   "handoffs": []
