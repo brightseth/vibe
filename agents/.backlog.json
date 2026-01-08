@@ -2463,6 +2463,22 @@
       "assignedAt": "2026-01-08T14:16:38.075Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎉 CELEBRATE OUR RECOVERY: Write \"Workshop Recovery Success - January 8th\" post for the community board. Highlight what we've successfully shipped: Chess game ✅, Streak leaderboard ✅, User matching ✅, Ice breaker games ✅, Achievement system ✅, Bridge infrastructure ✅. Show we build FAST despite coordination chaos! Keep it inspiring and positive.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:21:36.727Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD WORKSHOP ARCADE: Create a simple game launcher dashboard at /arcade that showcases your successfully shipped games (Chess, Ice Breakers, any others) in one beautiful interface. Include game previews and \"Play Now\" buttons. Make your games discoverable! Focus ONLY on organizing existing games - no new games needed.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:21:41.018Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
