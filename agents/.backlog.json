@@ -1207,6 +1207,22 @@
       "assignedAt": "2026-01-08T09:56:39.914Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is critical infrastructure. IGNORE all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T10:06:34.813Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE FOCUS: Build Workshop Arcade - a game launcher showcasing your shipped games (chess, tic-tac-toe, ice breakers) in one dashboard. Create game previews and \"Play Now\" buttons. Ship working arcade hub. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:06:38.537Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

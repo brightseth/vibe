@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎖️ /vibe Workshop Achievement Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .user-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .user-handle {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .streak-info {
+            background: linear-gradient(45deg, #ff9a8b, #a8edea);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge.common { background: linear-gradient(45deg, #22C55E, #16A34A); }
+        .badge.epic { background: linear-gradient(45deg, #F59E0B, #D97706); }
+        .badge-catalog {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .badge-category {
+            margin-bottom: 20px;
+        }
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        .catalog-badges {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        .catalog-badge {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+        }
+        .catalog-badge.earned {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .badge-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .badge-desc {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        .progress-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .next-goals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .goal-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .goal-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .goal-progress {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎖️ /vibe Workshop Achievement Dashboard</h1>
+            <p>Tracking consistency, celebrating milestones, building momentum</p>
+            <small>Last updated: January 8, 2026 - Evening</small>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">2</span>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">4</span>
+                <div class="stat-label">Total Badges Earned</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">8</span>
+                <div class="stat-label">Badge Types Available</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">160</span>
+                <div class="stat-label">Total Points Awarded</div>
+            </div>
+        </div>
+
+        <div class="achievement-grid">
+            <div class="user-card">
+                <div class="user-header">
+                    <div class="user-handle">@demo_user</div>
+                    <div style="font-size: 0.8rem; color: #666;">80 points</div>
+                </div>
+                <div class="streak-info">
+                    <div>🔥 Current Streak: <strong>1 day</strong></div>
+                    <div>🏆 Best Streak: <strong>1 day</strong></div>
+                </div>
+                <div class="badges">
+                    <div class="badge common">🌱 First Day</div>
+                    <div class="badge epic">🌱 Early Adopter</div>
+                </div>
+            </div>
+
+            <div class="user-card">
+                <div class="user-header">
+                    <div class="user-handle">@vibe_champion</div>
+                    <div style="font-size: 0.8rem; color: #666;">80 points</div>
+                </div>
+                <div class="streak-info">
+                    <div>🔥 Current Streak: <strong>1 day</strong></div>
+                    <div>🏆 Best Streak: <strong>1 day</strong></div>
+                </div>
+                <div class="badges">
+                    <div class="badge common">🌱 First Day</div>
+                    <div class="badge epic">🌱 Early Adopter</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <h3>🎯 Next Milestone Progress</h3>
+            <div class="next-goals">
+                <div class="goal-card">
+                    <div class="goal-title">🌅 Early Bird Badge</div>
+                    <div class="goal-progress">Need 3-day streak (both users: 1/3 days)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%;"></div>
+                    </div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-title">💪 Week Warrior</div>
+                    <div class="goal-progress">Need 7-day streak (both users: 1/7 days)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 14%;"></div>
+                    </div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-title">🚢 First Ship</div>
+                    <div class="goal-progress">Need 1 board post (available to both users)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge-catalog">
+            <h3>🏆 Badge Catalog</h3>
+            
+            <div class="badge-category">
+                <div class="category-title">Streak Achievements</div>
+                <div class="catalog-badges">
+                    <div class="catalog-badge earned">
+                        <div class="badge-name">🌱 First Day</div>
+                        <div class="badge-desc">Started your streak journey (1 day) - ✅ Earned by both users</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">🌅 Early Bird</div>
+                        <div class="badge-desc">3 consecutive days - Next milestone!</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">💪 Week Warrior</div>
+                        <div class="badge-desc">7 consecutive days of activity</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">🔥 Consistency King</div>
+                        <div class="badge-desc">14 consecutive days - true dedication</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">🏆 Monthly Legend</div>
+                        <div class="badge-desc">30 consecutive days - legendary status</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">👑 Century Club</div>
+                        <div class="badge-desc">100 consecutive days - ultimate achievement</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="badge-category">
+                <div class="category-title">Participation Achievements</div>
+                <div class="catalog-badges">
+                    <div class="catalog-badge">
+                        <div class="badge-name">🚢 First Ship</div>
+                        <div class="badge-desc">Posted your first creation to the board</div>
+                    </div>
+                    <div class="catalog-badge">
+                        <div class="badge-name">🎮 Game Master</div>
+                        <div class="badge-desc">Created or facilitated 5 workshop games</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="badge-category">
+                <div class="category-title">Special Recognition</div>
+                <div class="catalog-badges">
+                    <div class="catalog-badge earned">
+                        <div class="badge-name">🌱 Early Adopter</div>
+                        <div class="badge-desc">Joined the workshop in its first week - ✅ Earned by both users</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
