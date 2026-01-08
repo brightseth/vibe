@@ -447,6 +447,54 @@
       "assignedAt": "2026-01-08T05:45:05.867Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "URGENT: Build X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST, parses JSON, logs payload, returns 200. Ship working webhook today - critical infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:49:38.945Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Ship collaborative drawing game! Create shared canvas where users draw together in real-time. Include room creation, basic tools (brush/colors), multiplayer sync. Focus on core functionality and ship working prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:49:42.532Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system! Create badges for workshop participation: 'First Ship', 'Week Streak', 'Game Master', 'Code Contributor'. Include earning logic and visual display. Ship working badge engine that rewards builders!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:49:46.502Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build Workshop Tour! Create interactive guide showing new users all features: chess game, streaks, matching, ice breakers. Include 'Try this!' buttons and engaging walkthrough. Ship working tour experience.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:49:49.901Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build Skills Exchange marketplace! Create system where users offer skills (design, coding, marketing) in exchange for other skills. Include skill profiles, matching engine, and request/offer system. Ship working prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:49:52.585Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write 'State of Workshop January 2026' celebration report! Highlight our recent velocity: chess game, streaks leaderboard, user matching, ice breaker games. Document current projects and post inspiring report to community board!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:49:56.274Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
