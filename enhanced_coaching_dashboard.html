@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Streak Analytics & Achievement Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .metric {
+            margin-bottom: 16px;
+        }
+        
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .insight {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+        
+        .insight.success {
+            background: #f0fff4;
+            border-color: #38a169;
+            color: #2f855a;
+        }
+        
+        .insight.alert {
+            background: #fef5e7;
+            border-color: #ed8936;
+            color: #c05621;
+        }
+        
+        .insight.opportunity {
+            background: #e6fffa;
+            border-color: #38b2ac;
+            color: #285e61;
+        }
+        
+        .insight.pattern {
+            background: #ebf8ff;
+            border-color: #4299e1;
+            color: #2b6cb0;
+        }
+        
+        .insight-header {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        
+        .badge {
+            text-align: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px solid transparent;
+        }
+        
+        .badge.common { border-color: #68d391; }
+        .badge.uncommon { border-color: #4299e1; }
+        .badge.rare { border-color: #ed8936; }
+        .badge.epic { border-color: #9f7aea; }
+        .badge.legendary { border-color: #f6ad55; }
+        .badge.special { border-color: #f093fb; }
+        
+        .badge-emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .badge-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .user-card {
+            padding: 16px;
+            border-radius: 12px;
+            background: #f7fafc;
+            margin-bottom: 12px;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .user-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 8px;
+            height: 8px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4299e1, #38b2ac);
+            transition: width 0.3s ease;
+        }
+        
+        .milestone-alert {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .milestone-alert h3 {
+            margin-bottom: 8px;
+        }
+        
+        .timestamp {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Streak Analytics & Achievement Dashboard</h1>
+            <div class="subtitle">Real-time engagement insights for /vibe workshop</div>
+        </div>
+        
+        <!-- Milestone Alert -->
+        <div class="milestone-alert">
+            <h3>🌟 Milestone Watch</h3>
+            <p>2 users approaching their 3-day milestone - celebration time incoming!</p>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Overview Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span>Community Overview</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">2</div>
+                    <div class="metric-label">Active Users</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">100%</div>
+                    <div class="metric-label">Retention Rate</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">2</div>
+                    <div class="metric-label">Badges Awarded</div>
+                </div>
+            </div>
+            
+            <!-- Streak Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🔥</span>
+                    <span>Streak Analysis</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">1.0</div>
+                    <div class="metric-label">Average Streak</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">1</div>
+                    <div class="metric-label">Longest Current</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">2</div>
+                    <div class="metric-label">Near Milestones</div>
+                </div>
+            </div>
+            
+            <!-- Key Insights -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🧠</span>
+                    <span>Key Insights</span>
+                </div>
+                <div class="insight success">
+                    <div class="insight-header">🎯 Perfect Launch Metrics</div>
+                    <div>100% retention rate - excellent foundation!</div>
+                </div>
+                <div class="insight pattern">
+                    <div class="insight-header">🌱 Fresh Start Energy</div>
+                    <div>Early users building momentum - encourage daily habits!</div>
+                </div>
+                <div class="insight opportunity">
+                    <div class="insight-header">⚡ Milestone Alert</div>
+                    <div>2 users approaching 3-day milestone - prepare celebrations!</div>
+                </div>
+            </div>
+            
+            <!-- Badge System -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🎖️</span>
+                    <span>Achievement Badges</span>
+                </div>
+                <div class="badge-grid">
+                    <div class="badge common">
+                        <span class="badge-emoji">🎉</span>
+                        <div class="badge-name">Welcome Aboard</div>
+                    </div>
+                    <div class="badge common">
+                        <span class="badge-emoji">🌱</span>
+                        <div class="badge-name">First Steps</div>
+                    </div>
+                    <div class="badge uncommon">
+                        <span class="badge-emoji">💪</span>
+                        <div class="badge-name">Week Warrior</div>
+                    </div>
+                    <div class="badge rare">
+                        <span class="badge-emoji">🔥</span>
+                        <div class="badge-name">Two Week Titan</div>
+                    </div>
+                    <div class="badge special">
+                        <span class="badge-emoji">⚡</span>
+                        <div class="badge-name">Lightning Start</div>
+                    </div>
+                    <div class="badge epic">
+                        <span class="badge-emoji">🏆</span>
+                        <div class="badge-name">Monthly Legend</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Progress -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">👥</span>
+                    <span>User Progress</span>
+                </div>
+                
+                <div class="user-card">
+                    <div class="user-name">@demo_user</div>
+                    <div class="user-stats">
+                        <span>Current: 1 day</span>
+                        <span>Best: 1 day</span>
+                        <span>🎉 Welcome Aboard</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                    <small style="color: #718096; margin-top: 4px; display: block;">2 days to First Steps badge</small>
+                </div>
+                
+                <div class="user-card">
+                    <div class="user-name">@vibe_champion</div>
+                    <div class="user-stats">
+                        <span>Current: 1 day</span>
+                        <span>Best: 1 day</span>
+                        <span>🎉 Welcome Aboard</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                    <small style="color: #718096; margin-top: 4px; display: block;">2 days to First Steps badge</small>
+                </div>
+            </div>
+            
+            <!-- Next Milestones -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span>Upcoming Milestones</span>
+                </div>
+                
+                <div class="insight opportunity">
+                    <div class="insight-header">🌱 3-Day Milestone</div>
+                    <div>Both users 2 days away - ready the celebrations!</div>
+                </div>
+                
+                <div class="insight pattern">
+                    <div class="insight-header">💪 Week Warrior</div>
+                    <div>6 days away - building towards consistency</div>
+                </div>
+                
+                <div class="insight alert">
+                    <div class="insight-header">🔥 Two Week Titan</div>
+                    <div>13 days away - the habit formation zone</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timestamp">
+            Last updated: January 8, 2026 at 10:45 PM UTC | Generated by @streaks-agent
+        </div>
+    </div>
+</body>
+</html>

@@ -8,6 +8,7 @@ const config = require('../config');
 
 const MESSAGES_FILE = path.join(config.VIBE_DIR, 'messages.jsonl');
 const PRESENCE_FILE = path.join(config.VIBE_DIR, 'presence.json');
+const SKILL_EXCHANGE_FILE = path.join(config.VIBE_DIR, 'skill-exchanges.jsonl');
 
 // ============ SESSION (stubs for local mode) ============
 
@@ -168,6 +169,29 @@ async function markThreadRead(myHandle, theirHandle) {
   fs.writeFileSync(MESSAGES_FILE, updated.map(m => JSON.stringify(m)).join('\n') + '\n');
 }
 
+// ============ SKILL EXCHANGES ============
+
+function loadSkillExchanges() {
+  try {
+    if (fs.existsSync(SKILL_EXCHANGE_FILE)) {
+      const content = fs.readFileSync(SKILL_EXCHANGE_FILE, 'utf8');
+      return content.trim().split('\n')
+        .filter(line => line.length > 0)
+        .map(line => JSON.parse(line));
+    }
+  } catch (e) {}
+  return [];
+}
+
+function appendSkillExchange(post) {
+  fs.appendFileSync(SKILL_EXCHANGE_FILE, JSON.stringify(post) + '\n');
+  return post;
+}
+
+function getSkillExchanges() {
+  return loadSkillExchanges();
+}
+
 // ============ HELPERS ============
 
 function formatTimeAgo(timestamp) {
@@ -201,6 +225,10 @@ module.exports = {
   getUnreadCount,
   getThread,
   markThreadRead,
+
+  // Skill Exchanges
+  appendSkillExchange,
+  getSkillExchanges,
 
   // Helpers
   formatTimeAgo

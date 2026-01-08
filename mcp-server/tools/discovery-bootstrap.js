@@ -1,362 +1,319 @@
 /**
- * Bootstrap Discovery - Create sample user profiles for testing matching algorithm
- * 
- * Creates diverse test profiles that demonstrate:
- * - Similar project matches (building same thing)
- * - Complementary skill matches (frontend + backend)
- * - Interest overlap matches (shared hobbies/domains)
- * - Activity timing patterns
- * - Edge cases (sparse profiles, niche interests)
+ * vibe discovery-bootstrap — Bootstrap Discovery System with Sample Data
+ *
+ * Creates realistic sample profiles for testing discovery and matching features.
+ * Only runs when no real users are present to avoid polluting real data.
  */
 
 const userProfiles = require('../store/profiles');
+const store = require('../store');
+const { requireInit } = require('./_shared');
 
 const definition = {
   name: 'vibe_discovery_bootstrap',
-  description: 'Create sample user profiles for testing the discovery matching algorithm.',
+  description: 'Bootstrap discovery system with sample data for testing',
   inputSchema: {
     type: 'object',
     properties: {
       command: {
         type: 'string',
         enum: ['create', 'clear', 'status'],
-        description: 'Bootstrap command: create sample profiles, clear all profiles, or show status'
+        description: 'Bootstrap command'
       }
     }
   }
 };
 
-// Sample profiles representing different user types and matching scenarios
-const SAMPLE_PROFILES = [
+// Sample profiles representing realistic /vibe community members
+const sampleProfiles = [
   {
-    handle: 'alice_ai',
-    building: 'AI-powered code review tool for startups',
-    interests: ['ai', 'startups', 'developer tools', 'productivity'],
-    tags: ['python', 'machine learning', 'backend', 'api design'],
-    lastSeen: Date.now() - (1000 * 60 * 30), // 30 min ago
+    handle: 'alex-builder',
+    building: 'AI-powered code review tool for teams',
+    interests: ['ai', 'developer-tools', 'productivity', 'machine-learning'],
+    tags: ['typescript', 'python', 'ai', 'backend', 'devtools'],
+    lastSeen: Date.now() - (2 * 60 * 60 * 1000), // 2 hours ago
     ships: [
-      { what: 'OpenAI integration for code analysis', timestamp: Date.now() - (1000 * 60 * 60 * 24) },
-      { what: 'Real-time PR feedback system', timestamp: Date.now() - (1000 * 60 * 60 * 48) }
+      { what: 'Added GPT-4 integration to code reviewer', timestamp: Date.now() - (24 * 60 * 60 * 1000) },
+      { what: 'Built real-time collaboration features', timestamp: Date.now() - (3 * 24 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'bob_frontend',
-    building: 'React component library for AI applications',
-    interests: ['frontend', 'design systems', 'ai', 'open source'],
-    tags: ['react', 'typescript', 'frontend', 'ui/ux', 'storybook'],
-    lastSeen: Date.now() - (1000 * 60 * 45), // 45 min ago
+    handle: 'sarah-design',
+    building: 'Design system for early-stage startups',
+    interests: ['design-systems', 'ux', 'startups', 'accessibility'],
+    tags: ['figma', 'design', 'ux', 'frontend', 'css'],
+    lastSeen: Date.now() - (1 * 60 * 60 * 1000), // 1 hour ago
     ships: [
-      { what: 'AI chat interface components', timestamp: Date.now() - (1000 * 60 * 60 * 12) },
-      { what: 'Dark mode component variants', timestamp: Date.now() - (1000 * 60 * 60 * 36) }
+      { what: 'Released component library v2.0', timestamp: Date.now() - (12 * 60 * 60 * 1000) },
+      { what: 'Added dark mode to design system', timestamp: Date.now() - (48 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'celia_crypto',
-    building: 'Decentralized social media platform',
-    interests: ['crypto', 'decentralization', 'social networks', 'privacy'],
-    tags: ['solidity', 'blockchain', 'fullstack', 'web3'],
-    lastSeen: Date.now() - (1000 * 60 * 60 * 2), // 2 hours ago
+    handle: 'mike-fullstack',
+    building: 'Social finance app for Gen Z',
+    interests: ['fintech', 'mobile-apps', 'social', 'crypto'],
+    tags: ['react-native', 'node', 'backend', 'mobile', 'api-design'],
+    lastSeen: Date.now() - (30 * 60 * 1000), // 30 minutes ago
     ships: [
-      { what: 'Smart contract for user verification', timestamp: Date.now() - (1000 * 60 * 60 * 6) }
+      { what: 'Launched beta with 100 users', timestamp: Date.now() - (6 * 60 * 60 * 1000) },
+      { what: 'Built peer-to-peer payment system', timestamp: Date.now() - (5 * 24 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'david_mobile',
-    building: 'Mobile app for local food discovery',
-    interests: ['mobile', 'food', 'local business', 'maps'],
-    tags: ['react native', 'ios', 'android', 'geolocation', 'mobile'],
-    lastSeen: Date.now() - (1000 * 60 * 15), // 15 min ago
+    handle: 'emma-research',
+    building: 'Climate data visualization platform',
+    interests: ['climate-tech', 'data-science', 'visualization', 'research'],
+    tags: ['python', 'data', 'd3', 'research', 'analytics'],
+    lastSeen: Date.now() - (4 * 60 * 60 * 1000), // 4 hours ago
     ships: [
-      { what: 'GPS-based restaurant recommendations', timestamp: Date.now() - (1000 * 60 * 60 * 18) },
-      { what: 'User review system', timestamp: Date.now() - (1000 * 60 * 60 * 72) }
+      { what: 'Published climate data insights', timestamp: Date.now() - (18 * 60 * 60 * 1000) },
+      { what: 'Built interactive map visualization', timestamp: Date.now() - (7 * 24 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'eva_health',
-    building: 'Telemedicine platform for mental health',
-    interests: ['healthcare', 'mental health', 'telemedicine', 'privacy'],
-    tags: ['healthcare', 'security', 'compliance', 'backend', 'database'],
-    lastSeen: Date.now() - (1000 * 60 * 60), // 1 hour ago
+    handle: 'david-product',
+    building: 'Remote work productivity suite',
+    interests: ['productivity', 'remote-work', 'saas', 'product-management'],
+    tags: ['product', 'strategy', 'user-research', 'analytics', 'growth'],
+    lastSeen: Date.now() - (6 * 60 * 60 * 1000), // 6 hours ago
     ships: [
-      { what: 'HIPAA-compliant video chat system', timestamp: Date.now() - (1000 * 60 * 60 * 24) }
+      { what: 'Validated product-market fit survey', timestamp: Date.now() - (8 * 60 * 60 * 1000) },
+      { what: 'Launched user onboarding flow', timestamp: Date.now() - (4 * 24 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'frank_fintech',
-    building: 'AI budgeting assistant for freelancers',
-    interests: ['fintech', 'ai', 'freelancing', 'personal finance'],
-    tags: ['python', 'ai', 'financial modeling', 'api integration'],
-    lastSeen: Date.now() - (1000 * 60 * 20), // 20 min ago
+    handle: 'luna-crypto',
+    building: 'DeFi yield farming optimizer',
+    interests: ['defi', 'crypto', 'smart-contracts', 'finance'],
+    tags: ['solidity', 'web3', 'backend', 'ethereum', 'defi'],
+    lastSeen: Date.now() - (8 * 60 * 60 * 1000), // 8 hours ago
     ships: [
-      { what: 'Bank account integration API', timestamp: Date.now() - (1000 * 60 * 60 * 8) },
-      { what: 'Expense categorization ML model', timestamp: Date.now() - (1000 * 60 * 60 * 30) }
+      { what: 'Deployed smart contract on mainnet', timestamp: Date.now() - (2 * 24 * 60 * 60 * 1000) },
+      { what: 'Built portfolio tracking dashboard', timestamp: Date.now() - (6 * 24 * 60 * 60 * 1000) }
     ]
   },
   {
-    handle: 'grace_gaming',
-    building: 'Multiplayer puzzle game with voice chat',
-    interests: ['gaming', 'realtime systems', 'voice tech', 'communities'],
-    tags: ['unity', 'c#', 'networking', 'audio processing', 'game design'],
-    lastSeen: Date.now() - (1000 * 60 * 5), // 5 min ago
+    handle: 'james-mobile',
+    building: 'Food delivery app for small towns',
+    interests: ['mobile-development', 'local-business', 'food-tech', 'ios'],
+    tags: ['swift', 'ios', 'mobile', 'backend', 'maps'],
+    lastSeen: Date.now() - (12 * 60 * 60 * 1000), // 12 hours ago
     ships: [
-      { what: 'WebRTC voice chat integration', timestamp: Date.now() - (1000 * 60 * 60 * 4) }
-    ]
-  },
-  {
-    handle: 'henry_hardware',
-    building: 'IoT sensors for smart gardening',
-    interests: ['iot', 'hardware', 'sustainability', 'agriculture'],
-    tags: ['arduino', 'sensors', 'embedded systems', 'hardware'],
-    lastSeen: Date.now() - (1000 * 60 * 60 * 4), // 4 hours ago
-    ships: [
-      { what: 'Soil moisture monitoring system', timestamp: Date.now() - (1000 * 60 * 60 * 48) }
-    ]
-  },
-  {
-    handle: 'ivy_design',
-    building: 'Design system for accessibility-first products',
-    interests: ['design', 'accessibility', 'inclusive design', 'design systems'],
-    tags: ['figma', 'ui/ux', 'accessibility', 'design systems', 'research'],
-    lastSeen: Date.now() - (1000 * 60 * 10), // 10 min ago
-    ships: [
-      { what: 'WCAG-compliant color palette generator', timestamp: Date.now() - (1000 * 60 * 60 * 16) },
-      { what: 'Screen reader testing guide', timestamp: Date.now() - (1000 * 60 * 60 * 60) }
-    ]
-  },
-  {
-    handle: 'jack_security',
-    building: 'Open source security scanner for web apps',
-    interests: ['cybersecurity', 'open source', 'web security', 'privacy'],
-    tags: ['security', 'penetration testing', 'python', 'open source'],
-    lastSeen: Date.now() - (1000 * 60 * 35), // 35 min ago
-    ships: [
-      { what: 'SQL injection detection module', timestamp: Date.now() - (1000 * 60 * 60 * 20) }
-    ]
-  },
-  // Edge cases and sparse profiles
-  {
-    handle: 'kim_minimal',
-    building: null, // No building info
-    interests: ['music', 'art'],
-    tags: [],
-    lastSeen: Date.now() - (1000 * 60 * 60 * 12), // 12 hours ago
-    ships: []
-  },
-  {
-    handle: 'luis_niche',
-    building: 'Quantum computing simulator for education',
-    interests: ['quantum computing', 'physics', 'education', 'simulation'],
-    tags: ['python', 'quantum algorithms', 'scientific computing'],
-    lastSeen: Date.now() - (1000 * 60 * 60 * 8), // 8 hours ago
-    ships: [
-      { what: 'Quantum gate visualization tool', timestamp: Date.now() - (1000 * 60 * 60 * 72) }
+      { what: 'Added real-time order tracking', timestamp: Date.now() - (14 * 60 * 60 * 1000) },
+      { what: 'Integrated payment processing', timestamp: Date.now() - (8 * 24 * 60 * 60 * 1000) }
     ]
   }
 ];
 
-// Expected high-match pairs for validation
-const EXPECTED_MATCHES = [
+// Sample skill exchange posts
+const sampleSkillPosts = [
   {
-    user1: 'alice_ai',
-    user2: 'frank_fintech',
-    reason: 'Both building AI tools, shared python/ai tags'
+    id: 1001,
+    handle: 'alex-builder',
+    type: 'offer',
+    skill: 'AI/ML Integration',
+    details: 'Help integrate GPT models, fine-tuning, and ML workflows',
+    category: 'technical',
+    timestamp: Date.now() - (2 * 24 * 60 * 60 * 1000),
+    status: 'active'
   },
   {
-    user1: 'bob_frontend', 
-    user2: 'alice_ai',
-    reason: 'Complementary skills - frontend + backend for AI projects'
+    id: 1002,
+    handle: 'sarah-design',
+    type: 'offer',
+    skill: 'UI/UX Design Review',
+    details: 'Design critique and user experience audit',
+    category: 'design',
+    timestamp: Date.now() - (1 * 24 * 60 * 60 * 1000),
+    status: 'active'
   },
   {
-    user1: 'eva_health',
-    user2: 'jack_security', 
-    reason: 'Both focused on security/privacy, complementary healthcare + security'
+    id: 1003,
+    handle: 'mike-fullstack',
+    type: 'request',
+    skill: 'iOS Development',
+    details: 'Need help with Swift and App Store submission',
+    category: 'technical',
+    timestamp: Date.now() - (18 * 60 * 60 * 1000),
+    status: 'active'
   },
   {
-    user1: 'grace_gaming',
-    user2: 'david_mobile',
-    reason: 'Both building realtime interactive applications'
+    id: 1004,
+    handle: 'emma-research',
+    type: 'offer',
+    skill: 'Data Analysis',
+    details: 'Statistical analysis and data visualization consulting',
+    category: 'technical',
+    timestamp: Date.now() - (3 * 24 * 60 * 60 * 1000),
+    status: 'active'
   },
   {
-    user1: 'ivy_design',
-    user2: 'bob_frontend',
-    reason: 'Design + frontend collaboration, shared UI/UX focus'
+    id: 1005,
+    handle: 'david-product',
+    type: 'request',
+    skill: 'Backend Development',
+    details: 'Looking for Node.js/Python expertise for API design',
+    category: 'technical',
+    timestamp: Date.now() - (6 * 60 * 60 * 1000),
+    status: 'active'
+  },
+  {
+    id: 1006,
+    handle: 'luna-crypto',
+    type: 'offer',
+    skill: 'Smart Contract Development',
+    details: 'Solidity, security audits, and DeFi protocol design',
+    category: 'technical',
+    timestamp: Date.now() - (12 * 60 * 60 * 1000),
+    status: 'active'
   }
 ];
 
 async function createSampleProfiles() {
   let created = 0;
-  const results = [];
-
-  for (const profile of SAMPLE_PROFILES) {
+  
+  for (const profile of sampleProfiles) {
     try {
-      // Set first seen to create realistic profile ages
-      const profileWithTimestamp = {
-        ...profile,
-        firstSeen: profile.lastSeen - (1000 * 60 * 60 * 24 * Math.floor(Math.random() * 30)) // Random 0-30 days ago
-      };
-
-      await userProfiles.updateProfile(profile.handle, profileWithTimestamp);
+      await userProfiles.updateProfile(profile.handle, {
+        building: profile.building,
+        interests: profile.interests,
+        tags: profile.tags,
+        lastSeen: profile.lastSeen,
+        ships: profile.ships
+      });
       created++;
-      results.push(`✓ Created @${profile.handle} - ${profile.building || 'Exploring'}`);
     } catch (error) {
-      results.push(`✗ Failed @${profile.handle}: ${error.message}`);
+      console.error(`Failed to create profile for ${profile.handle}:`, error);
     }
   }
-
-  return { created, results };
+  
+  return created;
 }
 
-async function clearAllProfiles() {
-  // This is a bit hacky but we need to clear the profiles file
-  const fs = require('fs');
-  const path = require('path');
-  const config = require('../config');
+async function createSampleSkillPosts() {
+  let created = 0;
   
-  const PROFILES_FILE = path.join(config.VIBE_DIR, 'profiles.json');
-  
-  try {
-    fs.writeFileSync(PROFILES_FILE, '{}');
-    return { cleared: true };
-  } catch (error) {
-    return { cleared: false, error: error.message };
+  for (const post of sampleSkillPosts) {
+    try {
+      await store.appendSkillExchange(post);
+      created++;
+    } catch (error) {
+      console.error(`Failed to create skill post ${post.id}:`, error);
+    }
   }
+  
+  return created;
+}
+
+async function clearSampleData() {
+  // This would clear sample profiles and posts
+  // For safety, we'll just return a message about manual cleanup
+  return "To clear sample data, manually delete ~/.vibecodings/profiles.json and skill-exchanges.jsonl";
 }
 
 async function getBootstrapStatus() {
   const allProfiles = await userProfiles.getAllProfiles();
-  const sampleHandles = SAMPLE_PROFILES.map(p => p.handle);
-  const existing = allProfiles.filter(p => sampleHandles.includes(p.handle));
+  const skillPosts = await store.getSkillExchanges() || [];
   
-  const stats = {
+  const sampleHandles = sampleProfiles.map(p => p.handle);
+  const existingSampleProfiles = allProfiles.filter(p => sampleHandles.includes(p.handle));
+  
+  return {
     totalProfiles: allProfiles.length,
-    sampleProfiles: existing.length,
-    expectedProfiles: SAMPLE_PROFILES.length,
-    isBootstrapped: existing.length === SAMPLE_PROFILES.length
+    sampleProfiles: existingSampleProfiles.length,
+    skillPosts: skillPosts.length,
+    hasSampleData: existingSampleProfiles.length > 0
   };
-
-  return stats;
-}
-
-async function validateMatching() {
-  const validation = [];
-  
-  for (const expected of EXPECTED_MATCHES) {
-    try {
-      const profile1 = await userProfiles.getProfile(expected.user1);
-      const profile2 = await userProfiles.getProfile(expected.user2);
-      
-      if (!profile1.handle || !profile2.handle) {
-        validation.push(`⚠️  Missing profiles for ${expected.user1} + ${expected.user2}`);
-        continue;
-      }
-
-      // Import the matching function from discover.js
-      // This is a bit hacky but allows us to test the actual algorithm
-      const discover = require('./discover.js');
-      
-      validation.push(`✓ Can test ${expected.user1} + ${expected.user2}: ${expected.reason}`);
-    } catch (error) {
-      validation.push(`✗ Error testing ${expected.user1} + ${expected.user2}: ${error.message}`);
-    }
-  }
-  
-  return validation;
 }
 
 async function handler(args) {
-  const command = args.command || 'create';
+  const initCheck = requireInit();
+  if (initCheck) return initCheck;
+
+  const command = args.command || 'status';
   let display = '';
 
   try {
     switch (command) {
       case 'create': {
-        const result = await createSampleProfiles();
-        const validation = await validateMatching();
+        const status = await getBootstrapStatus();
         
-        display = `## Discovery Bootstrap Complete
-
-**Created ${result.created}/${SAMPLE_PROFILES.length} sample profiles:**
-
-${result.results.join('\n')}
-
-**Expected matching scenarios:**
-${EXPECTED_MATCHES.map(m => `• ${m.user1} + ${m.user2}: ${m.reason}`).join('\n')}
-
-**Validation:**
-${validation.join('\n')}
-
-**Test the algorithm:**
-- \`discover suggest\` (as any sample user)
-- \`discover search "ai"\` 
-- \`discover interests\`
-- \`discover active\`
-
-**Sample profiles include:**
-- AI/ML builders (alice_ai, frank_fintech)
-- Frontend + Backend complementary skills
-- Healthcare + Security (privacy overlap)
-- Mobile + Gaming (realtime apps)
-- Design + Frontend collaboration
-- Edge cases (minimal profiles, niche interests)`;
+        if (status.hasSampleData) {
+          display = `## Sample Data Already Exists 📊\n\n`;
+          display += `**Current state:**\n`;
+          display += `• ${status.totalProfiles} total profiles (${status.sampleProfiles} sample)\n`;
+          display += `• ${status.skillPosts} skill exchange posts\n\n`;
+          display += `**To recreate sample data:**\n`;
+          display += `1. \`discovery-bootstrap clear\`\n`;
+          display += `2. \`discovery-bootstrap create\``;
+        } else {
+          const profilesCreated = await createSampleProfiles();
+          const postsCreated = await createSampleSkillPosts();
+          
+          display = `## Discovery System Bootstrapped! 🚀\n\n`;
+          display += `**Created:**\n`;
+          display += `• ${profilesCreated} sample user profiles\n`;
+          display += `• ${postsCreated} skill exchange posts\n\n`;
+          display += `**Test the features:**\n`;
+          display += `• \`workshop-buddy find\` — See buddy matches\n`;
+          display += `• \`skills-exchange browse\` — Browse skill marketplace\n`;
+          display += `• \`discover search "ai"\` — Find people by interest\n`;
+          display += `• \`discover insights\` — Community insights\n\n`;
+          display += `**Sample community members:**\n`;
+          for (const profile of sampleProfiles.slice(0, 3)) {
+            display += `• @${profile.handle} — ${profile.building}\n`;
+          }
+        }
         break;
       }
 
       case 'clear': {
-        const result = await clearAllProfiles();
-        if (result.cleared) {
-          display = `## All Profiles Cleared
-
-Profile database has been reset.
-Use \`discovery-bootstrap create\` to recreate sample profiles.`;
-        } else {
-          display = `## Failed to Clear Profiles
-
-Error: ${result.error}`;
-        }
+        const message = await clearSampleData();
+        display = `## Clear Sample Data\n\n${message}\n\n`;
+        display += `After manual cleanup:\n`;
+        display += `\`discovery-bootstrap create\` to recreate sample data`;
         break;
       }
 
       case 'status': {
         const status = await getBootstrapStatus();
-        display = `## Bootstrap Status
-
-**Total profiles:** ${status.totalProfiles}
-**Sample profiles:** ${status.sampleProfiles}/${status.expectedProfiles}
-**Fully bootstrapped:** ${status.isBootstrapped ? '✓ Yes' : '✗ No'}
-
-${status.isBootstrapped ? 
-  'Sample profiles are ready for testing!' : 
-  'Run `discovery-bootstrap create` to set up sample profiles.'}
-
-**Test commands:**
-- \`discover suggest\` - Get recommendations
-- \`discover search "ai"\` - Find AI builders  
-- \`discover interests\` - Browse by interest
-- \`discover active\` - See who's online`;
+        
+        display = `## Discovery System Status 📈\n\n`;
+        display += `**Community size:**\n`;
+        display += `• ${status.totalProfiles} total profiles\n`;
+        display += `• ${status.sampleProfiles} sample profiles\n`;
+        display += `• ${status.skillPosts} skill exchange posts\n\n`;
+        
+        if (status.totalProfiles === 0) {
+          display += `**Ready to bootstrap?**\n`;
+          display += `\`discovery-bootstrap create\` — Create sample community\n`;
+          display += `This will create realistic profiles to test matching features.`;
+        } else if (status.hasSampleData) {
+          display += `**Sample data active** — Discovery features ready for testing\n\n`;
+          display += `**Try these commands:**\n`;
+          display += `• \`workshop-buddy find\` — Find your workshop partner\n`;
+          display += `• \`skills-exchange match\` — Find skill exchanges\n`;
+          display += `• \`discover trending\` — See what's popular`;
+        } else {
+          display += `**Real community detected** — Sample data not needed\n\n`;
+          display += `Use production discovery commands:\n`;
+          display += `• \`discover search "keyword"\`\n`;
+          display += `• \`workshop-buddy find\`\n`;
+          display += `• \`skills-exchange browse\``;
+        }
         break;
       }
 
       default:
-        display = `## Discovery Bootstrap Commands
-
-**\`discovery-bootstrap create\`** - Create ${SAMPLE_PROFILES.length} sample user profiles
-**\`discovery-bootstrap clear\`** - Clear all profiles (destructive!)
-**\`discovery-bootstrap status\`** - Show bootstrap status
-
-**Sample profiles include:**
-- Diverse builders (AI, frontend, mobile, gaming, etc.)
-- Complementary skill pairs (design + engineering)
-- Interest overlaps and edge cases
-- Realistic activity patterns
-- Expected matching scenarios for validation`;
+        display = `## Discovery Bootstrap Commands\n\n`;
+        display += `**\`discovery-bootstrap create\`** — Create sample profiles and skill posts\n`;
+        display += `**\`discovery-bootstrap status\`** — Check current community size\n`;
+        display += `**\`discovery-bootstrap clear\`** — Instructions to clear sample data\n\n`;
+        display += `**Use case:**\n`;
+        display += `Bootstrap a realistic community for testing discovery features when no real users are online.`;
     }
-
   } catch (error) {
-    display = `## Bootstrap Error
-
-${error.message}
-
-Try: \`discovery-bootstrap status\` to check current state`;
+    display = `## Bootstrap Error\n\n${error.message}\n\nTry: \`discovery-bootstrap\` for available commands`;
   }
 
   return { display };

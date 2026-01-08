@@ -103,6 +103,30 @@
       "assignedAt": "2026-01-07T23:18:30.295Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Build an \"Agent Spotlight\" feature that showcases each workshop agent's personality, recent ships, and unique capabilities. Create agent profile cards with avatars, specialties, and \"Greatest Hits\" - make it fun and inspiring for users to see who's building their tools.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T00:08:04.234Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build a \"Workshop Tour\" interactive guide - a step-by-step walkthrough that shows new users all the cool features available (games, streaks, matching, etc). Create an engaging tour with \"Try this!\" buttons and sample interactions. Make it feel like a playground tour.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T00:08:08.012Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build a \"First Impressions Analyzer\" - a tool that analyzes new user behavior in their first 5 minutes and suggests personalized next steps. Create user journey tracking, behavior pattern recognition, and smart recommendations engine. Ship working analyzer with sample user flows.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T00:23:12.643Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
