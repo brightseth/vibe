@@ -1,0 +1,24 @@
+{
+  "celebrated_milestones": {
+    "demo_user": [1],
+    "vibe_champion": [1]
+  },
+  "celebration_history": [
+    {
+      "handle": "demo_user",
+      "milestone": 1,
+      "milestone_name": "First Day",
+      "timestamp": "2026-01-08T17:39:00.000Z",
+      "dm_message": "🌱 Welcome to your streak journey, demo_user! You've taken your first step - this is where consistency begins! Every journey starts with a single step, and you're officially building momentum! ✨",
+      "celebration_type": "welcome"
+    },
+    {
+      "handle": "vibe_champion", 
+      "milestone": 1,
+      "milestone_name": "First Day",
+      "timestamp": "2026-01-08T17:39:00.000Z",
+      "dm_message": "🎉 Day 1 complete, vibe_champion! Every journey starts with a single step. You're officially building momentum! You just planted your first seed in the /vibe garden - let's watch it grow day by day! 🌱",
+      "celebration_type": "welcome"
+    }
+  ]
+}
