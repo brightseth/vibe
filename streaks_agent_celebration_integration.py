@@ -1,135 +1,99 @@
 #!/usr/bin/env python3
 """
-Integration script for @streaks-agent to automatically handle milestone celebrations
-This can be called during the agent's workflow to check for and trigger celebrations.
+@streaks-agent Celebration Integration
+Connects streak tracking with unified celebration system
 """
 
+from unified_streak_celebration_system import UnifiedStreakCelebrationSystem
 import json
-from streak_milestone_celebration_system import StreakMilestoneCelebrator
 
-def check_and_celebrate_milestones(streak_data):
+def simulate_streaks_agent_workflow():
     """
-    Main function for @streaks-agent to check milestones and get celebration actions
-    
-    Args:
-        streak_data: Dictionary in format {"@user": "X days (best: Y)", ...}
-    
-    Returns:
-        Dictionary with celebration actions needed
+    Simulate the @streaks-agent workflow with celebration integration
+    This would be called after observe_vibe() updates streak data
     """
-    celebrator = StreakMilestoneCelebrator()
-    celebrations = celebrator.check_milestones(streak_data)
     
-    result = {
-        "celebrations_needed": len(celebrations),
-        "actions": [],
-        "board_post": None,
-        "summary": ""
-    }
+    # Initialize celebration system
+    celebration_system = UnifiedStreakCelebrationSystem()
     
-    if celebrations:
-        # Generate DM actions for each user
-        for cel in celebrations:
-            message = celebrator.generate_celebration_message(cel)
-            result["actions"].append({
-                "type": "dm_user", 
-                "user": cel["user"],
-                "message": message,
-                "milestone": cel["milestone"]
-            })
-            
-            # Record that we're celebrating this
-            celebrator.record_celebration(cel["user"], cel["milestone"])
-        
-        # Generate board post
-        result["board_post"] = celebrator.create_motivation_board_post(celebrations)
-        
-        # Summary
-        users = [cel["user"] for cel in celebrations]
-        milestones = [cel["milestone"] for cel in celebrations]
-        result["summary"] = f"Celebrated milestones for {len(users)} users: {', '.join(users)} (days: {', '.join(map(str, milestones))})"
-    else:
-        result["summary"] = "No new milestones to celebrate"
-    
-    return result
-
-def get_motivation_insights(streak_data):
-    """
-    Get insights about upcoming milestones and motivation opportunities
-    """
-    celebrator = StreakMilestoneCelebrator()
-    insights = {
-        "next_milestones": [],
-        "encouragement_opportunities": []
-    }
-    
-    for user, streak_str in streak_data.items():
-        if isinstance(streak_str, str) and "days" in streak_str:
-            current = int(streak_str.split(" days")[0])
-            next_milestone = celebrator.get_next_milestone(current)
-            
-            if next_milestone:
-                insights["next_milestones"].append({
-                    "user": user,
-                    "current_streak": current,
-                    "next_milestone": next_milestone
-                })
-                
-                # Suggest encouragement if close to milestone
-                if next_milestone["days_to_milestone"] <= 2:
-                    insights["encouragement_opportunities"].append({
-                        "user": user,
-                        "message": f"Only {next_milestone['days_to_milestone']} days until {next_milestone['title']}! Keep it up! {next_milestone['emoji']}"
-                    })
-    
-    return insights
-
-# Example integration workflow for @streaks-agent
-def streaks_agent_workflow_example():
-    """
-    Example of how @streaks-agent could integrate this into their workflow
-    """
-    print("🤖 @streaks-agent Workflow Example")
-    print("=" * 40)
-    
-    # This would come from agent's get_streaks() function
+    # Current streak data (normally from get_streaks() function)
     current_streaks = {
-        "@demo_user": "1 days (best: 1)",
-        "@vibe_champion": "1 days (best: 1)"
+        "demo_user": {"current_streak": 1, "best_streak": 1},
+        "vibe_champion": {"current_streak": 1, "best_streak": 1}
     }
     
-    print("1. Check for milestone celebrations...")
-    celebration_result = check_and_celebrate_milestones(current_streaks)
+    print("🔄 @streaks-agent Workflow with Celebration Integration")
+    print("=" * 60)
+    print(f"📊 Current Streaks: {len(current_streaks)} users tracked")
     
-    if celebration_result["celebrations_needed"] > 0:
-        print(f"   🎉 {celebration_result['celebrations_needed']} celebrations needed!")
+    # Run celebration check
+    results = celebration_system.run_celebration_check(current_streaks)
+    
+    # Execute celebrations if any
+    if results["celebrations_needed"]:
+        print(f"\n🎉 Executing {len(results['celebrations_needed'])} celebrations:")
         
-        # Agent would call these actions:
-        for action in celebration_result["actions"]:
-            if action["type"] == "dm_user":
-                print(f"   📨 DM {action['user']}: {action['milestone']} day milestone!")
-                # Agent would call: dm_user(action["user"], action["message"])
-        
-        if celebration_result["board_post"]:
-            print(f"   📢 Board post: {celebration_result['board_post']}")
-            # Agent would call: announce_ship(celebration_result["board_post"])
+        # Send DMs
+        for dm in results["dm_messages"]:
+            print(f"\n📩 Would DM {dm['user']}:")
+            print(f"   {dm['message'][:50]}...")
+            # In real implementation: dm_user(dm['user'], dm['message'])
+            
+        # Post board announcements  
+        for announcement in results["board_announcements"]:
+            print(f"\n📢 Would announce to board:")
+            print(f"   {announcement}")
+            # In real implementation: announce_ship(announcement)
+            
+        # Mark celebrations as complete
+        for celebration in results["celebrations_needed"]:
+            celebration_system.mark_celebration_complete(celebration)
+            print(f"✅ Marked {celebration['milestone']} celebration complete for {celebration['user']}")
+            
     else:
-        print("   ✅ No new celebrations needed")
+        print(f"\n✅ No new celebrations needed")
     
-    print("\n2. Check motivation insights...")
-    insights = get_motivation_insights(current_streaks)
+    # Show next milestone motivation
+    print(f"\n🎯 Next Milestone Progress:")
+    for user, milestone_info in results["next_milestones"].items():
+        days_remaining = milestone_info["days_remaining"]
+        progress = milestone_info["progress"]
+        milestone_name = milestone_info["name"]
+        
+        print(f"   {user}: {days_remaining} days to {milestone_name} ({progress:.1f}%)")
+        
+        # Generate motivational insight
+        if progress >= 75:
+            motivation = "So close! 🔥"
+        elif progress >= 50:
+            motivation = "Halfway there! 💪"
+        elif progress >= 25:
+            motivation = "Building momentum! 🌱"
+        else:
+            motivation = "Just getting started! 🚀"
+            
+        print(f"      → {motivation}")
     
-    if insights["next_milestones"]:
-        print("   📈 Upcoming milestones:")
-        for milestone in insights["next_milestones"]:
-            print(f"      {milestone['user']}: {milestone['next_milestone']['days_to_milestone']} days to {milestone['next_milestone']['title']}")
+    # Weekly progress report (could be posted to board)
+    print(f"\n📈 Weekly Progress Summary:")
+    print(results["progress_report"])
     
-    if insights["encouragement_opportunities"]:
-        print("   💪 Encouragement opportunities:")
-        for opp in insights["encouragement_opportunities"]:
-            print(f"      {opp['user']}: {opp['message']}")
+    # Return action summary for @streaks-agent's done() call
+    summary = f"Checked {len(current_streaks)} users for celebrations. "
+    if results["celebrations_needed"]:
+        summary += f"Sent {len(results['dm_messages'])} celebration DMs. "
+    if results["board_announcements"]:
+        summary += f"Made {len(results['board_announcements'])} board announcements. "
+    summary += "Milestone tracking active."
     
-    print(f"\n3. Summary: {celebration_result['summary']}")
+    return {
+        "summary": summary,
+        "celebrations_sent": len(results["celebrations_needed"]),
+        "next_milestones": len(results["next_milestones"]),
+        "system_status": "ready"
+    }
 
 if __name__ == "__main__":
-    streaks_agent_workflow_example()
+    result = simulate_streaks_agent_workflow()
+    print(f"\n🎯 Integration Summary: {result['summary']}")
+    print(f"🚀 System Status: {result['system_status']}")
