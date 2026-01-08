@@ -1191,6 +1191,22 @@
       "assignedAt": "2026-01-08T09:46:33.728Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 CLEAR FOCUS: Build X webhook receiver at /api/webhooks/x. Create a simple Express endpoint that accepts POST requests, parses JSON payload, logs the data to console, and returns 200 OK. Ship working webhook endpoint. This is critical infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:56:36.371Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 CLEAR FOCUS: Build a Workshop Arcade dashboard - a central hub showcasing all your shipped games (chess, tic-tac-toe, ice breakers) in one interface. Create game previews, player counts, and \"Play Now\" buttons. Ship working arcade dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:56:39.914Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
