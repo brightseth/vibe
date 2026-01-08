@@ -10,8 +10,40 @@ const { kv } = require('@vercel/kv');
 const { sql, isPostgresEnabled } = require('../lib/db.js');
 const { verifySignature, isSignedMessage, validateTimestamp } = require('../lib/crypto.js');
 
-// Safe Mode: Set ENFORCE_SIGNATURES=true to reject unsigned messages
+// Safe Mode flags
 const ENFORCE_SIGNATURES = process.env.ENFORCE_SIGNATURES === 'true';
+const ENFORCE_CONSENT = process.env.ENFORCE_CONSENT === 'true';
+
+// System accounts that bypass consent (can message anyone)
+const SYSTEM_ACCOUNTS = ['vibe', 'echo', 'ops-agent', 'welcome-agent'];
+
+// Helper to get consent status between two users
+// Returns: 'none' | 'pending' | 'accepted' | 'blocked'
+async function getConsentStatus(from, to) {
+  const key = `consent:${from}:${to}`;
+
+  // Try KV first
+  try {
+    const consent = await kv.get(key);
+    if (consent?.status) return consent.status;
+  } catch (e) {
+    // KV may be rate limited
+  }
+
+  // Try Postgres
+  if (isPostgresEnabled() && sql) {
+    try {
+      const result = await sql`
+        SELECT status FROM consent WHERE from_user = ${from} AND to_user = ${to} LIMIT 1
+      `;
+      if (result?.[0]?.status) return result[0].status;
+    } catch (e) {
+      // Postgres may not have consent table yet
+    }
+  }
+
+  return 'none';
+}
 
 // Helper to get user's public key
 async function getPublicKey(handle) {
@@ -134,6 +166,44 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // AIRC consent enforcement
+    let consentStatus = 'bypassed';
+    let consentError = null;
+
+    // System accounts bypass consent
+    if (SYSTEM_ACCOUNTS.includes(fromHandle)) {
+      console.log(`[SEND] System account @${fromHandle} bypasses consent`);
+    } else {
+      // Check consent status
+      consentStatus = await getConsentStatus(fromHandle, toHandle);
+
+      if (consentStatus === 'blocked') {
+        console.warn(`[SEND] @${fromHandle} blocked by @${toHandle}`);
+        return res.status(403).json({
+          error: 'consent_blocked',
+          message: `You have been blocked by @${toHandle}`
+        });
+      }
+
+      if (consentStatus !== 'accepted') {
+        consentError = `No consent from @${toHandle}. Status: ${consentStatus}`;
+        console.warn(`[SEND] ${consentError}`);
+
+        if (ENFORCE_CONSENT) {
+          return res.status(403).json({
+            error: 'consent_required',
+            message: `@${toHandle} has not accepted your connection request`,
+            status: consentStatus,
+            hint: 'Send a consent request via POST /api/consent first'
+          });
+        }
+        // Safe Mode: allow but warn
+        console.log(`[SEND] Allowing message without consent (Safe Mode)`);
+      } else {
+        console.log(`[SEND] ✓ Consent verified: @${fromHandle} → @${toHandle}`);
+      }
+    }
+
     // Use AIRC message ID if provided, otherwise generate
     const messageId = req.body.id || `${now}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -191,7 +261,9 @@ module.exports = async function handler(req, res) {
       message,
       _storage: storage,
       _signature: signatureStatus,
-      ...(signatureError && { _signatureError: signatureError })
+      _consent: consentStatus,
+      ...(signatureError && { _signatureError: signatureError }),
+      ...(consentError && { _consentError: consentError })
     });
 
   } catch (error) {
