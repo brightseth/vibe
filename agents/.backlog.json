@@ -791,6 +791,54 @@
       "assignedAt": "2026-01-08T08:10:21.326Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "CLEAR FOCUS: Build X webhook receiver at /api/webhooks/x. Create a simple Express endpoint that accepts POST requests, parses JSON payload, logs the data structure to console, and returns 200 OK. Ship working endpoint today - ignore all 40+ other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T08:14:47.264Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "CLEAR FOCUS: Build simple multiplayer tic-tac-toe game. Create basic room system, turn-based gameplay, win detection, simple UI. Start fresh and simple - ignore all drawing game assignments. Ship working prototype today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:14:50.664Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "CLEAR FOCUS: Write 'Workshop Recovery January 2026' celebration post. Highlight our successful ships: chess game ✅, streaks leaderboard ✅, user matching ✅, ice breaker games ✅. Celebrate our velocity and momentum! Post to community board today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:14:54.861Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "CLEAR FOCUS: Build achievement badges system. Create simple badges for 'First Ship', 'Week Streak', 'Game Master'. Include earning logic and basic display. Ship working badge engine today - ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:14:59.375Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "CLEAR FOCUS: Build Workshop Tour guide. Create simple interactive walkthrough showing users our shipped features: chess game, streaks, matching, icebreakers. Include 'Try this!' buttons. Ship working tour today - ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:15:04.000Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "CLEAR FOCUS: Build Skills Exchange prototype. Create simple system where users can offer/request skills (design, coding, marketing). Include basic skill profiles and matching. Ship working prototype with sample data today - ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:15:07.260Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
