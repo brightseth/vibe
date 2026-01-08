@@ -1,87 +1,94 @@
 #!/usr/bin/env python3
 """
-Award First Day badges to users with 1+ day streaks
-Built by @streaks-agent to ensure proper badge tracking
+Award First Day badges to current streak users
 """
 
 import json
 from datetime import datetime
 
 def award_first_day_badges():
-    """Award First Day badges to eligible users"""
+    """Award 'First Day' badges to users with 1-day streaks"""
+    print("🌱 Awarding First Day Badges")
+    print("=" * 40)
     
-    # Load current data
-    with open("streak_data.json", 'r') as f:
-        streak_data = json.load(f)
+    # Load existing achievements
+    try:
+        with open('achievements.json', 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {"user_achievements": {}, "achievement_history": []}
     
-    with open("achievements.json", 'r') as f:
-        achievement_data = json.load(f)
+    if "user_achievements" not in data:
+        data["user_achievements"] = {}
+    if "achievement_history" not in data:
+        data["achievement_history"] = []
     
-    # Add First Day badge if not exists
-    if "first_day" not in achievement_data["badges"]:
-        achievement_data["badges"]["first_day"] = {
-            "name": "First Day",
-            "description": "Started your streak journey!",
-            "emoji": "🎉",
-            "threshold": 1
-        }
+    # Current users with 1-day streaks
+    users_to_award = ["demo_user", "vibe_champion"]
     
-    # Initialize user_badges if empty
-    if not achievement_data["user_badges"]:
-        achievement_data["user_badges"] = {}
+    newly_awarded = []
     
-    new_awards = []
-    
-    # Check each user for First Day badge eligibility
-    for user, data in streak_data["streaks"].items():
-        current_streak = data["current"]
+    for handle in users_to_award:
+        print(f"\n👤 Checking {handle}...")
         
-        # Initialize user badge list if not exists
-        if user not in achievement_data["user_badges"]:
-            achievement_data["user_badges"][user] = []
+        # Initialize user if not exists
+        if handle not in data["user_achievements"]:
+            data["user_achievements"][handle] = []
         
-        user_badges = achievement_data["user_badges"][user]
-        has_first_day = any(badge.get("badge_id") == "first_day" for badge in user_badges)
+        # Check if already has First Day badge
+        existing_badges = [badge.get("id", badge.get("badge_id", "")) for badge in data["user_achievements"][handle]]
         
-        # Award First Day badge if eligible and not already awarded
-        if current_streak >= 1 and not has_first_day:
+        if "first_day" not in existing_badges and "early_bird" not in existing_badges:
+            # Award First Day badge
             first_day_badge = {
-                "badge_id": "first_day",
-                "name": "First Day",
-                "emoji": "🎉",
-                "description": "Started your streak journey!",
-                "awarded_at": datetime.now().isoformat(),
-                "streak_when_earned": current_streak
+                "id": "first_day",
+                "name": "🌱 First Day",
+                "description": "Started your streak journey",
+                "earned_at": datetime.now().isoformat(),
+                "criteria": "streak_days >= 1"
             }
             
-            achievement_data["user_badges"][user].append(first_day_badge)
+            data["user_achievements"][handle].append(first_day_badge)
             
-            # Log the achievement
-            achievement_data["achievement_log"].append({
-                "user": user,
-                "badge_id": "first_day",
-                "badge_name": "First Day",
-                "awarded_at": datetime.now().isoformat(),
-                "streak_when_earned": current_streak,
-                "celebration_sent": False
+            # Add to history
+            data["achievement_history"].append({
+                "handle": handle,
+                "badge": first_day_badge,
+                "timestamp": datetime.now().isoformat()
             })
             
-            new_awards.append((user, first_day_badge))
-            print(f"🎉 Awarded First Day badge to {user}")
+            newly_awarded.append((handle, first_day_badge))
+            print(f"   🎉 AWARDED: {first_day_badge['name']} - {first_day_badge['description']}")
+            
+        else:
+            existing_names = [badge.get("name", "Unknown") for badge in data["user_achievements"][handle]]
+            print(f"   ✅ Already has badges: {', '.join(existing_names)}")
     
     # Save updated achievements
-    with open("achievements.json", 'w') as f:
-        json.dump(achievement_data, f, indent=2)
+    with open('achievements.json', 'w') as f:
+        json.dump(data, f, indent=2)
     
-    print(f"\n📊 Badge Award Summary:")
-    print(f"New badges awarded: {len(new_awards)}")
+    print(f"\n📊 Results:")
+    print(f"   • {len(newly_awarded)} users awarded First Day badges")
     
-    if new_awards:
-        print(f"\n🎊 Badges Awarded:")
-        for user, badge in new_awards:
-            print(f"   {user}: {badge['emoji']} {badge['name']}")
+    if newly_awarded:
+        print(f"\n🎊 Celebrations to announce:")
+        for handle, badge in newly_awarded:
+            print(f"   • 🎉 {handle} earned {badge['name']}! {badge['description']}")
     
-    return new_awards
+    print(f"\n✅ Badge awarding complete!")
+    return newly_awarded
 
 if __name__ == "__main__":
-    award_first_day_badges()
+    newly_awarded = award_first_day_badges()
+    
+    # Show final achievements state
+    try:
+        with open('achievements.json', 'r') as f:
+            final_data = json.load(f)
+        print(f"\n📋 Final Achievement State:")
+        for handle, badges in final_data.get("user_achievements", {}).items():
+            badge_names = [badge.get("name", "Unknown") for badge in badges]
+            print(f"   {handle}: {', '.join(badge_names)}")
+    except Exception as e:
+        print(f"Error reading final state: {e}")
