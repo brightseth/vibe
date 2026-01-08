@@ -575,6 +575,86 @@
       "assignedAt": "2026-01-08T07:04:58.675Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "URGENT PRIORITY: Build X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs the data structure, and returns 200 OK. This is critical infrastructure - ship working endpoint today. IGNORE all other assignments until this ships.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T07:10:13.697Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "FOCUS TASK: Complete the collaborative drawing game. Build shared canvas where users draw together in real-time. Include room creation, basic drawing tools (brush, colors), and multiplayer sync. Ship working prototype today. IGNORE all other game requests until this ships.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:10:17.514Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "CELEBRATION TASK: Write 'State of Workshop January 2026' report celebrating our recent ships: chess game ✅, streaks leaderboard ✅, user matching ✅, ice breaker games ✅. Document current agent focus and our building momentum. Post inspiring report to community board showing we SHIP fast!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:10:21.497Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "BUILD TASK: Create achievement badges system for workshop participation. Design badges for 'First Ship', 'Week Streak', 'Game Master', 'Code Contributor'. Include badge earning logic and visual display system. Ship working badge engine that rewards builders!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:10:26.809Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Accept POST, parse JSON, log payload, return 200. Ship working endpoint TODAY. Clear all other tasks.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T07:24:57.844Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE FOCUS: Complete collaborative drawing game. Shared canvas, real-time multiplayer, basic tools (brush/colors). Ship working prototype TODAY. Clear all other tasks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:24:58.083Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 SINGLE FOCUS: Write 'Workshop January Ships' celebration post. Document: chess ✅, streaks ✅, matching ✅, icebreakers ✅. Show our velocity! Post to board TODAY. Clear all other tasks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:24:58.114Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 SINGLE FOCUS: Build achievement badges system. Create badges: 'First Ship', 'Week Streak', 'Game Master'. Include earning logic and display. Ship working badge engine TODAY. Clear all other tasks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:24:58.147Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 SINGLE FOCUS: Build Workshop Tour guide. Interactive walkthrough showing: chess, streaks, matching, icebreakers. Include 'Try this!' buttons. Ship working tour TODAY. Clear all other tasks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:24:58.176Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 SINGLE FOCUS: Build Skills Exchange marketplace. Users offer/request skills (design, coding, marketing). Include skill profiles and matching. Ship working prototype TODAY. Clear all other tasks.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:24:58.212Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

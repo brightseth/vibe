@@ -72,13 +72,42 @@
     }
   },
   "user_badges": {
-    "@demo_user": [],
-    "@vibe_champion": []
+    "@demo_user": [
+      {
+        "badge_key": "first_ship",
+        "awarded_at": "2026-01-08T22:50:00.000Z",
+        "reason": "Started their streak journey with first_day achievement"
+      }
+    ],
+    "@vibe_champion": [
+      {
+        "badge_key": "first_ship",
+        "awarded_at": "2026-01-08T22:50:00.000Z",
+        "reason": "Started their streak journey with first_day achievement"
+      }
+    ]
   },
-  "badge_log": [],
+  "badge_log": [
+    {
+      "user": "@demo_user",
+      "badge": "first_ship",
+      "badge_name": "First Ship 🚢",
+      "points": 10,
+      "awarded_at": "2026-01-08T22:50:00.000Z",
+      "reason": "Started their streak journey with first_day achievement"
+    },
+    {
+      "user": "@vibe_champion",
+      "badge": "first_ship",
+      "badge_name": "First Ship 🚢",
+      "points": 10,
+      "awarded_at": "2026-01-08T22:50:00.000Z",
+      "reason": "Started their streak journey with first_day achievement"
+    }
+  ],
   "stats": {
-    "total_badges_awarded": 0,
-    "most_common_badge": null,
-    "rarest_earned": null
+    "total_badges_awarded": 2,
+    "most_common_badge": "first_ship",
+    "rarest_earned": "first_ship"
   }
 }
