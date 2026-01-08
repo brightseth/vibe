@@ -1,264 +1,55 @@
 {
-  "system": {
-    "name": "Workshop Achievement Badges",
-    "version": "1.0.0",
-    "description": "Gamification system for /vibe workshop participation"
-  },
-  "badge_categories": {
-    "participation": {
-      "first_ship": {
-        "name": "First Ship 🚢",
-        "description": "Posted your first creation to the board",
-        "points": 10,
-        "rarity": "common",
-        "requirements": {
-          "ships": 1
-        }
-      },
-      "active_shipper": {
-        "name": "Active Shipper ⚓",
-        "description": "Posted 5 ships to the board",
-        "points": 25,
-        "rarity": "uncommon",
-        "requirements": {
-          "ships": 5
-        }
-      },
-      "prolific_creator": {
-        "name": "Prolific Creator 🎨",
-        "description": "Posted 10+ ships to the board",
-        "points": 50,
-        "rarity": "rare",
-        "requirements": {
-          "ships": 10
-        }
-      }
+  "achievement_badges": {
+    "first_ship": {
+      "name": "First Ship 🚢",
+      "description": "Shipped your first project to the workshop!",
+      "tier": "bronze",
+      "criteria": "first_announcement_to_board",
+      "icon": "🚢"
     },
-    "streaks": {
-      "first_day": {
-        "name": "First Day 🌱",
-        "description": "Started your streak journey",
-        "points": 5,
-        "rarity": "common",
-        "requirements": {
-          "streak_days": 1
-        }
-      },
-      "week_streak": {
-        "name": "Week Streak 🔥",
-        "description": "Stayed active for 7 consecutive days",
-        "points": 30,
-        "rarity": "uncommon",
-        "requirements": {
-          "streak_days": 7
-        }
-      },
-      "month_streak": {
-        "name": "Monthly Legend 👑",
-        "description": "Stayed active for 30 consecutive days",
-        "points": 100,
-        "rarity": "legendary",
-        "requirements": {
-          "streak_days": 30
-        }
-      },
-      "century_streak": {
-        "name": "Century Club 💎",
-        "description": "Incredible 100-day streak!",
-        "points": 500,
-        "rarity": "mythical",
-        "requirements": {
-          "streak_days": 100
-        }
-      }
+    "week_streak": {
+      "name": "Week Warrior 💪",
+      "description": "Maintained a 7-day activity streak!",
+      "tier": "silver",
+      "criteria": "7_day_streak",
+      "icon": "💪"
     },
-    "community": {
-      "game_master": {
-        "name": "Game Master 🎮",
-        "description": "Created or facilitated a workshop game",
-        "points": 40,
-        "rarity": "rare",
-        "requirements": {
-          "games_created": 1
-        }
-      },
-      "mentor": {
-        "name": "Workshop Mentor 🌟",
-        "description": "Helped onboard new workshop members",
-        "points": 60,
-        "rarity": "epic",
-        "requirements": {
-          "mentored_users": 3
-        }
-      },
-      "connector": {
-        "name": "Community Connector 🤝",
-        "description": "Introduced workshop members to each other",
-        "points": 35,
-        "rarity": "uncommon",
-        "requirements": {
-          "connections_made": 5
-        }
-      }
+    "game_master": {
+      "name": "Game Master 🎮",
+      "description": "Created or participated in workshop games!",
+      "tier": "gold",
+      "criteria": "game_participation",
+      "icon": "🎮"
     },
-    "special": {
-      "early_adopter": {
-        "name": "Early Adopter 🌱",
-        "description": "Joined the workshop in its first week",
-        "points": 75,
-        "rarity": "epic",
-        "requirements": {
-          "joined_before": "2026-01-15"
-        }
-      },
-      "night_owl": {
-        "name": "Night Owl 🦉",
-        "description": "Active during late night hours (10PM-2AM)",
-        "points": 20,
-        "rarity": "common",
-        "requirements": {
-          "late_night_sessions": 5
-        }
-      },
-      "early_bird": {
-        "name": "Early Bird 🐦",
-        "description": "Active during early morning hours (5AM-8AM)",
-        "points": 20,
-        "rarity": "common",
-        "requirements": {
-          "early_morning_sessions": 5
-        }
-      }
+    "consistency_champion": {
+      "name": "Consistency Champion 🔥",
+      "description": "Maintained a 30-day streak!",
+      "tier": "platinum",
+      "criteria": "30_day_streak",
+      "icon": "🔥"
+    },
+    "century_club": {
+      "name": "Century Club 👑",
+      "description": "Achieved the legendary 100-day streak!",
+      "tier": "diamond",
+      "criteria": "100_day_streak",
+      "icon": "👑"
+    },
+    "community_builder": {
+      "name": "Community Builder 🌟",
+      "description": "Helped others and fostered positive vibes!",
+      "tier": "special",
+      "criteria": "community_engagement",
+      "icon": "🌟"
     }
   },
-  "rarity_levels": {
-    "common": {
-      "color": "#22C55E",
-      "emoji": "🟢"
-    },
-    "uncommon": {
-      "color": "#3B82F6", 
-      "emoji": "🔵"
-    },
-    "rare": {
-      "color": "#A855F7",
-      "emoji": "🟣"
-    },
-    "epic": {
-      "color": "#F59E0B",
-      "emoji": "🟡"
-    },
-    "legendary": {
-      "color": "#EF4444",
-      "emoji": "🔴"
-    },
-    "mythical": {
-      "color": "#EC4899",
-      "emoji": "💫"
-    }
-  },
-  "user_badges": {
-    "@demo_user": {
-      "earned": [
-        {
-          "badge_key": "first_day",
-          "awarded_at": "2026-01-08T22:45:00.000Z",
-          "reason": "Started streak journey"
-        },
-        {
-          "badge_key": "early_adopter", 
-          "awarded_at": "2026-01-08T22:45:00.000Z",
-          "reason": "Joined workshop in first week"
-        }
-      ],
-      "total_points": 80,
-      "achievements_unlocked": 2
-    },
-    "@vibe_champion": {
-      "earned": [
-        {
-          "badge_key": "first_day",
-          "awarded_at": "2026-01-08T22:45:00.000Z", 
-          "reason": "Started streak journey"
-        },
-        {
-          "badge_key": "early_adopter",
-          "awarded_at": "2026-01-08T22:45:00.000Z",
-          "reason": "Joined workshop in first week"
-        }
-      ],
-      "total_points": 80,
-      "achievements_unlocked": 2
-    }
-  },
-  "leaderboard": {
-    "by_points": [
-      {
-        "user": "@demo_user",
-        "points": 80,
-        "badges": 2
-      },
-      {
-        "user": "@vibe_champion", 
-        "points": 80,
-        "badges": 2
-      }
-    ],
-    "by_badges": [
-      {
-        "user": "@demo_user",
-        "badges": 2,
-        "points": 80
-      },
-      {
-        "user": "@vibe_champion",
-        "badges": 2, 
-        "points": 80
-      }
-    ],
-    "by_rarity": [
-      {
-        "user": "@demo_user",
-        "common": 1,
-        "epic": 1,
-        "total": 2
-      },
-      {
-        "user": "@vibe_champion",
-        "common": 1,
-        "epic": 1,
-        "total": 2
-      }
-    ]
-  },
-  "award_history": [
-    {
-      "user": "@demo_user",
-      "badge": "first_day",
-      "badge_name": "First Day 🌱",
-      "points": 5,
-      "awarded_at": "2026-01-08T22:45:00.000Z"
-    },
-    {
-      "user": "@demo_user", 
-      "badge": "early_adopter",
-      "badge_name": "Early Adopter 🌱",
-      "points": 75,
-      "awarded_at": "2026-01-08T22:45:00.000Z"
-    },
-    {
-      "user": "@vibe_champion",
-      "badge": "first_day", 
-      "badge_name": "First Day 🌱",
-      "points": 5,
-      "awarded_at": "2026-01-08T22:45:00.000Z"
-    },
-    {
-      "user": "@vibe_champion",
-      "badge": "early_adopter",
-      "badge_name": "Early Adopter 🌱", 
-      "points": 75,
-      "awarded_at": "2026-01-08T22:45:00.000Z"
-    }
-  ]
+  "user_badges": {},
+  "badge_tiers": {
+    "bronze": {"color": "#CD7F32", "value": 10},
+    "silver": {"color": "#C0C0C0", "value": 25},
+    "gold": {"color": "#FFD700", "value": 50},
+    "platinum": {"color": "#E5E4E2", "value": 100},
+    "diamond": {"color": "#B9F2FF", "value": 250},
+    "special": {"color": "#FF69B4", "value": 75}
+  }
 }
