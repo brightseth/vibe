@@ -41,7 +41,7 @@ function savePresence(presence) {
   fs.writeFileSync(PRESENCE_FILE, JSON.stringify(presence, null, 2));
 }
 
-function heartbeat(handle, one_liner) {
+async function heartbeat(handle, one_liner) {
   const presence = loadPresence();
   presence[handle] = {
     handle,
@@ -52,7 +52,7 @@ function heartbeat(handle, one_liner) {
   savePresence(presence);
 }
 
-function getActiveUsers() {
+async function getActiveUsers() {
   const presence = loadPresence();
   const now = Date.now();
   const IDLE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
@@ -76,7 +76,7 @@ function getActiveUsers() {
     });
 }
 
-function setVisibility(handle, visible) {
+async function setVisibility(handle, visible) {
   const presence = loadPresence();
   if (presence[handle]) {
     presence[handle].visible = visible;
@@ -102,7 +102,7 @@ function appendMessage(msg) {
   fs.appendFileSync(MESSAGES_FILE, JSON.stringify(msg) + '\n');
 }
 
-function sendMessage(from, to, body, type = 'dm') {
+async function sendMessage(from, to, body, type = 'dm') {
   const msg = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     from: from.toLowerCase().replace('@', ''),
@@ -116,7 +116,7 @@ function sendMessage(from, to, body, type = 'dm') {
   return msg;
 }
 
-function getInbox(handle) {
+async function getInbox(handle) {
   const messages = loadMessages();
   const h = handle.toLowerCase().replace('@', '');
 
@@ -126,17 +126,17 @@ function getInbox(handle) {
     .sort((a, b) => b.timestamp - a.timestamp);
 }
 
-function getUnreadCount(handle) {
-  const inbox = getInbox(handle);
+async function getUnreadCount(handle) {
+  const inbox = await getInbox(handle);
   return inbox.filter(m => !m.read_at).length;
 }
 
 // Alias for consistency with API store
-function getRawInbox(handle) {
+async function getRawInbox(handle) {
   return getInbox(handle);
 }
 
-function getThread(myHandle, theirHandle) {
+async function getThread(myHandle, theirHandle) {
   const messages = loadMessages();
   const me = myHandle.toLowerCase().replace('@', '');
   const them = theirHandle.toLowerCase().replace('@', '');
@@ -150,7 +150,7 @@ function getThread(myHandle, theirHandle) {
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
-function markThreadRead(myHandle, theirHandle) {
+async function markThreadRead(myHandle, theirHandle) {
   const messages = loadMessages();
   const me = myHandle.toLowerCase().replace('@', '');
   const them = theirHandle.toLowerCase().replace('@', '');
