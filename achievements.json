@@ -1,0 +1,42 @@
+{
+  "badges": {
+    "first_ship": {
+      "name": "First Ship",
+      "description": "Shipped your first project to the workshop",
+      "emoji": "🚀",
+      "threshold": 1
+    },
+    "week_streak": {
+      "name": "Week Warrior",
+      "description": "Maintained a 7-day streak",
+      "emoji": "💪",
+      "threshold": 7
+    },
+    "month_streak": {
+      "name": "Monthly Legend",
+      "description": "Sustained a 30-day streak",
+      "emoji": "🏆",
+      "threshold": 30
+    },
+    "century_club": {
+      "name": "Century Club",
+      "description": "Achieved 100 days of consistency",
+      "emoji": "👑",
+      "threshold": 100
+    },
+    "game_master": {
+      "name": "Game Master",
+      "description": "Built and shipped a game to the workshop",
+      "emoji": "🎮",
+      "threshold": 1
+    },
+    "vibe_keeper": {
+      "name": "Vibe Keeper",
+      "description": "Consistently maintains positive workshop energy",
+      "emoji": "✨",
+      "threshold": 14
+    }
+  },
+  "user_badges": {},
+  "achievement_log": []
+}
