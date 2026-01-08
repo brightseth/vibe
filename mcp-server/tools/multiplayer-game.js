@@ -83,7 +83,7 @@ function getGameRoom(gameType, roomId = 'default') {
     } else if (gameType === 'wordchain') {
       globalGameRooms[key] = wordchain.createInitialWordChainState();
     } else if (gameType === 'storybuilder') {
-      globalGameRooms[key] = storybuilder.createInitialStoryState();
+      globalGameRooms[key] = storybuilder.createInitialStoryBuilderState();
     }
   }
   
@@ -212,18 +212,24 @@ async function handler(args) {
 
     } else if (game === 'wordchain') {
       if (action === 'join') {
-        const result = wordchain.addPlayer(gameState, myHandle);
-        if (result.error) {
+        const result = wordchain.addPlayer && wordchain.addPlayer(gameState, myHandle);
+        if (result && result.error) {
           return { display: `❌ ${result.error}` };
         }
-        updateGameRoom(game, roomId, result.gameState);
-        return { display: `🔗 **Joined Word Chain!**\n\n${wordchain.formatWordChainDisplay(result.gameState)}` };
+        
+        // For wordchain, just show the current state since it doesn't have explicit player management
+        return { display: `🔗 **Joined Word Chain!**\n\n${wordchain.formatWordChainDisplay(gameState)}\n\nAdd words with: \`vibe multiplayer-game wordchain word --word "apple"\`` };
       
       } else if (action === 'word') {
         if (!word) {
           return { display: 'Need a word! Example: `vibe multiplayer-game wordchain word --word "apple"`' };
         }
-        const result = wordchain.addWord(gameState, word, myHandle);
+        
+        // For wordchain, we need to determine if this is player 1 or 2 move
+        // For simplicity, let's alternate based on move count
+        const isPlayer1Move = gameState.moves % 2 === 0;
+        
+        const result = wordchain.makeMove(gameState, word, isPlayer1Move);
         if (result.error) {
           return { display: `❌ ${result.error}` };
         }
@@ -241,7 +247,7 @@ async function handler(args) {
           return { display: `❌ ${result.error}` };
         }
         updateGameRoom(game, roomId, result.gameState);
-        return { display: `📚 **Joined Story Builder!**\n\n${storybuilder.formatStoryDisplay(result.gameState)}` };
+        return { display: `📚 **Joined Story Builder!**\n\n${storybuilder.formatStoryBuilderDisplay(result.gameState)}\n\nAdd sentences with: \`vibe multiplayer-game storybuilder sentence --sentence "Once upon a time..."\`` };
       
       } else if (action === 'sentence') {
         if (!sentence) {
@@ -252,10 +258,10 @@ async function handler(args) {
           return { display: `❌ ${result.error}` };
         }
         updateGameRoom(game, roomId, result.gameState);
-        return { display: `📚 **Added sentence!**\n\n${storybuilder.formatStoryDisplay(result.gameState)}` };
+        return { display: `📚 **Added sentence!**\n\n${storybuilder.formatStoryBuilderDisplay(result.gameState)}` };
       
       } else if (action === 'show') {
-        return { display: storybuilder.formatStoryDisplay(gameState) };
+        return { display: storybuilder.formatStoryBuilderDisplay(gameState) };
       }
     }
 
