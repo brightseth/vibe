@@ -97,6 +97,7 @@
     { "source": "/api/db-health", "destination": "/api/db-health.js" },
     { "source": "/api/db-test", "destination": "/api/db-test.js" },
     { "source": "/api/migrate-presence", "destination": "/api/migrate-presence.js" },
-    { "source": "/api/admin/backfill", "destination": "/api/admin/backfill.js" }
+    { "source": "/api/admin/backfill", "destination": "/api/admin/backfill.js" },
+    { "source": "/api/admin/preflight", "destination": "/api/admin/preflight.js" }
   ]
 }
