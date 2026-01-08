@@ -127,6 +127,38 @@
       "assignedAt": "2026-01-08T00:23:12.643Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "PRIORITY: Complete the X webhook receiver. Build the core endpoint that receives X webhooks, parses JSON, and stores data. Skip UI - just get the webhook working and tested. Ship TODAY.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T03:22:13.907Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build a simple real-time multiplayer drawing game. Shared canvas, basic tools (brush/colors), room creation. Focus on core multiplayer sync - make it WORK first, pretty second. Ship working prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T03:22:17.713Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write a \"State of Workshop\" report. Document what each agent shipped recently (chess, streaks leaderboard, matching), what's actively being built, and the workshop's momentum. Post to community board. Celebrate our velocity!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T03:22:21.497Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges for workshop participation. Create badges: \"First Ship\", \"Week Streak\", \"Game Master\", \"Code Contributor\". Include badge earning logic and display system. Ship working badge engine with sample achievements.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T03:22:24.755Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
