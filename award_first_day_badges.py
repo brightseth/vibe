@@ -1,54 +1,87 @@
 #!/usr/bin/env python3
 """
-Award First Day badges to current streak users
+Award First Day badges to users with 1+ day streaks
+Built by @streaks-agent to ensure proper badge tracking
 """
 
-from streak_achievements_integration import streaks_agent_badge_check
-from achievements import AchievementTracker
 import json
+from datetime import datetime
 
-# Initialize tracker
-tracker = AchievementTracker()
-
-# Current users with 1-day streaks
-users = [
-    ("demo_user", 1, 1),
-    ("vibe_champion", 1, 1)
-]
-
-print("🌱 Awarding First Day Badges")
-print("=" * 40)
-
-newly_awarded = []
-
-for handle, current_streak, best_streak in users:
-    print(f"\n👤 Checking {handle}")
+def award_first_day_badges():
+    """Award First Day badges to eligible users"""
     
-    # Check if they already have any badges
-    existing_badges = tracker.get_user_badges(handle)
-    if existing_badges:
-        print(f"   Already has {len(existing_badges)} badges: {[b['name'] for b in existing_badges]}")
-        continue
+    # Load current data
+    with open("streak_data.json", 'r') as f:
+        streak_data = json.load(f)
     
-    # Check for first day badge
-    result = streaks_agent_badge_check(handle, current_streak, best_streak)
+    with open("achievements.json", 'r') as f:
+        achievement_data = json.load(f)
     
-    if result['has_new_achievements']:
-        print(f"   🎉 AWARDED: {result['celebration_message']}")
-        newly_awarded.append((handle, result['celebration_message']))
-    else:
-        print(f"   ⏳ No new badges (may need manual award)")
+    # Add First Day badge if not exists
+    if "first_day" not in achievement_data["badges"]:
+        achievement_data["badges"]["first_day"] = {
+            "name": "First Day",
+            "description": "Started your streak journey!",
+            "emoji": "🎉",
+            "threshold": 1
+        }
+    
+    # Initialize user_badges if empty
+    if not achievement_data["user_badges"]:
+        achievement_data["user_badges"] = {}
+    
+    new_awards = []
+    
+    # Check each user for First Day badge eligibility
+    for user, data in streak_data["streaks"].items():
+        current_streak = data["current"]
+        
+        # Initialize user badge list if not exists
+        if user not in achievement_data["user_badges"]:
+            achievement_data["user_badges"][user] = []
+        
+        user_badges = achievement_data["user_badges"][user]
+        has_first_day = any(badge.get("badge_id") == "first_day" for badge in user_badges)
+        
+        # Award First Day badge if eligible and not already awarded
+        if current_streak >= 1 and not has_first_day:
+            first_day_badge = {
+                "badge_id": "first_day",
+                "name": "First Day",
+                "emoji": "🎉",
+                "description": "Started your streak journey!",
+                "awarded_at": datetime.now().isoformat(),
+                "streak_when_earned": current_streak
+            }
+            
+            achievement_data["user_badges"][user].append(first_day_badge)
+            
+            # Log the achievement
+            achievement_data["achievement_log"].append({
+                "user": user,
+                "badge_id": "first_day",
+                "badge_name": "First Day",
+                "awarded_at": datetime.now().isoformat(),
+                "streak_when_earned": current_streak,
+                "celebration_sent": False
+            })
+            
+            new_awards.append((user, first_day_badge))
+            print(f"🎉 Awarded First Day badge to {user}")
+    
+    # Save updated achievements
+    with open("achievements.json", 'w') as f:
+        json.dump(achievement_data, f, indent=2)
+    
+    print(f"\n📊 Badge Award Summary:")
+    print(f"New badges awarded: {len(new_awards)}")
+    
+    if new_awards:
+        print(f"\n🎊 Badges Awarded:")
+        for user, badge in new_awards:
+            print(f"   {user}: {badge['emoji']} {badge['name']}")
+    
+    return new_awards
 
-print(f"\n📊 Summary: {len(newly_awarded)} new badges awarded!")
-
-for handle, message in newly_awarded:
-    print(f"  • {message}")
-
-# Show updated achievements file
-try:
-    with open('achievements.json', 'r') as f:
-        achievements = json.load(f)
-    print(f"\n📋 Current achievement data:")
-    print(json.dumps(achievements, indent=2))
-except Exception as e:
-    print(f"Error reading achievements: {e}")
+if __name__ == "__main__":
+    award_first_day_badges()

@@ -223,6 +223,46 @@
       "assignedAt": "2026-01-08T04:39:50.754Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Accept POST, parse JSON, log payload, return 200. Ship working endpoint today - this is critical infrastructure. Ignore all other tasks.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:04:53.740Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE FOCUS: Ship collaborative drawing game! Create shared canvas with real-time multiplayer sync, basic drawing tools (brush/colors), room creation. Make it social and fun. Ship working prototype today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:04:58.838Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "CELEBRATE OUR VELOCITY: Write 'State of Workshop January' report highlighting recent ships: chess game, streaks leaderboard, user matching, ice breakers. Show we're building FAST! Post to community board to inspire the community.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:05:02.969Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system! Create badges for workshop participation: 'First Ship', 'Week Streak', 'Game Master', 'Code Contributor'. Include earning logic and visual display system. Ship working badge engine that rewards builders!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:05:06.723Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build Workshop Tour! Create interactive guide that shows new users all our cool features: chess game, streaks, matching, ice breakers. Make it engaging with 'Try this!' buttons and sample interactions. Ship working tour experience.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:05:11.084Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

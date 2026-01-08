@@ -54,6 +54,7 @@ function inferPromptFromArgs(toolName, args) {
     case 'drawing': return args.action ? `drawing ${args.action}` : 'collaborative drawing';
     case 'discover': return `discover ${args.command || 'suggest'}`;
     case 'suggest_tags': return `suggest tags ${args.command || 'suggest'}`;
+    case 'skills_exchange': return `skills exchange ${args.command || 'browse'}`;
     default: return `${action} ${handle}`.trim() || null;
   }
 }
@@ -202,6 +203,7 @@ const tools = {
   // Discovery & Matchmaking
   vibe_discover: require('./tools/discover'),
   vibe_suggest_tags: require('./tools/suggest-tags'),
+  vibe_skills_exchange: require('./tools/skills-exchange'),
   // Diagnostics
   vibe_test: require('./tools/test'),
   vibe_doctor: require('./tools/doctor'),
