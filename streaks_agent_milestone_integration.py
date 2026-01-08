@@ -1,142 +1,140 @@
 #!/usr/bin/env python3
 """
-@streaks-agent Milestone Integration
-Easy integration for checking and celebrating streak milestones
+🎯 @streaks-agent Milestone Integration
+Connects the streak milestone celebration system with agent functions
 
-Usage:
-from streaks_agent_milestone_integration import check_and_celebrate_milestones
-result = check_and_celebrate_milestones('@demo_user', 7)
+This script bridges the auto-celebration system with the actual
+agent functions like dm_user() and announce_ship()
 """
 
 import json
-from datetime import datetime
-from streak_milestone_celebrations import StreakMilestoneCelebrations
+from streak_milestone_auto_celebration import StreakMilestoneCelebrator
+from typing import List, Dict
 
 class StreaksAgentMilestoneIntegration:
     def __init__(self):
-        self.celebration_system = StreakMilestoneCelebrations()
+        self.celebrator = StreakMilestoneCelebrator()
     
-    def check_and_celebrate_milestones(self, handle, current_streak):
+    def check_and_execute_celebrations(self) -> Dict:
         """
-        Check for milestone celebrations and return action items for streaks agent
-        
-        Returns:
-        {
-            'new_celebrations': [...],
-            'dm_actions': [...],
-            'board_actions': [...], 
-            'next_milestone': {...}
-        }
+        Check for milestone celebrations and return action plan for @streaks-agent
+        Returns dict with actions to take via agent functions
         """
-        # Clean handle (remove @ if present)
-        clean_handle = handle.replace('@', '')
-        
-        # Check for new celebrations
-        new_celebrations = self.celebration_system.check_for_celebrations(clean_handle, current_streak)
+        actions = self.celebrator.generate_celebration_actions()
+        summary = self.celebrator.get_celebration_summary()
         
         result = {
-            'new_celebrations': len(new_celebrations),
-            'dm_actions': [],
-            'board_actions': [],
-            'next_milestone': None,
-            'celebration_details': []
+            "celebrations_needed": len(actions) > 0,
+            "action_count": len(actions),
+            "actions": [],
+            "summary": summary,
+            "milestone_progress": {}
         }
         
-        # Process each new celebration
-        for celebration in new_celebrations:
-            milestone_days = celebration['milestone']
-            milestone_info = celebration['info']
-            
-            # Create DM message
-            dm_message = self.celebration_system.create_celebration_message(clean_handle, celebration)
-            result['dm_actions'].append({
-                'to': clean_handle,
-                'message': dm_message,
-                'milestone': f"{milestone_days}_days"
-            })
-            
-            # Create board announcement for major milestones
-            board_msg = self.celebration_system.create_board_announcement(clean_handle, celebration)
-            if board_msg:
-                result['board_actions'].append({
-                    'message': board_msg,
-                    'milestone': f"{milestone_days}_days"
+        # Convert celebration actions to agent function calls
+        for action in actions:
+            if action["type"] == "dm":
+                result["actions"].append({
+                    "function": "dm_user",
+                    "params": {
+                        "to": action["handle"],
+                        "message": action["message"]
+                    },
+                    "description": f"DM @{action['handle']} for {action['title']}"
                 })
             
-            # Store details for logging
-            result['celebration_details'].append({
-                'milestone_days': milestone_days,
-                'title': milestone_info['title'],
-                'emoji': milestone_info['emoji'],
-                'tier': milestone_info['tier']
-            })
+            elif action["type"] == "board_announce":
+                result["actions"].append({
+                    "function": "announce_ship", 
+                    "params": {
+                        "what": action["message"]
+                    },
+                    "description": f"Announce {action['handle']}'s {action['title']} to board"
+                })
         
-        # Get next milestone info
-        next_milestone = self.celebration_system.get_next_milestone(current_streak)
-        if next_milestone:
-            result['next_milestone'] = {
-                'days': next_milestone['days'],
-                'title': next_milestone['info']['title'],
-                'emoji': next_milestone['info']['emoji'],
-                'days_remaining': next_milestone['days_remaining']
-            }
-        
-        # Save any new celebrations
-        if new_celebrations:
-            self.celebration_system.save_celebrations()
+        # Add milestone progress info
+        for handle, milestones in summary.get("users_approaching_milestones", {}).items():
+            if milestones:
+                next_milestone = milestones[0]
+                result["milestone_progress"][handle] = {
+                    "next_milestone": next_milestone["name"],
+                    "days_remaining": next_milestone["days_remaining"],
+                    "current_streak": self._get_current_streak(handle)
+                }
         
         return result
     
-    def get_all_user_milestones(self, handle):
-        """Get all milestone progress for a user"""
-        clean_handle = handle.replace('@', '')
-        return self.celebration_system.get_user_milestone_progress(clean_handle)
-
-# Convenience function for easy import
-def check_and_celebrate_milestones(handle, current_streak):
-    """Quick function for streaks agent to check milestones"""
-    integration = StreaksAgentMilestoneIntegration()
-    return integration.check_and_celebrate_milestones(handle, current_streak)
+    def _get_current_streak(self, handle: str) -> int:
+        """Get current streak for a user"""
+        streaks = self.celebrator.load_current_streaks()
+        return streaks.get(handle, {}).get("current", 0)
+    
+    def get_celebration_report(self) -> str:
+        """Generate a human-readable report of celebration status"""
+        integration_result = self.check_and_execute_celebrations()
+        
+        if not integration_result["celebrations_needed"]:
+            # No celebrations, but show progress
+            progress = integration_result["milestone_progress"]
+            if progress:
+                report = "📊 **Milestone Progress Report**\n\n"
+                for handle, info in progress.items():
+                    report += f"🎯 **@{handle}**: {info['days_remaining']} days to {info['next_milestone']} (currently {info['current_streak']} days)\n"
+                return report
+            else:
+                return "✅ No celebrations needed, all users up to date with milestones"
+        
+        # Has celebrations
+        report = f"🎉 **{integration_result['action_count']} Milestone Celebrations Ready!**\n\n"
+        
+        for action in integration_result["actions"]:
+            if action["function"] == "dm_user":
+                report += f"📩 DM to @{action['params']['to']}: {action['description']}\n"
+            elif action["function"] == "announce_ship":
+                report += f"📢 Board announcement: {action['description']}\n"
+        
+        # Add progress for users not celebrating  
+        progress = integration_result["milestone_progress"]
+        if progress:
+            report += "\n📊 **Other User Progress:**\n"
+            for handle, info in progress.items():
+                report += f"🎯 @{handle}: {info['days_remaining']} days to {info['next_milestone']}\n"
+        
+        return report
 
 def main():
-    """Test the integration"""
+    """Test the integration system"""
+    integration = StreaksAgentMilestoneIntegration()
+    
     print("🎯 @streaks-agent Milestone Integration Test")
     print("=" * 50)
     
-    integration = StreaksAgentMilestoneIntegration()
+    result = integration.check_and_execute_celebrations()
     
-    # Test scenarios
-    test_cases = [
-        ('@demo_user', 1),     # Should be no milestones
-        ('@demo_user', 3),     # Should trigger "Getting Started"
-        ('@demo_user', 7),     # Should trigger "One Week Strong"
-        ('@vibe_champion', 14), # Should trigger "Two Week Warrior"
-        ('@vibe_champion', 30), # Should trigger "Monthly Legend"
-    ]
+    if result["celebrations_needed"]:
+        print(f"🎉 {result['action_count']} celebrations ready!")
+        
+        for i, action in enumerate(result["actions"], 1):
+            print(f"\n{i}. Function: {action['function']}")
+            print(f"   Description: {action['description']}")
+            print(f"   Params: {action['params']}")
+    else:
+        print("✅ No celebrations needed")
     
-    for handle, streak in test_cases:
-        print(f"\n👤 Testing {handle} with {streak} day streak:")
-        
-        result = integration.check_and_celebrate_milestones(handle, streak)
-        
-        print(f"   🎉 New celebrations: {result['new_celebrations']}")
-        
-        if result['dm_actions']:
-            print(f"   📱 DM actions: {len(result['dm_actions'])}")
-            for dm in result['dm_actions']:
-                print(f"      → DM {dm['to']}: {dm['milestone']}")
-        
-        if result['board_actions']: 
-            print(f"   📢 Board actions: {len(result['board_actions'])}")
-            for board in result['board_actions']:
-                print(f"      → Announce: {board['message']}")
-        
-        if result['next_milestone']:
-            next_ms = result['next_milestone']
-            print(f"   🎯 Next milestone: {next_ms['days']} days ({next_ms['days_remaining']} to go)")
-        
-        for detail in result['celebration_details']:
-            print(f"   ✨ Celebrated: {detail['milestone_days']} days - {detail['title']} {detail['emoji']}")
+    print(f"\n📊 Users tracked: {result['summary']['total_users']}")
+    print(f"🎉 Total celebrations sent: {result['summary']['total_celebrations']}")
+    
+    if result["milestone_progress"]:
+        print(f"\n🎯 Upcoming milestones:")
+        for handle, info in result["milestone_progress"].items():
+            print(f"   @{handle}: {info['days_remaining']} days to {info['next_milestone']}")
+    
+    # Show human-readable report
+    print("\n" + "=" * 50)
+    print("📋 AGENT REPORT:")
+    print(integration.get_celebration_report())
+    
+    return result
 
 if __name__ == "__main__":
-    main()
+    result = main()

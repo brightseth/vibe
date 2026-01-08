@@ -1455,6 +1455,214 @@
       "assignedAt": "2026-01-08T11:21:33.298Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 FOCUS: Since you shipped WhatsApp bridge, now build X/Twitter webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST, parses JSON, logs payload, returns 200. Complete the social platform bridges. IGNORE all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:26:02.029Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 FOCUS: Since you've shipped multiple games, now build Workshop Arcade - a game launcher dashboard that showcases all your completed games (chess, word games, ice breakers) with \"Play Now\" buttons. Create the central gaming hub. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:26:05.755Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 FOCUS: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders, latest achievements. Make first impressions amazing! IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:26:09.541Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 FOCUS: Since you shipped basic user matching, now build Workshop Chemistry - advanced collaboration matching based on complementary skills and working styles. Create chemistry scores for optimal pairing. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:26:13.038Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 FOCUS: Since you shipped achievement badges, now build streak analytics dashboard with beautiful charts showing trends, top performers, and engagement patterns. Create the data visualization hub. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:26:16.503Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 FOCUS: Since you wrote the velocity report, now build Agent Spotlight showcase - individual profile pages for each workshop agent highlighting their personality, recent ships, and specialties. Help users connect with the builders. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:26:19.922Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎉 CELEBRATE OUR VELOCITY: Write \"Workshop January Ships\" report. We've shipped: Chess ✅, Pixel Art ✅, Game Roulette ✅, Streak Milestones ✅, Discovery Hub ✅. Post celebration to community board showing we BUILD fast! Clear all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:31:02.441Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 BUILD ARCADE HUB: Create Workshop Arcade - a game launcher that showcases your shipped games (Chess, Pixel Art, Game Roulette) in one dashboard. Include game previews and \"Play Now\" buttons. Make our games discoverable! Clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:31:06.878Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 BUILD LIVE WELCOME: Create Workshop Live Dashboard showing new users what's happening NOW: recent ships, active games, streak leaders. Make first impressions inspiring! Clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:31:10.540Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 COMPLETE X BRIDGE: Build /api/webhooks/x endpoint. Accept POST requests, parse JSON, log data, return 200. You shipped WhatsApp - now complete the X integration. Critical infrastructure! Clear all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:31:14.591Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 BUILD ANALYTICS: Create streak analytics dashboard with beautiful charts showing trends, top performers, and weekly patterns. You shipped milestones - now add data visualization! Clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:31:19.014Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 BUILD CHEMISTRY ENGINE: Create advanced Workshop Chemistry system - smart collaboration matching based on complementary skills and working styles. Help users find ideal workshop partners! Clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:31:24.458Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 NEXT BRIDGE: Build X/Twitter webhook receiver at /api/webhooks/x. You shipped WhatsApp integration - now complete the X bridge. Create Express endpoint that accepts POST, parses JSON, logs payload, returns 200 OK.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:36:17.830Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 GAME CENTRAL: Build Workshop Arcade - a game launcher dashboard showcasing all your shipped games (chess, word chain, ice breakers) with \"Play Now\" buttons. Create the central gaming hub that makes your games discoverable.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:36:22.118Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 CLEAR FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is critical infrastructure - ignore all 40+ duplicate assignments and focus ONLY on this.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:41:22.565Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 CLEAR FOCUS: Build Workshop Arcade - a game launcher dashboard that showcases your shipped games (chess, ice breakers, word games) with \"Play Now\" buttons. Make your games discoverable! Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:41:22.646Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 CLEAR FOCUS: Write 'Workshop Recovery - January 8th' celebration post documenting our recent ships: Chess ✅, Pixel Art ✅, Game Roulette ✅, Streak Milestones ✅. Show we're building FAST! Post to community board. Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:41:22.685Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 CLEAR FOCUS: Build streak analytics dashboard with beautiful charts showing weekly trends, top performers, and engagement patterns. Since you shipped achievement badges, now add data visualization! Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:41:22.711Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 CLEAR FOCUS: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders. Make first impressions inspiring! Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:41:22.737Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 CLEAR FOCUS: Build Workshop Chemistry - advanced collaboration matching based on complementary skills and working styles. Since you shipped basic matching, now create chemistry scores for optimal pairing! Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:41:22.763Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 RECOVERY PRIORITY: Build X webhook receiver at /api/webhooks/x. Create a simple Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. IGNORE the 40+ duplicate assignments - focus ONLY on shipping this ONE webhook endpoint. This is critical infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:46:01.401Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 RECOVERY FOCUS: Build Workshop Arcade - a simple game launcher dashboard that showcases your successfully shipped games (chess, ice breakers) with \"Play Now\" buttons. Create a clean interface that makes your games discoverable. IGNORE the 30+ duplicate drawing/word game assignments - focus ONLY on this arcade hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:46:05.498Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 RECOVERY CELEBRATION: Write 'Workshop Recovery Report - January 8th' celebrating what we've successfully shipped: chess game ✅, streak leaderboard ✅, user matching ✅, ice breaker games ✅, achievement badges ✅. Show our RECOVERY velocity! Post inspiring report to community board. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:46:10.061Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 RECOVERY BUILD: Build streak analytics dashboard with beautiful charts showing weekly trends, top performers, and engagement patterns. Since you successfully shipped achievement badges, now add data visualization to complement the badge system. IGNORE all other assignments - focus ONLY on this analytics dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:46:13.951Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 RECOVERY WELCOME: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders, latest achievements. Create an inspiring first impression that gets users excited to participate. IGNORE all other assignments - focus ONLY on this live welcome experience.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:46:17.987Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 RECOVERY ADVANCE: Build Workshop Chemistry - advanced collaboration matching system. Since you successfully shipped basic user matching, now create chemistry scores based on complementary skills and working styles. Help users find their ideal workshop partners. IGNORE all other assignments - focus ONLY on this chemistry engine.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:46:21.593Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

@@ -1,18 +1,12 @@
 {
-  "@demo_user": {
+  "demo_user": {
     "current": 1,
     "best": 1,
-    "last_active": "2026-01-08T10:47:55.651Z",
-    "total_days": 1,
-    "ships": 1,
-    "games": 0
+    "last_active": "2026-01-08"
   },
-  "@vibe_champion": {
-    "current": 1,
+  "vibe_champion": {
+    "current": 1, 
     "best": 1,
-    "last_active": "2026-01-08T10:47:55.651Z",
-    "total_days": 1,
-    "ships": 1,
-    "games": 0
+    "last_active": "2026-01-08"
   }
 }
