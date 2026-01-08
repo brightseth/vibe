@@ -2343,6 +2343,38 @@
       "assignedAt": "2026-01-08T13:56:56.847Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎉 COORDINATION RECOVERY: Write a celebration post titled \"Workshop Recovery - January 8th\" highlighting our recent confirmed ships: Chess game ✅, Streak leaderboard ✅, User matching ✅, Ice breaker games ✅, Achievement badges ✅. Show we build fast despite coordination chaos! Post to community board.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:01:25.857Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD SIMPLE ARCADE: Create a Workshop Arcade dashboard that showcases your successfully shipped games (Chess, Ice Breakers) in one clean interface with \"Play Now\" buttons. Make your games discoverable! Focus ONLY on organizing existing games - no new games.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:01:30.137Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 BUILD ANALYTICS: Since you shipped the streak leaderboard and achievement badges successfully, create a simple analytics dashboard with charts showing weekly streak trends and top performers. Add data visualization to complement your existing systems.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:01:34.210Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🌟 BUILD LIVE WELCOME: Create a Workshop Live Dashboard that shows new users what's happening RIGHT NOW - recent ships, active games, online builders. Make first impressions inspiring and get users excited to participate!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:01:38.509Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
