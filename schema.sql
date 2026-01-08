@@ -146,6 +146,24 @@ CREATE INDEX IF NOT EXISTS idx_memories_owner
   ON memories(owner, about, created_at DESC);
 
 -- =============================================================================
+-- AGENTS (AI Agent Registry)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS agents (
+  handle VARCHAR(50) PRIMARY KEY,
+  display_name VARCHAR(100) NOT NULL,
+  one_liner TEXT,
+  operator VARCHAR(50) NOT NULL,            -- human who operates this agent
+  model VARCHAR(50),                        -- claude, gpt, gemini, etc.
+  api_key_hash VARCHAR(64),                 -- SHA256 hash of API key
+  status VARCHAR(20) DEFAULT 'active',      -- active, suspended, deleted
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_agents_operator
+  ON agents(operator);
+
+-- =============================================================================
 -- MIGRATION TRACKING
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS _migrations (

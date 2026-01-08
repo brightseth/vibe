@@ -7,9 +7,36 @@
  * - Interesting activity to comment on
  *
  * Rate limits enforced per-agent and per-user.
+ *
+ * Migration: Messages to Postgres, rate limits stay in KV (ephemeral)
  */
 
-const { kv } = require('@vercel/kv');
+const { sql, isPostgresEnabled } = require('../lib/db.js');
+
+// Lazy KV loading
+let _kv = null;
+async function getKV() {
+  if (_kv) return _kv;
+  try {
+    const { kv } = require('@vercel/kv');
+    _kv = kv;
+    return kv;
+  } catch (e) {
+    return null;
+  }
+}
+
+// For backwards compatibility
+const kv = {
+  get: async (...args) => (await getKV())?.get(...args),
+  set: async (...args) => (await getKV())?.set(...args),
+  incr: async (...args) => (await getKV())?.incr(...args),
+  expire: async (...args) => (await getKV())?.expire(...args),
+  zrange: async (...args) => (await getKV())?.zrange(...args),
+  hgetall: async (...args) => (await getKV())?.hgetall(...args),
+  lpush: async (...args) => (await getKV())?.lpush(...args),
+  hincrby: async (...args) => (await getKV())?.hincrby(...args)
+};
 
 // Dynamic imports for SDKs - loaded only when needed (saves ~200ms cold start)
 let _anthropic = null;
@@ -175,8 +202,9 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
 
 async function sendDM(from, to, body) {
   const now = Date.now();
+  const messageId = `${now}-${Math.random().toString(36).slice(2, 8)}`;
   const message = {
-    id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+    id: messageId,
     from,
     to,
     body,
@@ -185,6 +213,19 @@ async function sendDM(from, to, body) {
     read_at: null
   };
 
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      await sql`
+        INSERT INTO messages (id, from_user, to_user, text, read, system_msg, created_at)
+        VALUES (${messageId}, ${from}, ${to}, ${body}, false, false, NOW())
+      `;
+    } catch (pgErr) {
+      console.error('[AGENTS CRON] Postgres write error:', pgErr.message);
+    }
+  }
+
+  // Also write to KV (backup)
   await kv.lpush(`messages:${to}`, JSON.stringify(message));
   const threadKey = [from, to].sort().join(':');
   await kv.lpush(`thread:${threadKey}`, JSON.stringify(message));

@@ -13,9 +13,12 @@
  *   { action: 'request'|'accept'|'block', from, to }
  *
  * GET /api/consent?from=X&to=Y - Check consent status
+ *
+ * Migration: Postgres primary, KV fallback
  */
 
 import crypto from 'crypto';
+import { sql, isPostgresEnabled } from './lib/db.js';
 
 // ============ INLINE AUTH ============
 const AUTH_SECRET = process.env.VIBE_AUTH_SECRET || 'dev-secret-change-in-production';
@@ -76,16 +79,55 @@ function consentKey(from, to) {
 }
 
 async function getConsent(from, to) {
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      const result = await sql`
+        SELECT status, created_at as "requestedAt", updated_at as "respondedAt"
+        FROM user_connections
+        WHERE from_user = ${from} AND to_user = ${to}
+      `;
+      if (result && result.length > 0) {
+        return {
+          status: result[0].status,
+          requestedAt: result[0].requestedAt?.toISOString() || null,
+          respondedAt: result[0].respondedAt?.toISOString() || null,
+          _source: 'postgres'
+        };
+      }
+    } catch (pgErr) {
+      console.error('[CONSENT] Postgres read error:', pgErr.message);
+    }
+  }
+
+  // Fall back to KV
   const kv = await getKV();
   const key = consentKey(from, to);
 
   if (kv) {
-    return await kv.get(key);
+    const data = await kv.get(key);
+    return data ? { ...data, _source: 'kv' } : null;
   }
-  return memory.consent[key] || null;
+  const memData = memory.consent[key];
+  return memData ? { ...memData, _source: 'memory' } : null;
 }
 
 async function setConsent(from, to, data) {
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      await sql`
+        INSERT INTO user_connections (from_user, to_user, status, created_at, updated_at)
+        VALUES (${from}, ${to}, ${data.status}, NOW(), NOW())
+        ON CONFLICT (from_user, to_user)
+        DO UPDATE SET status = ${data.status}, updated_at = NOW()
+      `;
+    } catch (pgErr) {
+      console.error('[CONSENT] Postgres write error:', pgErr.message);
+    }
+  }
+
+  // Also write to KV (backup)
   const kv = await getKV();
   const key = consentKey(from, to);
 
@@ -98,6 +140,29 @@ async function setConsent(from, to, data) {
 
 // Get all pending requests for a user (incoming)
 async function getPendingRequests(handle) {
+  // Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      const result = await sql`
+        SELECT from_user, status, created_at as "requestedAt"
+        FROM user_connections
+        WHERE to_user = ${handle} AND status = 'pending'
+        ORDER BY created_at DESC
+      `;
+      if (result && result.length > 0) {
+        return result.map(r => ({
+          from: r.from_user,
+          status: r.status,
+          requestedAt: r.requestedAt?.toISOString() || null,
+          _source: 'postgres'
+        }));
+      }
+    } catch (pgErr) {
+      console.error('[CONSENT] Postgres pending query error:', pgErr.message);
+    }
+  }
+
+  // Fall back to KV
   const kv = await getKV();
 
   if (kv) {
@@ -110,7 +175,8 @@ async function getPendingRequests(handle) {
       if (data && data.status === 'pending') {
         pending.push({
           from: key.split(':')[1],
-          ...data
+          ...data,
+          _source: 'kv'
         });
       }
     }
@@ -121,7 +187,8 @@ async function getPendingRequests(handle) {
       .filter(([key, data]) => key.endsWith(`:${handle}`) && data.status === 'pending')
       .map(([key, data]) => ({
         from: key.split(':')[1],
-        ...data
+        ...data,
+        _source: 'memory'
       }));
   }
 }

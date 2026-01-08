@@ -3,14 +3,30 @@
  *
  * "Who is @seth?" → Their sessions, DNA, presence.
  * Built from Gigabrain collective memory.
+ *
+ * Note: Gigabrain data stays in KV (separate system).
+ * This endpoint aggregates from Gigabrain's KV storage.
  */
 
-import { kv } from '@vercel/kv';
+// Check if KV is configured
+const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+
+async function getKV() {
+  if (!KV_CONFIGURED) return null;
+  try {
+    const { kv } = await import('@vercel/kv');
+    return kv;
+  } catch (e) {
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Cache at CDN edge
+  res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -21,6 +37,14 @@ export default async function handler(req, res) {
 
   if (!name) {
     return res.status(400).json({ error: 'user required' });
+  }
+
+  const kv = await getKV();
+  if (!kv) {
+    return res.status(503).json({
+      error: 'Profile service temporarily unavailable',
+      _source: 'none'
+    });
   }
 
   try {
@@ -104,10 +128,10 @@ export default async function handler(req, res) {
       }))
     };
 
-    res.json({ success: true, profile });
+    res.json({ success: true, profile, _source: 'kv' });
 
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, _source: 'kv' });
   }
 }
 
