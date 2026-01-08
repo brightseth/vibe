@@ -84,6 +84,39 @@ curl "https://www.slashvibe.dev/api/db-health"
 curl "https://www.slashvibe.dev/api/db-test"
 ```
 
+## Multi-Agent Team Status
+
+**Active Agents** (in `agents/` directory):
+- `@echo` - Feedback collection
+- `@ops-agent` - Infrastructure monitoring
+- `@discovery-agent` - User matching/recommendations
+- `@games-agent` - TicTacToe, future games
+- `@streaks-agent` - Daily usage streaks
+- `@welcome-agent` - New user onboarding
+- `@curator-agent` - Content curation
+- `@bridges-agent` - Cross-platform (Farcaster, X)
+- `@scribe-agent` - Documentation
+
+**Coordination Files:**
+- `agents/.coordination.json` - Active tasks, announcements
+- `agents/.backlog.json` - Pending tasks
+- `agents/RFC_DATABASE_MIGRATION.md` - The RFC we implemented
+
+**Agent Infrastructure:**
+- Cron: `/api/cron/agents` runs every 30min
+- Start script: `agents/start-all.sh`
+- Wake script: `agents/wake.sh`
+
+**Multi-Agent Next Steps:**
+
+1. **Update agents for Postgres** - Most agents still use KV directly. Should migrate to use `api/lib/db.js` pattern for data that moved to Postgres.
+
+2. **RFC follow-up** - Posted DB migration RFC to coordination. Other agents haven't formally responded. Can mark as implemented.
+
+3. **Check backlog** - `agents/.backlog.json` has pending tasks for various agents.
+
+4. **Agent health** - `@ops-agent` was investigating agent health issues earlier. May need review.
+
 ## Notes
 
 - Old `limen-db` was disconnected from vibe-public (was causing conflicts)
