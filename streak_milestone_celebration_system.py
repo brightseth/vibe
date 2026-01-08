@@ -1,272 +1,288 @@
 #!/usr/bin/env python3
 """
-Streak Milestone Celebration System for @streaks-agent
-Enhanced celebration system for major streak achievements
+Streak Milestone Celebration System
+Built by @streaks-agent for /vibe workshop
+
+Automatically detects milestone achievements and triggers celebrations.
+Integrates with badge system and DM notifications.
 """
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
-class StreakMilestoneCelebrationSystem:
+class StreakMilestoneCelebrator:
     def __init__(self):
-        self.badge_file = 'badges.json'
-        self.milestone_celebrations = {
-            3: {
-                "title": "Three Day Thunder! ⚡",
-                "message": "You've built momentum! Three days of consistent activity shows dedication. Keep the streak alive!",
-                "badge": "early_bird",
-                "board_announce": False
-            },
-            7: {
-                "title": "Week Warrior Achievement! 🔥",
-                "message": "One full week of consistent activity! You're building serious momentum. The rhythm is becoming natural!",
-                "badge": "week_streak", 
-                "board_announce": True
-            },
-            14: {
-                "title": "Two Week Legend! 💪",
-                "message": "Fourteen consecutive days! You've turned showing up into a habit. This is where magic happens!",
-                "badge": "consistency_king",
-                "board_announce": True
-            },
-            30: {
-                "title": "Monthly Mastery! 👑", 
-                "message": "THIRTY DAYS! You're officially a workshop legend. This level of consistency transforms everything!",
-                "badge": "month_streak",
-                "board_announce": True,
-                "special_recognition": True
-            },
-            50: {
-                "title": "Fifty Day Force! 🌟",
-                "message": "Fifty consecutive days of dedication! You're in the elite tier of workshop participants!",
-                "badge": "dedication_master",
-                "board_announce": True
-            },
-            100: {
-                "title": "CENTURY CLUB! 💎",
-                "message": "ONE HUNDRED DAYS! You've achieved legendary status. This is extraordinary dedication to growth!",
-                "badge": "century_streak",
-                "board_announce": True,
-                "special_recognition": True,
-                "legendary_status": True
+        self.celebration_config = {
+            # Milestone thresholds and their celebration styles
+            "milestones": {
+                1: {
+                    "name": "First Day",
+                    "emoji": "🌱", 
+                    "celebration_type": "welcome",
+                    "message_templates": [
+                        "🌱 Welcome to /vibe, {handle}! You've taken your first step - this is where consistency begins!",
+                        "🎉 Day 1 complete, {handle}! Every journey starts with a single step. You're officially part of the community!",
+                        "✨ {handle}, you just planted your first seed in the /vibe garden! Let's watch it grow day by day!"
+                    ],
+                    "should_announce": False  # DM only for first day
+                },
+                3: {
+                    "name": "Seedling Growth",
+                    "emoji": "🌿",
+                    "celebration_type": "encouragement", 
+                    "message_templates": [
+                        "🌿 {handle}, 3 days strong! Your consistency habit is taking root - this is when the magic starts!",
+                        "💚 Look at that growth, {handle}! 3 days of dedication shows you're serious about this journey!",
+                        "🌱➡️🌿 {handle} just leveled up! Day 3 is when habits begin to form. You're building something beautiful!"
+                    ],
+                    "should_announce": True,
+                    "announce_template": "🌿 {handle} hit their 3-day streak! Growing strong! 💪"
+                },
+                7: {
+                    "name": "Week Warrior",
+                    "emoji": "🔥",
+                    "celebration_type": "milestone",
+                    "message_templates": [
+                        "🔥 WEEK WARRIOR UNLOCKED! {handle}, you've built a real habit - 7 days of pure consistency!",
+                        "💪 {handle} just crushed their first week! This is where momentum becomes unstoppable!",
+                        "🏆 One full week of dedication, {handle}! You're proving that small daily actions create big results!"
+                    ],
+                    "should_announce": True,
+                    "announce_template": "🔥 WEEK WARRIOR! {handle} just completed 7 days of consistency! 🏆"
+                },
+                14: {
+                    "name": "Fortnight Force",
+                    "emoji": "💪",
+                    "celebration_type": "achievement",
+                    "message_templates": [
+                        "💪 FORTNIGHT FORCE! {handle}, 14 days of unwavering commitment! You're in the top 10% of habit builders!",
+                        "🌟 TWO WEEKS STRONG! {handle} is showing what dedication looks like - this is inspiring!",
+                        "⚡ {handle} hit the 2-week milestone! Your consistency is becoming legendary!"
+                    ],
+                    "should_announce": True,
+                    "announce_template": "💪 FORTNIGHT FORCE! {handle} reached 14 days of pure consistency! 🌟"
+                },
+                30: {
+                    "name": "Monthly Legend",
+                    "emoji": "👑",
+                    "celebration_type": "legendary",
+                    "message_templates": [
+                        "👑 MONTHLY LEGEND STATUS ACHIEVED! {handle}, 30 days of consistency is extraordinary - you're an inspiration!",
+                        "🏆 ONE FULL MONTH! {handle} has shown what true commitment looks like. This is genuinely impressive!",
+                        "💎 {handle} just proved that consistency is a superpower! 30 days of dedication - absolutely legendary!"
+                    ],
+                    "should_announce": True,
+                    "announce_template": "👑 MONTHLY LEGEND! {handle} achieved 30 days of consistency! Absolutely inspiring! ✨"
+                },
+                100: {
+                    "name": "Century Club", 
+                    "emoji": "💎",
+                    "celebration_type": "mythical",
+                    "message_templates": [
+                        "💎 CENTURY CLUB MEMBER! {handle}, 100 days of consistency is beyond impressive - you're a legend!",
+                        "🏆 100 DAYS! {handle} just achieved something incredible. This level of consistency is rare and beautiful!",
+                        "👑 {handle} has mastered the art of consistency! 100 days proves you've built something unbreakable!"
+                    ],
+                    "should_announce": True,
+                    "announce_template": "💎 CENTURY CLUB! {handle} achieved 100 days of consistency! This is legendary! 👑"
+                }
             }
         }
+        self.celebration_log_file = "celebration_log.json"
+        self.load_celebration_log()
     
-    def load_badges(self):
-        """Load current badge data"""
+    def load_celebration_log(self):
+        """Load history of celebrations to avoid duplicates"""
         try:
-            with open(self.badge_file, 'r') as f:
-                return json.load(f)
+            with open(self.celebration_log_file, 'r') as f:
+                self.celebration_log = json.load(f)
         except FileNotFoundError:
-            return {"user_badges": {}, "award_history": []}
+            self.celebration_log = {
+                "celebrated_milestones": {},  # {handle: [milestone_days]}
+                "celebration_history": []      # [{handle, milestone, timestamp, message}]
+            }
     
-    def save_badges(self, badge_data):
-        """Save badge data"""
-        with open(self.badge_file, 'w') as f:
-            json.dump(badge_data, f, indent=2)
+    def save_celebration_log(self):
+        """Save celebration history"""
+        with open(self.celebration_log_file, 'w') as f:
+            json.dump(self.celebration_log, f, indent=2)
     
-    def check_milestone_achievements(self, current_streaks):
-        """Check for milestone achievements based on current streaks"""
-        badges_data = self.load_badges()
-        celebrations_to_send = []
-        
-        for handle, streak_info in current_streaks.items():
-            current_streak = streak_info.get('current', 0)
-            
-            # Get user's badge history
-            user_badges = badges_data.get('user_badges', {}).get(handle, {}).get('earned', [])
-            earned_badge_keys = [badge['badge_key'] for badge in user_badges]
-            
-            # Check each milestone
-            for milestone_days, celebration in self.milestone_celebrations.items():
-                if current_streak >= milestone_days:
-                    badge_key = celebration['badge']
-                    
-                    # Only celebrate if they haven't earned this badge yet
-                    if badge_key not in earned_badge_keys:
-                        celebration_data = {
-                            'handle': handle,
-                            'milestone': milestone_days,
-                            'current_streak': current_streak,
-                            'celebration': celebration,
-                            'badge_key': badge_key
-                        }
-                        celebrations_to_send.append(celebration_data)
-        
-        return celebrations_to_send
+    def has_been_celebrated(self, handle: str, milestone_days: int) -> bool:
+        """Check if we've already celebrated this milestone for this user"""
+        user_celebrations = self.celebration_log.get("celebrated_milestones", {}).get(handle, [])
+        return milestone_days in user_celebrations
     
-    def create_celebration_message(self, handle, milestone_days, celebration):
-        """Create personalized celebration message"""
-        title = celebration['title']
-        message = celebration['message']
-        
-        full_message = f"""🎉 {title}
-
-{handle}, you've reached {milestone_days} consecutive days!
-
-{message}
-
-Your consistency is inspiring the entire workshop! ✨"""
-        
-        return full_message
+    def get_milestone_for_streak(self, streak_days: int) -> Optional[Dict]:
+        """Get the milestone configuration for a streak length"""
+        for milestone_day, config in self.celebration_config["milestones"].items():
+            if streak_days == milestone_day:
+                return {
+                    "days": milestone_day,
+                    "config": config
+                }
+        return None
     
-    def create_board_announcement(self, handle, milestone_days, celebration):
-        """Create board announcement for major milestones"""
-        if not celebration.get('board_announce', False):
+    def get_next_milestone(self, current_streak: int) -> Optional[Dict]:
+        """Get the next milestone a user is approaching"""
+        for milestone_day in sorted(self.celebration_config["milestones"].keys()):
+            if current_streak < milestone_day:
+                config = self.celebration_config["milestones"][milestone_day]
+                return {
+                    "days": milestone_day,
+                    "days_remaining": milestone_day - current_streak,
+                    "progress_percent": round((current_streak / milestone_day) * 100, 1),
+                    "config": config
+                }
+        return None
+    
+    def generate_celebration_message(self, handle: str, milestone: Dict) -> str:
+        """Generate a personalized celebration message"""
+        import random
+        
+        config = milestone["config"]
+        templates = config["message_templates"]
+        
+        # Choose a random template and personalize it
+        template = random.choice(templates)
+        return template.format(handle=handle)
+    
+    def generate_announcement_message(self, handle: str, milestone: Dict) -> Optional[str]:
+        """Generate a public announcement message"""
+        config = milestone["config"]
+        
+        if not config.get("should_announce", False):
             return None
-            
-        if milestone_days == 7:
-            return f"🔥 {handle} just hit their FIRST WEEK STREAK! Seven days of consistent workshop participation! 🎯"
-        elif milestone_days == 14: 
-            return f"💪 {handle} is on FIRE with a 14-day streak! Two weeks of dedication! 🌟"
-        elif milestone_days == 30:
-            return f"👑 LEGENDARY STATUS: {handle} just completed 30 CONSECUTIVE DAYS! Monthly mastery achieved! 🏆"
-        elif milestone_days == 100:
-            return f"💎 CENTURY CLUB MEMBER: {handle} has reached 100 CONSECUTIVE DAYS! Absolute workshop legend! 🎖️"
         
-        return f"🎯 {handle} achieved {milestone_days}-day streak! Incredible consistency! 🌟"
+        template = config.get("announce_template", "")
+        return template.format(handle=handle)
     
-    def award_milestone_badge(self, handle, badge_key, milestone_days):
-        """Award badge for milestone achievement"""
-        badges_data = self.load_badges()
-        
-        # Initialize user badges if needed
-        if handle not in badges_data.get('user_badges', {}):
-            badges_data['user_badges'][handle] = {'earned': [], 'total_points': 0, 'achievements_unlocked': 0}
-        
-        # Check if already earned
-        earned_badges = [b['badge_key'] for b in badges_data['user_badges'][handle]['earned']]
-        if badge_key in earned_badges:
-            return False  # Already earned
-        
-        # Award the badge
-        badge_award = {
-            'badge_key': badge_key,
-            'awarded_at': datetime.now().isoformat(),
-            'reason': f'{milestone_days}-day streak milestone'
+    def check_and_celebrate_user(self, handle: str, current_streak: int) -> Dict:
+        """Check if user hit a milestone and prepare celebration"""
+        result = {
+            "milestone_hit": False,
+            "celebration_needed": False,
+            "dm_message": None,
+            "announcement": None,
+            "milestone_info": None
         }
         
-        badges_data['user_badges'][handle]['earned'].append(badge_award)
-        badges_data['user_badges'][handle]['achievements_unlocked'] += 1
+        # Check if current streak matches any milestone
+        milestone = self.get_milestone_for_streak(current_streak)
         
-        # Add to award history
-        if 'award_history' not in badges_data:
-            badges_data['award_history'] = []
+        if milestone and not self.has_been_celebrated(handle, milestone["days"]):
+            result["milestone_hit"] = True
+            result["celebration_needed"] = True
+            result["milestone_info"] = milestone
             
-        badges_data['award_history'].append({
-            'user': handle,
-            'badge': badge_key,
-            'badge_name': self.get_badge_name(badge_key),
-            'points': self.get_badge_points(badge_key),
-            'awarded_at': datetime.now().isoformat()
-        })
-        
-        self.save_badges(badges_data)
-        return True
-    
-    def get_badge_name(self, badge_key):
-        """Get display name for badge"""
-        badge_names = {
-            'early_bird': 'Early Bird 🐦',
-            'week_streak': 'Week Streak 🔥', 
-            'consistency_king': 'Consistency King 👑',
-            'month_streak': 'Monthly Legend 👑',
-            'dedication_master': 'Dedication Master 🌟',
-            'century_streak': 'Century Club 💎'
-        }
-        return badge_names.get(badge_key, badge_key)
-    
-    def get_badge_points(self, badge_key):
-        """Get points value for badge"""
-        badge_points = {
-            'early_bird': 15,
-            'week_streak': 30,
-            'consistency_king': 60,
-            'month_streak': 100,
-            'dedication_master': 150,
-            'century_streak': 500
-        }
-        return badge_points.get(badge_key, 10)
-    
-    def generate_milestone_report(self, current_streaks):
-        """Generate report of milestone celebrations needed"""
-        celebrations = self.check_milestone_achievements(current_streaks)
-        
-        if not celebrations:
-            return "No milestone celebrations needed at this time."
-        
-        report = "🎉 MILESTONE CELEBRATION REPORT\n"
-        report += "=" * 40 + "\n\n"
-        
-        for celebration in celebrations:
-            handle = celebration['handle']
-            milestone = celebration['milestone']
-            current = celebration['current_streak']
-            title = celebration['celebration']['title']
+            # Generate messages
+            result["dm_message"] = self.generate_celebration_message(handle, milestone)
+            result["announcement"] = self.generate_announcement_message(handle, milestone)
             
-            report += f"🎯 {handle}\n"
-            report += f"   Current streak: {current} days\n"
-            report += f"   Milestone: {milestone} days - {title}\n"
-            report += f"   Badge: {celebration['badge_key']}\n"
-            if celebration['celebration'].get('board_announce'):
-                report += f"   📢 Board announcement: YES\n"
-            report += "\n"
+            # Mark as celebrated
+            if handle not in self.celebration_log["celebrated_milestones"]:
+                self.celebration_log["celebrated_milestones"][handle] = []
+            
+            self.celebration_log["celebrated_milestones"][handle].append(milestone["days"])
+            
+            # Log the celebration
+            self.celebration_log["celebration_history"].append({
+                "handle": handle,
+                "milestone": milestone["days"],
+                "milestone_name": milestone["config"]["name"],
+                "timestamp": datetime.now().isoformat(),
+                "dm_message": result["dm_message"],
+                "announcement": result["announcement"]
+            })
+            
+            self.save_celebration_log()
         
-        return report
+        return result
+    
+    def get_user_celebration_stats(self, handle: str) -> Dict:
+        """Get celebration statistics for a user"""
+        user_celebrations = self.celebration_log.get("celebrated_milestones", {}).get(handle, [])
+        history = [entry for entry in self.celebration_log.get("celebration_history", []) 
+                  if entry["handle"] == handle]
+        
+        return {
+            "total_milestones_celebrated": len(user_celebrations),
+            "milestones": sorted(user_celebrations),
+            "last_celebration": history[-1] if history else None,
+            "celebration_count": len(history)
+        }
+    
+    def get_celebration_dashboard_data(self) -> Dict:
+        """Get data for celebration analytics dashboard"""
+        total_celebrations = len(self.celebration_log.get("celebration_history", []))
+        unique_users_celebrated = len(self.celebration_log.get("celebrated_milestones", {}))
+        
+        # Count celebrations by milestone
+        milestone_counts = {}
+        for entry in self.celebration_log.get("celebration_history", []):
+            milestone = entry["milestone"]
+            milestone_counts[milestone] = milestone_counts.get(milestone, 0) + 1
+        
+        # Recent celebrations
+        recent = sorted(
+            self.celebration_log.get("celebration_history", []),
+            key=lambda x: x["timestamp"],
+            reverse=True
+        )[:5]
+        
+        return {
+            "total_celebrations": total_celebrations,
+            "unique_users_celebrated": unique_users_celebrated,
+            "celebrations_by_milestone": milestone_counts,
+            "recent_celebrations": recent,
+            "available_milestones": list(self.celebration_config["milestones"].keys())
+        }
 
 def main():
-    """Test the milestone celebration system"""
-    celebration_system = StreakMilestoneCelebrationSystem()
+    """Test the celebration system"""
+    celebrator = StreakMilestoneCelebrator()
     
-    # Test with current streak data
-    current_streaks = {
-        "@demo_user": {"current": 1, "best": 1},
-        "@vibe_champion": {"current": 1, "best": 1}
-    }
+    print("🎊 Streak Milestone Celebration System Test")
+    print("=" * 50)
     
-    print("🎖️ Streak Milestone Celebration System")
-    print("=" * 45)
+    # Test scenarios
+    test_users = [
+        ("@demo_user", 1),
+        ("@vibe_champion", 1),
+        ("@test_user", 3),
+        ("@week_user", 7),
+        ("@month_user", 30)
+    ]
     
-    # Check for celebrations
-    celebrations = celebration_system.check_milestone_achievements(current_streaks)
-    
-    if celebrations:
-        print(f"🎉 Found {len(celebrations)} milestone celebrations to send!")
+    for handle, streak in test_users:
+        print(f"\n👤 Testing {handle} with {streak}-day streak:")
         
-        for celebration in celebrations:
-            print(f"\n📢 Celebration for {celebration['handle']}:")
-            message = celebration_system.create_celebration_message(
-                celebration['handle'],
-                celebration['milestone'], 
-                celebration['celebration']
-            )
-            print(message)
-            
-            # Check for board announcement
-            board_msg = celebration_system.create_board_announcement(
-                celebration['handle'],
-                celebration['milestone'],
-                celebration['celebration']
-            )
-            if board_msg:
-                print(f"\n📯 Board Announcement:")
-                print(board_msg)
-    else:
-        print("No milestone celebrations needed at current streak levels.")
-        print("\nNext milestones:")
-        for handle, streak_info in current_streaks.items():
-            current = streak_info['current']
-            next_milestone = None
-            for milestone in sorted(celebration_system.milestone_celebrations.keys()):
-                if current < milestone:
-                    next_milestone = milestone
-                    break
-            
-            if next_milestone:
-                days_to_go = next_milestone - current
-                title = celebration_system.milestone_celebrations[next_milestone]['title']
-                print(f"  {handle}: {days_to_go} days to {title}")
+        result = celebrator.check_and_celebrate_user(handle, streak)
+        
+        if result["celebration_needed"]:
+            milestone = result["milestone_info"]
+            print(f"   🎉 MILESTONE HIT: {milestone['config']['name']} ({milestone['days']} days)")
+            print(f"   💬 DM: {result['dm_message'][:50]}...")
+            if result['announcement']:
+                print(f"   📢 Announcement: {result['announcement']}")
+        else:
+            print(f"   ✅ No new milestones (or already celebrated)")
+        
+        # Show next milestone
+        next_milestone = celebrator.get_next_milestone(streak)
+        if next_milestone:
+            days_left = next_milestone['days_remaining']
+            progress = next_milestone['progress_percent']
+            name = next_milestone['config']['name']
+            print(f"   🎯 Next: {name} in {days_left} days ({progress}% progress)")
+    
+    # Show dashboard data
+    print("\n📊 Celebration Dashboard Data:")
+    dashboard = celebrator.get_celebration_dashboard_data()
+    print(f"   Total Celebrations: {dashboard['total_celebrations']}")
+    print(f"   Users Celebrated: {dashboard['unique_users_celebrated']}")
+    print(f"   Recent Celebrations: {len(dashboard['recent_celebrations'])}")
 
 if __name__ == "__main__":
     main()

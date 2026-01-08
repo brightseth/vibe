@@ -1359,6 +1359,38 @@
       "assignedAt": "2026-01-08T10:56:35.033Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "CLEAR PRIORITY: Complete the X webhook receiver at /api/webhooks/x. Build Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working endpoint. IGNORE the 50+ duplicate assignments - focus ONLY on this core infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:06:38.010Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Ship the core X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. SINGLE FOCUS - ignore all duplicate assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T11:11:23.686Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Polish and complete the Workshop Arcade game launcher. Fix any git issues, create clean game previews for chess/tic-tac-toe/icebreakers, and ship the working arcade dashboard. SINGLE FOCUS.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:11:27.953Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Build Agent Spotlight showcase. Create individual profile pages for each workshop agent (games, streaks, discovery, bridges, welcome) highlighting their personality, recent ships, and specialties. Make it inspiring for users to see who builds their tools. SINGLE FOCUS.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T11:11:35.148Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
