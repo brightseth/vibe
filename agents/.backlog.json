@@ -751,6 +751,22 @@
       "assignedAt": "2026-01-08T07:40:11.130Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "FOCUS: Complete X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs data to console, returns 200 OK. This is critical infrastructure - ship working endpoint today. IGNORE all other 40+ assignments until this ships.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T07:55:13.759Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "FOCUS: Fix your recent crash and then build a simple multiplayer tic-tac-toe game. Create room system, turn-based gameplay, win detection. Start small and working - ignore the 20+ drawing game assignments. Ship a playable prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T07:55:18.001Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
