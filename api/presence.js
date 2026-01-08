@@ -1,8 +1,10 @@
 /**
  * Presence API - Who's vibing right now
  *
- * Uses Vercel KV (Redis) for persistence across cold starts
- * Falls back to in-memory if KV not configured
+ * Storage: Postgres-first with KV fallback
+ * - Writes to both Postgres and KV for redundancy
+ * - Reads from Postgres first, KV if Postgres fails
+ * - Falls back to in-memory if both unavailable
  *
  * POST /api/presence - Update your presence (heartbeat)
  * GET /api/presence - See who's active
@@ -14,6 +16,9 @@
 
 import crypto from 'crypto';
 import { normalizeHandle, claimHandle, getHandleRecord, isHandleAvailable, recordActivity, incrementMessageCount } from './lib/handles.js';
+
+// Postgres connection
+const { sql, isPostgresEnabled } = require('./lib/db.js');
 import {
   checkRateLimit,
   setRateLimitHeaders,
@@ -113,45 +118,116 @@ async function getPresence(username) {
 async function setPresence(username, data, options = {}) {
   const kv = await getKV();
   const timestamp = Date.now();
+  let stored = false;
 
+  // Try Postgres first (primary storage)
+  if (isPostgresEnabled() && sql) {
+    try {
+      const context = data.context ? JSON.stringify(data.context) : null;
+      const dna = data.dna ? JSON.stringify(data.dna) : null;
+
+      await sql`
+        INSERT INTO presence (username, working_on, project, location, context, mood, mood_inferred, mood_reason, first_seen, last_seen, dna, builder_mode, x_handle, status, updated_at)
+        VALUES (
+          ${username},
+          ${data.workingOn || null},
+          ${data.project || null},
+          ${data.location || null},
+          ${context}::jsonb,
+          ${data.mood || null},
+          ${data.mood_inferred || false},
+          ${data.mood_reason || null},
+          ${data.firstSeen || new Date().toISOString()},
+          ${data.lastSeen || new Date().toISOString()},
+          ${dna}::jsonb,
+          ${data.builderMode || null},
+          ${data.x || username},
+          'active',
+          NOW()
+        )
+        ON CONFLICT (username) DO UPDATE SET
+          working_on = EXCLUDED.working_on,
+          project = EXCLUDED.project,
+          location = EXCLUDED.location,
+          context = EXCLUDED.context,
+          mood = EXCLUDED.mood,
+          mood_inferred = EXCLUDED.mood_inferred,
+          mood_reason = EXCLUDED.mood_reason,
+          last_seen = EXCLUDED.last_seen,
+          dna = EXCLUDED.dna,
+          builder_mode = EXCLUDED.builder_mode,
+          updated_at = NOW()
+      `;
+      stored = true;
+    } catch (e) {
+      console.error('[presence] Postgres setPresence failed:', e.message);
+    }
+  }
+
+  // Also write to KV (backup during migration)
   if (kv) {
     try {
-      // Use pipeline for atomic operations
       const pipeline = kv.pipeline();
-
-      // Store user data with TTL
       pipeline.set(`presence:data:${username}`, data, options);
-
-      // Update sorted set index (score = timestamp for sorting)
       pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
-
       await pipeline.exec();
+      stored = true;
     } catch (e) {
       console.error('[presence] KV setPresence failed:', e.message);
-      // Fall through to memory storage
-      memoryPresence[username] = { ...data, _timestamp: timestamp };
     }
-  } else {
+  }
+
+  // Memory fallback
+  if (!stored) {
     memoryPresence[username] = { ...data, _timestamp: timestamp };
   }
 }
 
 async function getAllPresence() {
-  const kv = await getKV();
+  // Try Postgres first (primary storage)
+  if (isPostgresEnabled() && sql) {
+    try {
+      // Get users active in last 2 hours, ordered by last_seen
+      const rows = await sql`
+        SELECT username, working_on, project, location, context, mood, mood_inferred, mood_reason,
+               first_seen, last_seen, dna, builder_mode, x_handle, status
+        FROM presence
+        WHERE last_seen > NOW() - INTERVAL '2 hours'
+        ORDER BY last_seen DESC
+        LIMIT 100
+      `;
 
+      return rows.map(r => ({
+        username: r.username,
+        workingOn: r.working_on,
+        project: r.project,
+        location: r.location,
+        context: r.context,
+        mood: r.mood,
+        mood_inferred: r.mood_inferred,
+        mood_reason: r.mood_reason,
+        firstSeen: r.first_seen,
+        lastSeen: r.last_seen,
+        dna: r.dna,
+        builderMode: r.builder_mode,
+        x: r.x_handle
+      }));
+    } catch (e) {
+      console.error('[presence] Postgres getAllPresence failed:', e.message);
+      // Fall through to KV
+    }
+  }
+
+  // Try KV as fallback
+  const kv = await getKV();
   if (kv) {
     try {
-      // Get all users from sorted set, newest first
-      // Using ZRANGE with REV to get descending order by score
       const usernames = await kv.zrange(PRESENCE_INDEX, 0, -1, { rev: true });
-
       if (!usernames || usernames.length === 0) return [];
 
-      // Batch fetch all user data
       const keys = usernames.map(u => `presence:data:${u}`);
       const data = await kv.mget(...keys);
 
-      // Filter out expired/null entries and clean up stale index entries
       const validData = [];
       const staleUsers = [];
 
@@ -163,7 +239,6 @@ async function getAllPresence() {
         }
       }
 
-      // Clean up stale index entries (data expired but index remains)
       if (staleUsers.length > 0) {
         await kv.zrem(PRESENCE_INDEX, ...staleUsers).catch(() => {});
       }
@@ -171,11 +246,10 @@ async function getAllPresence() {
       return validData;
     } catch (e) {
       console.error('[presence] KV getAllPresence failed:', e.message);
-      // Fall through to memory fallback
     }
   }
 
-  // Memory fallback: sort by timestamp
+  // Memory fallback
   return Object.values(memoryPresence)
     .sort((a, b) => (b._timestamp || 0) - (a._timestamp || 0));
 }
