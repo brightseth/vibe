@@ -39,12 +39,31 @@ module.exports = async function handler(req, res) {
       messageCount = e.message;
     }
 
+    // Count board entries
+    let boardCount = 'error';
+    try {
+      const count = await sql`SELECT COUNT(*) as count FROM board_entries`;
+      boardCount = count[0].count;
+    } catch (e) {
+      boardCount = e.message;
+    }
+
+    // Get recent board entries for debugging
+    let recentBoard = [];
+    try {
+      recentBoard = await sql`SELECT id, author, category FROM board_entries ORDER BY created_at DESC LIMIT 5`;
+    } catch (e) {
+      recentBoard = [{ error: e.message }];
+    }
+
     return res.status(200).json({
       ok: true,
       database: dbInfo[0].db,
       user: dbInfo[0].user,
       tables: tables.map(t => t.table_name),
       messageCount,
+      boardCount,
+      recentBoard,
       urlPrefix: process.env.DATABASE_URL?.slice(0, 50) + '...'
     });
   } catch (error) {
