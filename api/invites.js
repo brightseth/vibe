@@ -205,19 +205,24 @@ export default async function handler(req, res) {
       source = 'postgres';
     } else if (kv) {
       // Fall back to KV
-      const userCodesKey = 'vibe:invites:by:' + handle;
-      const existingCodes = await kv.smembers(userCodesKey) || [];
+      try {
+        const userCodesKey = 'vibe:invites:by:' + handle;
+        const existingCodes = await kv.smembers(userCodesKey) || [];
 
-      for (const code of existingCodes) {
-        const codeData = await kv.hget('vibe:invites', code);
-        if (codeData) {
-          const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
-          if (parsed.status === 'available') {
-            unusedCount++;
+        for (const code of existingCodes) {
+          const codeData = await kv.hget('vibe:invites', code);
+          if (codeData) {
+            const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+            if (parsed.status === 'available') {
+              unusedCount++;
+            }
           }
         }
+        source = 'kv';
+      } catch (kvErr) {
+        console.error('[INVITES] KV count error:', kvErr.message);
+        // Continue with source = 'none'
       }
-      source = 'kv';
     }
 
     // Check if they can generate more
@@ -241,20 +246,24 @@ export default async function handler(req, res) {
 
     // Also write to KV (backup)
     if (kv) {
-      const invite = {
-        code,
-        created_by: handle,
-        created_at: new Date().toISOString(),
-        created_at_ts: Date.now(),
-        expires_at: new Date(expiresAt).toISOString(),
-        expires_at_ts: expiresAt,
-        used_by: null,
-        used_at: null,
-        status: 'available'
-      };
-      await kv.hset('vibe:invites', { [code]: JSON.stringify(invite) });
-      const userCodesKey = 'vibe:invites:by:' + handle;
-      await kv.sadd(userCodesKey, code);
+      try {
+        const invite = {
+          code,
+          created_by: handle,
+          created_at: new Date().toISOString(),
+          created_at_ts: Date.now(),
+          expires_at: new Date(expiresAt).toISOString(),
+          expires_at_ts: expiresAt,
+          used_by: null,
+          used_at: null,
+          status: 'available'
+        };
+        await kv.hset('vibe:invites', { [code]: JSON.stringify(invite) });
+        const userCodesKey = 'vibe:invites:by:' + handle;
+        await kv.sadd(userCodesKey, code);
+      } catch (kvErr) {
+        console.error('[INVITES] KV write error:', kvErr.message);
+      }
     }
 
     return res.status(200).json({
@@ -286,10 +295,14 @@ export default async function handler(req, res) {
     let source = invite ? 'postgres' : 'none';
 
     if (!invite && kv) {
-      const codeData = await kv.hget('vibe:invites', normalizedCode);
-      if (codeData) {
-        invite = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
-        source = 'kv';
+      try {
+        const codeData = await kv.hget('vibe:invites', normalizedCode);
+        if (codeData) {
+          invite = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+          source = 'kv';
+        }
+      } catch (kvErr) {
+        console.error('[INVITES] KV redeem lookup error:', kvErr.message);
       }
     }
 
@@ -335,10 +348,14 @@ export default async function handler(req, res) {
 
     // Also update KV (backup)
     if (kv) {
-      invite.used_by = normalizedHandle;
-      invite.used_at = new Date().toISOString();
-      invite.status = 'used';
-      await kv.hset('vibe:invites', { [normalizedCode]: JSON.stringify(invite) });
+      try {
+        invite.used_by = normalizedHandle;
+        invite.used_at = new Date().toISOString();
+        invite.status = 'used';
+        await kv.hset('vibe:invites', { [normalizedCode]: JSON.stringify(invite) });
+      } catch (kvErr) {
+        console.error('[INVITES] KV redeem update error:', kvErr.message);
+      }
     }
 
     // Grant the inviter a bonus code for successful invite
@@ -350,22 +367,26 @@ export default async function handler(req, res) {
 
     // Also create in KV (backup)
     if (kv) {
-      const inviterCodesKey = 'vibe:invites:by:' + invite.created_by;
-      const bonusInvite = {
-        code: bonusCode,
-        created_by: invite.created_by,
-        created_at: new Date().toISOString(),
-        created_at_ts: Date.now(),
-        expires_at: new Date(bonusExpires).toISOString(),
-        expires_at_ts: bonusExpires,
-        used_by: null,
-        used_at: null,
-        status: 'available',
-        bonus_for_inviting: normalizedHandle
-      };
+      try {
+        const inviterCodesKey = 'vibe:invites:by:' + invite.created_by;
+        const bonusInvite = {
+          code: bonusCode,
+          created_by: invite.created_by,
+          created_at: new Date().toISOString(),
+          created_at_ts: Date.now(),
+          expires_at: new Date(bonusExpires).toISOString(),
+          expires_at_ts: bonusExpires,
+          used_by: null,
+          used_at: null,
+          status: 'available',
+          bonus_for_inviting: normalizedHandle
+        };
 
-      await kv.hset('vibe:invites', { [bonusCode]: JSON.stringify(bonusInvite) });
-      await kv.sadd(inviterCodesKey, bonusCode);
+        await kv.hset('vibe:invites', { [bonusCode]: JSON.stringify(bonusInvite) });
+        await kv.sadd(inviterCodesKey, bonusCode);
+      } catch (kvErr) {
+        console.error('[INVITES] KV bonus write error:', kvErr.message);
+      }
     }
 
     return res.status(200).json({
@@ -387,10 +408,14 @@ export default async function handler(req, res) {
     let source = invite ? 'postgres' : 'none';
 
     if (!invite && kv) {
-      const codeData = await kv.hget('vibe:invites', code);
-      if (codeData) {
-        invite = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
-        source = 'kv';
+      try {
+        const codeData = await kv.hget('vibe:invites', code);
+        if (codeData) {
+          invite = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+          source = 'kv';
+        }
+      } catch (kvErr) {
+        console.error('[INVITES] KV check error:', kvErr.message);
       }
     }
 
@@ -472,28 +497,33 @@ export default async function handler(req, res) {
       source = 'postgres';
     } else if (kv) {
       // Fall back to KV
-      const userCodesKey = 'vibe:invites:by:' + handle;
-      const codelist = await kv.smembers(userCodesKey) || [];
+      try {
+        const userCodesKey = 'vibe:invites:by:' + handle;
+        const codelist = await kv.smembers(userCodesKey) || [];
 
-      for (const code of codelist) {
-        const codeData = await kv.hget('vibe:invites', code);
-        if (codeData) {
-          const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
-          codes.push({
-            code: parsed.code,
-            status: parsed.status,
-            created_at: parsed.created_at,
-            expires_at: parsed.expires_at,
-            used_by: parsed.used_by,
-            used_at: parsed.used_at,
-            share_url: parsed.status === 'available' ? 'https://slashvibe.dev/invite/' + parsed.code : null
-          });
-          if (parsed.status === 'available') {
-            unusedCount++;
+        for (const code of codelist) {
+          const codeData = await kv.hget('vibe:invites', code);
+          if (codeData) {
+            const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+            codes.push({
+              code: parsed.code,
+              status: parsed.status,
+              created_at: parsed.created_at,
+              expires_at: parsed.expires_at,
+              used_by: parsed.used_by,
+              used_at: parsed.used_at,
+              share_url: parsed.status === 'available' ? 'https://slashvibe.dev/invite/' + parsed.code : null
+            });
+            if (parsed.status === 'available') {
+              unusedCount++;
+            }
           }
         }
+        source = 'kv';
+      } catch (kvErr) {
+        console.error('[INVITES] KV my codes error:', kvErr.message);
+        // Continue with empty codes
       }
-      source = 'kv';
     }
 
     // Sort: available first, then by created date

@@ -105,8 +105,13 @@ async function getConsent(from, to) {
   const key = consentKey(from, to);
 
   if (kv) {
-    const data = await kv.get(key);
-    return data ? { ...data, _source: 'kv' } : null;
+    try {
+      const data = await kv.get(key);
+      return data ? { ...data, _source: 'kv' } : null;
+    } catch (kvErr) {
+      console.error('[CONSENT] KV read error:', kvErr.message);
+      // Fall through to memory
+    }
   }
   const memData = memory.consent[key];
   return memData ? { ...memData, _source: 'memory' } : null;
@@ -132,7 +137,12 @@ async function setConsent(from, to, data) {
   const key = consentKey(from, to);
 
   if (kv) {
-    await kv.set(key, data);
+    try {
+      await kv.set(key, data);
+    } catch (kvErr) {
+      console.error('[CONSENT] KV write error:', kvErr.message);
+      memory.consent[key] = data; // Memory fallback
+    }
   } else {
     memory.consent[key] = data;
   }
@@ -166,38 +176,47 @@ async function getPendingRequests(handle) {
   const kv = await getKV();
 
   if (kv) {
-    // Scan for consent:*:${handle} where status is pending
-    const keys = await kv.keys(`consent:*:${handle}`);
-    const pending = [];
+    try {
+      // Scan for consent:*:${handle} where status is pending
+      const keys = await kv.keys(`consent:*:${handle}`);
+      const pending = [];
 
-    for (const key of keys) {
-      const data = await kv.get(key);
-      if (data && data.status === 'pending') {
-        pending.push({
-          from: key.split(':')[1],
-          ...data,
-          _source: 'kv'
-        });
+      for (const key of keys) {
+        const data = await kv.get(key);
+        if (data && data.status === 'pending') {
+          pending.push({
+            from: key.split(':')[1],
+            ...data,
+            _source: 'kv'
+          });
+        }
       }
+      return pending;
+    } catch (kvErr) {
+      console.error('[CONSENT] KV pending query error:', kvErr.message);
+      // Fall through to memory
     }
-    return pending;
-  } else {
-    // In-memory scan
-    return Object.entries(memory.consent)
-      .filter(([key, data]) => key.endsWith(`:${handle}`) && data.status === 'pending')
-      .map(([key, data]) => ({
-        from: key.split(':')[1],
-        ...data,
-        _source: 'memory'
-      }));
   }
+
+  // In-memory scan
+  return Object.entries(memory.consent)
+    .filter(([key, data]) => key.endsWith(`:${handle}`) && data.status === 'pending')
+    .map(([key, data]) => ({
+      from: key.split(':')[1],
+      ...data,
+      _source: 'memory'
+    }));
 }
 
 // Session lookup
 async function getSession(sessionId) {
   const kv = await getKV();
   if (kv) {
-    return await kv.get(`session:${sessionId}`);
+    try {
+      return await kv.get(`session:${sessionId}`);
+    } catch (kvErr) {
+      console.error('[CONSENT] KV session error:', kvErr.message);
+    }
   }
   return memory.sessions[sessionId] || null;
 }
