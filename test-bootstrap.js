@@ -1,10 +1,13 @@
-// Quick test of the bootstrap system
+// Test the discovery bootstrap
 const bootstrap = require('./mcp-server/tools/discovery-bootstrap.js');
 
 async function test() {
-  console.log('Creating sample profiles...');
-  const result = await bootstrap.handler({ command: 'create' });
-  console.log(result.display);
+  try {
+    const result = await bootstrap.handler({ count: 10, clear: false });
+    console.log(result.display);
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
-test().catch(console.error);
+test();

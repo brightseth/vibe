@@ -1,8 +1,7 @@
 /**
- * vibe drawing — Collaborative drawing canvas
+ * vibe drawing — Start or join a collaborative drawing session
  *
- * A shared canvas where multiple users can draw together in real-time.
- * Create art, doodles, or play drawing games like Pictionary!
+ * A shared canvas where multiple users can draw together in real-time
  */
 
 const config = require('../config');
@@ -15,255 +14,295 @@ const drawing = require('../games/drawing');
 
 const definition = {
   name: 'vibe_drawing',
-  description: 'Collaborative drawing canvas. Draw together, create art, play Pictionary!',
+  description: 'Start or join a collaborative drawing session. Draw together on a shared canvas!',
   inputSchema: {
     type: 'object',
     properties: {
       action: {
         type: 'string',
-        description: 'Action to take',
-        enum: ['new', 'join', 'draw', 'line', 'clear', 'status', 'theme', 'stats']
+        description: 'Action to perform',
+        enum: ['start', 'join', 'draw', 'line', 'clear', 'theme', 'view', 'stats']
+      },
+      room: {
+        type: 'string',
+        description: 'Drawing room name (default: general)'
       },
       x: {
         type: 'number',
-        description: 'X coordinate (0-19)'
+        description: 'X coordinate (0-19) for drawing'
       },
       y: {
         type: 'number', 
-        description: 'Y coordinate (0-11)'
+        description: 'Y coordinate (0-11) for drawing'
       },
-      x2: {
+      x1: {
         type: 'number',
-        description: 'End X coordinate for lines and regions'
+        description: 'End X coordinate for line drawing'
       },
-      y2: {
+      y1: {
         type: 'number',
-        description: 'End Y coordinate for lines and regions'  
+        description: 'End Y coordinate for line drawing'
       },
       char: {
         type: 'string',
-        description: 'Character to draw (empty, dot, circle, square, star, heart, tree, house, sun, moon, etc.)',
-        enum: ['empty', 'dot', 'circle', 'square', 'star', 'heart', 'tree', 'house', 'sun', 'moon', 'water', 'mountain', 'person', 'cat', 'dog', 'car', 'plane', 'flower', 'umbrella', 'rainbow']
+        description: 'Character to draw (empty, dot, circle, square, star, heart, tree, house, sun, moon, water, mountain, person, cat, dog, car, plane, flower, umbrella, rainbow)'
       },
       theme: {
         type: 'string',
         description: 'Drawing theme/prompt to set'
-      },
-      room: {
-        type: 'string',
-        description: 'Drawing room ID (optional, defaults to "main")'
       }
     },
-    required: []
+    required: ['action']
   }
 };
 
-// Store active drawing sessions (in production this would be in a database)
-const drawingSessions = {};
-
 /**
- * Get or create drawing session
+ * Get drawing game state from global store
  */
-function getDrawingSession(roomId = 'main') {
-  if (!drawingSessions[roomId]) {
-    drawingSessions[roomId] = drawing.createInitialDrawingState();
+async function getDrawingState(room) {
+  try {
+    const key = `drawing:${room}`;
+    const state = await store.get(key);
+    return state ? JSON.parse(state) : null;
+  } catch (e) {
+    console.error('[drawing] Failed to get state:', e.message);
+    return null;
   }
-  return drawingSessions[roomId];
 }
 
 /**
- * Save drawing session state
+ * Save drawing game state to global store
  */
-function saveDrawingSession(roomId, gameState) {
-  drawingSessions[roomId] = gameState;
+async function saveDrawingState(room, state) {
+  try {
+    const key = `drawing:${room}`;
+    await store.set(key, JSON.stringify(state));
+  } catch (e) {
+    console.error('[drawing] Failed to save state:', e.message);
+  }
+}
+
+/**
+ * Post drawing activity to board
+ */
+async function postDrawingActivity(action, room, player, details = '') {
+  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+
+  try {
+    let content;
+    switch (action) {
+      case 'start':
+        content = `🎨 @${player} started a drawing session in #${room}`;
+        break;
+      case 'join':
+        content = `🖌️ @${player} joined the drawing session in #${room}`;
+        break;
+      case 'theme':
+        content = `🎯 @${player} set drawing theme in #${room}: ${details}`;
+        break;
+      default:
+        return; // Don't post for every drawing move
+    }
+
+    await fetch(`${API_URL}/api/board`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        author: 'games-agent',
+        content,
+        category: 'games'
+      })
+    });
+  } catch (e) {
+    console.error('[drawing] Failed to post to board:', e.message);
+  }
 }
 
 async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const { action = 'status', x, y, x2, y2, char, theme, room = 'main' } = args;
+  const { action, room = 'general', x, y, x1, y1, char, theme } = args;
   const myHandle = config.getHandle();
 
-  // Get current drawing session
-  let gameState = getDrawingSession(room);
+  // Get current drawing state
+  let drawingState = await getDrawingState(room);
 
-  // Handle different actions
   switch (action) {
-    case 'new':
-      // Create a new drawing session
-      gameState = drawing.createInitialDrawingState();
-      const addResult = drawing.addPlayer(gameState, myHandle);
+    case 'start':
+      // Create new drawing session
+      drawingState = drawing.createInitialDrawingState();
+      const addResult = drawing.addPlayer(drawingState, myHandle);
       if (addResult.error) {
-        return { display: `❌ ${addResult.error}` };
+        return { display: `Error: ${addResult.error}` };
       }
-      
-      gameState = addResult.gameState;
-      saveDrawingSession(room, gameState);
-      
+      drawingState = addResult.gameState;
+      await saveDrawingState(room, drawingState);
+      await postDrawingActivity('start', room, myHandle);
+
       return {
-        display: `🎨 **New Drawing Canvas Created!**\n\n${drawing.formatDrawingDisplay(gameState)}` +
-                 `**Commands:**\n` +
-                 `• \`vibe drawing --action draw --x 5 --y 3 --char star\` - Draw a star at (5,3)\n` +
-                 `• \`vibe drawing --action line --x 0 --y 0 --x2 5 --y2 5 --char dot\` - Draw a line\n` +
-                 `• \`vibe drawing --action clear --x 0 --y 0 --x2 10 --y2 5\` - Clear region\n` +
-                 `• \`vibe drawing --action theme --theme "house"\` - Set drawing theme\n` +
-                 `• \`vibe drawing --action join\` - Join this canvas\n\n` +
-                 `Room ID: \`${room}\` - Share with others to collaborate!`
+        display: `## 🎨 Started Drawing Session in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nUse \`vibe drawing --action join --room ${room}\` to let others join!\nUse \`vibe drawing --action draw --room ${room} --x 5 --y 5 --char star\` to draw!`
       };
 
     case 'join':
-      // Join existing drawing session
-      const joinResult = drawing.addPlayer(gameState, myHandle);
-      if (joinResult.error) {
-        return { display: `❌ ${joinResult.error}` };
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}. Use \`vibe drawing --action start --room ${room}\` to create one!` };
       }
-      
-      gameState = joinResult.gameState;
-      saveDrawingSession(room, gameState);
-      
+
+      const joinResult = drawing.addPlayer(drawingState, myHandle);
+      if (joinResult.error) {
+        return { display: `Error: ${joinResult.error}` };
+      }
+
+      drawingState = joinResult.gameState;
+      await saveDrawingState(room, drawingState);
+      await postDrawingActivity('join', room, myHandle);
+
       return {
-        display: `🎨 **Joined Drawing Canvas!**\n\n${drawing.formatDrawingDisplay(gameState)}` +
-                 `You can now draw on this canvas with others!`
+        display: `## 🖌️ Joined Drawing Session in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nUse \`vibe drawing --action draw --room ${room} --x 10 --y 6 --char heart\` to draw!`
       };
 
     case 'draw':
-      // Draw a single character
-      if (x === undefined || y === undefined) {
-        return { display: '❌ X and Y coordinates required. Example: `--x 5 --y 3`' };
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}. Use \`vibe drawing --action start --room ${room}\` to create one!` };
       }
-      
-      if (!char) {
-        return { display: '❌ Character required. Example: `--char star`\n\n' +
-                          'Available: ' + Object.keys(drawing.DRAWING_CHARS).join(', ') };
+
+      if (x === undefined || y === undefined || !char) {
+        return { display: 'For drawing, you need: --x [0-19] --y [0-11] --char [character name]' };
       }
-      
-      const drawChar = drawing.DRAWING_CHARS[char];
-      if (!drawChar) {
-        return { display: `❌ Invalid character "${char}". Available: ${Object.keys(drawing.DRAWING_CHARS).join(', ')}` };
+
+      // Validate character name and get symbol
+      const charName = char.toLowerCase();
+      if (!drawing.DRAWING_CHARS[charName]) {
+        const validChars = Object.keys(drawing.DRAWING_CHARS).join(', ');
+        return { display: `Invalid character "${char}". Valid options: ${validChars}` };
       }
-      
-      const drawResult = drawing.makeMove(gameState, x, y, drawChar, myHandle);
+
+      const drawResult = drawing.makeMove(drawingState, x, y, drawing.DRAWING_CHARS[charName], myHandle);
       if (drawResult.error) {
-        return { display: `❌ ${drawResult.error}` };
+        return { display: `Error: ${drawResult.error}` };
       }
-      
-      gameState = drawResult.gameState;
-      saveDrawingSession(room, gameState);
-      
+
+      drawingState = drawResult.gameState;
+      await saveDrawingState(room, drawingState);
+
       return {
-        display: `✅ Drew ${drawChar} at (${x},${y})\n\n${drawing.formatDrawingDisplay(gameState)}`
+        display: `## 🎨 Drew in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nKeep drawing! Use \`vibe drawing --action view --room ${room}\` to see the canvas.`
       };
 
     case 'line':
-      // Draw a line between two points
-      if (x === undefined || y === undefined || x2 === undefined || y2 === undefined) {
-        return { display: '❌ Start and end coordinates required. Example: `--x 0 --y 0 --x2 5 --y2 5`' };
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}. Use \`vibe drawing --action start --room ${room}\` to create one!` };
       }
-      
-      if (!char) {
-        return { display: '❌ Character required for line. Example: `--char dot`' };
+
+      if (x === undefined || y === undefined || x1 === undefined || y1 === undefined || !char) {
+        return { display: 'For line drawing, you need: --x [start x] --y [start y] --x1 [end x] --y1 [end y] --char [character name]' };
       }
-      
-      const lineChar = drawing.DRAWING_CHARS[char];
-      if (!lineChar) {
-        return { display: `❌ Invalid character "${char}". Available: ${Object.keys(drawing.DRAWING_CHARS).join(', ')}` };
+
+      const charName2 = char.toLowerCase();
+      if (!drawing.DRAWING_CHARS[charName2]) {
+        const validChars = Object.keys(drawing.DRAWING_CHARS).join(', ');
+        return { display: `Invalid character "${char}". Valid options: ${validChars}` };
       }
-      
-      const lineResult = drawing.drawLine(gameState, x, y, x2, y2, lineChar, myHandle);
+
+      const lineResult = drawing.drawLine(drawingState, x, y, x1, y1, drawing.DRAWING_CHARS[charName2], myHandle);
       if (lineResult.error) {
-        return { display: `❌ ${lineResult.error}` };
+        return { display: `Error: ${lineResult.error}` };
       }
-      
-      gameState = lineResult.gameState;
-      saveDrawingSession(room, gameState);
-      
+
+      drawingState = lineResult.gameState;
+      await saveDrawingState(room, drawingState);
+
       return {
-        display: `✅ Drew line from (${x},${y}) to (${x2},${y2})\n\n${drawing.formatDrawingDisplay(gameState)}`
+        display: `## 🎨 Drew Line in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nLooking good! Use \`vibe drawing --action view --room ${room}\` to see the full canvas.`
       };
 
     case 'clear':
-      // Clear a region
-      if (x === undefined || y === undefined) {
-        // Clear single point
-        const clearResult = drawing.makeMove(gameState, x || 0, y || 0, drawing.DRAWING_CHARS.empty, myHandle);
-        if (clearResult.error) {
-          return { display: `❌ ${clearResult.error}` };
-        }
-        gameState = clearResult.gameState;
-      } else {
-        // Clear region
-        const clearResult = drawing.clearRegion(gameState, x, y, x2 || x, y2 || y, myHandle);
-        if (clearResult.error) {
-          return { display: `❌ ${clearResult.error}` };
-        }
-        gameState = clearResult.gameState;
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}.` };
       }
-      
-      saveDrawingSession(room, gameState);
-      
+
+      const clearResult = drawing.clearRegion(drawingState, 
+        x || 0, y || 0, 
+        x1 !== undefined ? x1 : drawing.CANVAS_WIDTH - 1, 
+        y1 !== undefined ? y1 : drawing.CANVAS_HEIGHT - 1, 
+        myHandle
+      );
+
+      if (clearResult.error) {
+        return { display: `Error: ${clearResult.error}` };
+      }
+
+      drawingState = clearResult.gameState;
+      await saveDrawingState(room, drawingState);
+
       return {
-        display: `✅ Cleared region\n\n${drawing.formatDrawingDisplay(gameState)}`
+        display: `## 🗑️ Cleared Region in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nCanvas cleared! Start drawing again.`
       };
 
     case 'theme':
-      // Set drawing theme
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}.` };
+      }
+
       if (!theme) {
-        return { display: '❌ Theme required. Example: `--theme "house"` or `--theme "landscape"`' };
+        return { display: 'Please provide a --theme for the drawing session' };
       }
-      
-      const themeResult = drawing.setTheme(gameState, theme, myHandle);
+
+      const themeResult = drawing.setTheme(drawingState, theme, myHandle);
       if (themeResult.error) {
-        return { display: `❌ ${themeResult.error}` };
+        return { display: `Error: ${themeResult.error}` };
       }
-      
-      gameState = themeResult.gameState;
-      saveDrawingSession(room, gameState);
-      
+
+      drawingState = themeResult.gameState;
+      await saveDrawingState(room, drawingState);
+      await postDrawingActivity('theme', room, myHandle, theme);
+
       const tips = drawing.getDrawingTips(theme);
+      
       return {
-        display: `🎯 **Theme set to: "${theme}"**\n\n${drawing.formatDrawingDisplay(gameState)}` +
-                 `**Drawing tips for "${theme}":**\n${tips.map(tip => `• ${tip}`).join('\n')}`
+        display: `## 🎯 Set Theme in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\n**Drawing tips for "${theme}":**\n${tips.map(tip => `• ${tip}`).join('\n')}`
+      };
+
+    case 'view':
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}. Use \`vibe drawing --action start --room ${room}\` to create one!` };
+      }
+
+      return {
+        display: `## 🎨 Drawing Session in #${room}\n\n${drawing.formatDrawingDisplay(drawingState)}\n\nUse \`vibe drawing --action draw --room ${room} --x 10 --y 6 --char heart\` to draw!`
       };
 
     case 'stats':
-      // Show canvas statistics
-      const stats = drawing.getCanvasStats(gameState);
-      
-      let statsDisplay = `📊 **Canvas Statistics**\n\n`;
-      statsDisplay += `• Total moves: ${stats.totalMoves}\n`;
-      statsDisplay += `• Canvas fill: ${stats.fillPercentage}% (${stats.totalDrawnCells}/${drawing.CANVAS_WIDTH * drawing.CANVAS_HEIGHT} cells)\n`;
-      statsDisplay += `• Unique characters used: ${stats.uniqueCharsUsed}\n`;
-      
-      if (stats.mostUsedChar) {
-        statsDisplay += `• Most used character: ${stats.mostUsedChar[0]} (${stats.mostUsedChar[1]} times)\n`;
+      if (!drawingState) {
+        return { display: `No drawing session found in #${room}.` };
       }
-      
-      if (Object.keys(stats.playerMoves).length > 0) {
-        statsDisplay += `\n**Artist contributions:**\n`;
-        const sortedPlayers = Object.entries(stats.playerMoves).sort(([,a], [,b]) => b - a);
-        for (const [player, moves] of sortedPlayers) {
-          statsDisplay += `• @${player}: ${moves} moves\n`;
-        }
-      }
-      
-      return {
-        display: `${statsDisplay}\n${drawing.formatDrawingDisplay(gameState)}`
-      };
 
-    case 'status':
+      const stats = drawing.getCanvasStats(drawingState);
+      
+      let statsDisplay = `## 📊 Drawing Stats for #${room}\n\n`;
+      statsDisplay += `**Canvas:** ${stats.fillPercentage}% filled (${stats.totalDrawnCells}/${drawing.CANVAS_WIDTH * drawing.CANVAS_HEIGHT} cells)\n`;
+      statsDisplay += `**Moves:** ${stats.totalMoves} total\n`;
+      statsDisplay += `**Characters:** ${stats.uniqueCharsUsed} different types used\n\n`;
+
+      if (stats.mostUsedChar) {
+        statsDisplay += `**Most popular:** ${stats.mostUsedChar[0]} (used ${stats.mostUsedChar[1]} times)\n\n`;
+      }
+
+      if (Object.keys(stats.playerMoves).length > 0) {
+        statsDisplay += `**Artists:**\n`;
+        Object.entries(stats.playerMoves)
+          .sort(([,a], [,b]) => b - a)
+          .forEach(([player, moves]) => {
+            statsDisplay += `• @${player}: ${moves} moves\n`;
+          });
+      }
+
+      return { display: statsDisplay };
+
     default:
-      // Show current canvas state
       return {
-        display: `${drawing.formatDrawingDisplay(gameState)}` +
-                 `**Commands:**\n` +
-                 `• \`--action draw --x X --y Y --char CHAR\` - Draw character\n` +
-                 `• \`--action line --x X1 --y Y1 --x2 X2 --y2 Y2 --char CHAR\` - Draw line\n` +
-                 `• \`--action clear --x X --y Y [--x2 X2 --y2 Y2]\` - Clear area\n` +
-                 `• \`--action join\` - Join this canvas\n` +
-                 `• \`--action theme --theme "THEME"\` - Set theme\n` +
-                 `• \`--action stats\` - Show statistics\n\n` +
-                 `Room: \`${room}\` | Canvas size: ${drawing.CANVAS_WIDTH}×${drawing.CANVAS_HEIGHT}`
+        display: `## 🎨 Collaborative Drawing\n\nAvailable actions:\n• \`--action start\` - Create new drawing session\n• \`--action join\` - Join existing session\n• \`--action draw --x [0-19] --y [0-11] --char [name]\` - Draw on canvas\n• \`--action line --x [x] --y [y] --x1 [x1] --y1 [y1] --char [name]\` - Draw line\n• \`--action clear\` - Clear canvas (optionally specify region)\n• \`--action theme --theme [text]\` - Set drawing theme\n• \`--action view\` - View current canvas\n• \`--action stats\` - View drawing statistics\n\nAdd \`--room [name]\` to specify room (default: general)`
       };
   }
 }

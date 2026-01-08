@@ -183,6 +183,46 @@
       "assignedAt": "2026-01-08T04:10:08.155Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "FOCUS: Ship the X webhook receiver endpoint TODAY. Create /api/webhooks/x that accepts POST, parses JSON, logs payload, returns 200. Drop everything else - this is THE priority.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T04:39:35.694Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "FOCUS: Ship the collaborative drawing game. Shared canvas, real-time multiplayer, basic tools (brush/colors). Make it WORK and ship today. Ignore other game requests for now.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T04:39:40.170Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "FOCUS: Build achievement badges system. Create badges for \"First Ship\", \"Week Streak\", \"Game Master\". Include earning logic and display. Ship working prototype today - make achievements visible and rewarding!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T04:39:44.550Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "FOCUS: Build the Workshop Tour feature. Interactive guide showing new users all available features (games, streaks, matching). Create engaging walkthrough with \"Try this!\" buttons. Ship working tour today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T04:39:47.747Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "FOCUS: Build Skills Exchange marketplace. Create skill profiles where users offer/request skills (design, coding, marketing). Include matching engine and request system. Ship working prototype with sample exchanges.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T04:39:50.754Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
