@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Streak Progress Dashboard</title>
+    <style>
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .user-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-handle {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .streak-display {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .streak-label {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .progress-section {
+            margin-top: 20px;
+        }
+        
+        .milestone-progress {
+            margin-bottom: 15px;
+        }
+        
+        .milestone-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .badges-section {
+            margin-top: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .badge.earned {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 30px;
+        }
+        
+        .leaderboard h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .leaderboard-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 40px;
+        }
+        
+        .motivation-quote {
+            text-align: center;
+            font-style: italic;
+            margin-top: 30px;
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .streak-display.hot {
+            animation: pulse 2s infinite;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Streak Progress Dashboard</h1>
+            <p>Track your consistency and celebrate milestones!</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="user-card">
+                <div class="user-handle">@demo_user</div>
+                <div class="streak-display">1</div>
+                <div class="streak-label">Day Streak 🌱</div>
+                
+                <div class="progress-section">
+                    <h4>Next Milestones:</h4>
+                    
+                    <div class="milestone-progress">
+                        <div class="milestone-name">
+                            <span>Week Streak 🔥</span>
+                            <span>1/7 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 14.3%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="milestone-progress">
+                        <div class="milestone-name">
+                            <span>Month Streak 👑</span>
+                            <span>1/30 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 3.3%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="badges-section">
+                    <h4>Badges:</h4>
+                    <span class="badge earned">First Day 🌱</span>
+                    <span class="badge earned">Early Adopter 🌟</span>
+                    <span class="badge">Week Streak 🔥</span>
+                    <span class="badge">Active Shipper ⚓</span>
+                </div>
+            </div>
+
+            <div class="user-card">
+                <div class="user-handle">@vibe_champion</div>
+                <div class="streak-display">1</div>
+                <div class="streak-label">Day Streak 🌱</div>
+                
+                <div class="progress-section">
+                    <h4>Next Milestones:</h4>
+                    
+                    <div class="milestone-progress">
+                        <div class="milestone-name">
+                            <span>Week Streak 🔥</span>
+                            <span>1/7 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 14.3%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="milestone-progress">
+                        <div class="milestone-name">
+                            <span>Month Streak 👑</span>
+                            <span>1/30 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 3.3%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="badges-section">
+                    <h4>Badges:</h4>
+                    <span class="badge earned">First Day 🌱</span>
+                    <span class="badge earned">Early Adopter 🌟</span>
+                    <span class="badge">Week Streak 🔥</span>
+                    <span class="badge">Game Master 🎮</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <h2>🏆 Points Leaderboard</h2>
+            
+            <div class="leaderboard-entry">
+                <div style="display: flex; align-items: center;">
+                    <span class="rank">🥇</span>
+                    <span>@demo_user</span>
+                </div>
+                <div>
+                    <span style="font-weight: bold;">80 pts</span>
+                    <span style="opacity: 0.7; margin-left: 10px;">2 badges</span>
+                </div>
+            </div>
+            
+            <div class="leaderboard-entry">
+                <div style="display: flex; align-items: center;">
+                    <span class="rank">🥇</span>
+                    <span>@vibe_champion</span>
+                </div>
+                <div>
+                    <span style="font-weight: bold;">80 pts</span>
+                    <span style="opacity: 0.7; margin-left: 10px;">2 badges</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="motivation-quote">
+            "Consistency is the mother of mastery. Every day you show up, you're building something greater." ✨
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; opacity: 0.6; font-size: 0.9rem;">
+            <p>Updated: January 8, 2026 • Next milestone check in 6 days</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Animate progress bars on load
+        setTimeout(() => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                bar.style.transition = 'width 1.5s ease-out';
+            });
+        }, 500);
+    </script>
+</body>
+</html>
