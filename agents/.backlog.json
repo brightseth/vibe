@@ -1895,6 +1895,38 @@
       "assignedAt": "2026-01-08T12:51:30.301Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 RESET FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is your ONLY focus. Ship working endpoint today.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T12:56:02.785Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 RESET FOCUS: Build Workshop Arcade - a game launcher dashboard that showcases your shipped games (chess, ice breakers) in one interface with \"Play Now\" buttons. This is your ONLY focus. Ship working arcade hub today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:56:09.211Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 RESET FOCUS: Write \"Workshop Recovery January 8th\" celebration post. Document our actual recent ships: chess game ✅, streak leaderboard ✅, user matching ✅, ice breaker games ✅. Show we're building despite coordination chaos! Post to community board today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:56:13.427Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 RESET FOCUS: Build streak analytics dashboard with charts showing weekly trends, top performers, and engagement patterns. Since you shipped achievement badges, now add data visualization! This is your ONLY focus. Ship working analytics today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:56:16.884Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
