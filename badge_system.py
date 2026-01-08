@@ -1,13 +1,5 @@
-#!/usr/bin/env python3
-"""
-Achievement Badge System for /vibe workshop
-Tracks and awards badges for various workshop activities
-"""
-
 import json
-import os
 from datetime import datetime
-from typing import Dict, List, Optional
 
 class BadgeSystem:
     def __init__(self, badges_file="badges.json"):
@@ -15,129 +7,132 @@ class BadgeSystem:
         self.load_badges()
     
     def load_badges(self):
-        """Load badge data from file"""
-        if os.path.exists(self.badges_file):
+        try:
             with open(self.badges_file, 'r') as f:
                 self.data = json.load(f)
-        else:
-            self.data = {
-                "badge_definitions": {},
-                "user_badges": {},
-                "badge_log": []
-            }
+        except FileNotFoundError:
+            self.data = {"badge_definitions": {}, "user_badges": {}, "badge_log": [], "stats": {}}
     
     def save_badges(self):
-        """Save badge data to file"""
         with open(self.badges_file, 'w') as f:
             json.dump(self.data, f, indent=2)
     
-    def award_badge(self, user: str, badge_id: str, reason: str = "") -> bool:
-        """Award a badge to a user"""
-        # Check if badge exists
-        if badge_id not in self.data["badge_definitions"]:
-            return False
+    def award_badge(self, user_handle, badge_key, reason=""):
+        """Award a badge to a user if they don't already have it"""
+        if badge_key not in self.data["badge_definitions"]:
+            return False, f"Badge '{badge_key}' not found"
         
-        # Initialize user if not exists
-        if user not in self.data["user_badges"]:
-            self.data["user_badges"][user] = []
+        if user_handle not in self.data["user_badges"]:
+            self.data["user_badges"][user_handle] = []
         
         # Check if user already has this badge
-        if badge_id in self.data["user_badges"][user]:
-            return False  # Already has badge
+        user_badges = [b["badge_key"] for b in self.data["user_badges"][user_handle]]
+        if badge_key in user_badges:
+            return False, f"User already has '{badge_key}' badge"
         
         # Award the badge
-        self.data["user_badges"][user].append(badge_id)
+        badge_info = self.data["badge_definitions"][badge_key]
+        awarded_badge = {
+            "badge_key": badge_key,
+            "awarded_at": datetime.now().isoformat(),
+            "reason": reason
+        }
+        
+        self.data["user_badges"][user_handle].append(awarded_badge)
         
         # Log the award
         log_entry = {
-            "user": user,
-            "badge_id": badge_id,
-            "timestamp": datetime.now().isoformat(),
+            "user": user_handle,
+            "badge": badge_key,
+            "badge_name": badge_info["name"],
+            "points": badge_info["points"],
+            "awarded_at": awarded_badge["awarded_at"],
             "reason": reason
         }
         self.data["badge_log"].append(log_entry)
         
+        # Update stats
+        self.data["stats"]["total_badges_awarded"] = self.data["stats"].get("total_badges_awarded", 0) + 1
+        
         self.save_badges()
-        return True
+        return True, f"Awarded '{badge_info['name']}' to {user_handle}!"
     
-    def get_user_badges(self, user: str) -> List[Dict]:
+    def get_user_badges(self, user_handle):
         """Get all badges for a user with full details"""
-        if user not in self.data["user_badges"]:
+        if user_handle not in self.data["user_badges"]:
             return []
         
-        badges = []
-        for badge_id in self.data["user_badges"][user]:
-            if badge_id in self.data["badge_definitions"]:
-                badge_info = self.data["badge_definitions"][badge_id].copy()
-                badge_info["id"] = badge_id
-                badges.append(badge_info)
+        user_badges = []
+        for badge in self.data["user_badges"][user_handle]:
+            badge_def = self.data["badge_definitions"][badge["badge_key"]]
+            full_badge = {
+                **badge_def,
+                "badge_key": badge["badge_key"],
+                "awarded_at": badge["awarded_at"],
+                "reason": badge["reason"]
+            }
+            user_badges.append(full_badge)
         
-        return badges
+        return user_badges
     
-    def check_streak_badges(self, user: str, streak_days: int) -> List[str]:
-        """Check which streak badges a user should have"""
-        badges_to_award = []
-        
-        # Define streak thresholds
-        streak_badges = {
-            7: "week_streak",
-            14: "two_week_streak", 
-            30: "monthly_legend",
-            100: "century_club"
-        }
-        
-        for threshold, badge_id in streak_badges.items():
-            if streak_days >= threshold:
-                if self.award_badge(user, badge_id, f"Achieved {streak_days} day streak"):
-                    badges_to_award.append(badge_id)
-        
-        return badges_to_award
+    def get_user_points(self, user_handle):
+        """Calculate total points for a user"""
+        badges = self.get_user_badges(user_handle)
+        return sum(badge["points"] for badge in badges)
     
-    def get_badge_summary(self, user: str) -> str:
-        """Get a summary string of user's badges"""
-        badges = self.get_user_badges(user)
-        if not badges:
-            return f"{user}: No badges yet"
-        
-        badge_emojis = [badge["emoji"] for badge in badges]
-        return f"{user}: {' '.join(badge_emojis)} ({len(badges)} badges)"
-    
-    def get_leaderboard(self) -> List[tuple]:
-        """Get badge leaderboard (user, badge_count)"""
+    def get_leaderboard(self):
+        """Get leaderboard by total points"""
         leaderboard = []
-        for user, badges in self.data["user_badges"].items():
-            leaderboard.append((user, len(badges)))
+        for user_handle in self.data["user_badges"]:
+            points = self.get_user_points(user_handle)
+            badge_count = len(self.data["user_badges"][user_handle])
+            leaderboard.append({
+                "user": user_handle,
+                "points": points,
+                "badge_count": badge_count
+            })
         
-        return sorted(leaderboard, key=lambda x: x[1], reverse=True)
-
-# Example usage functions
-def award_first_ship(user: str):
-    """Award first ship badge"""
-    system = BadgeSystem()
-    if system.award_badge(user, "first_ship", "Shipped first project"):
-        return f"🎉 {user} earned their First Ship badge! 🚢"
-    return None
-
-def check_streak_achievements(user: str, days: int):
-    """Check and award streak badges"""
-    system = BadgeSystem()
-    new_badges = system.check_streak_badges(user, days)
+        return sorted(leaderboard, key=lambda x: x["points"], reverse=True)
     
-    messages = []
-    for badge_id in new_badges:
-        badge = system.data["badge_definitions"][badge_id]
-        messages.append(f"🎉 {user} earned: {badge['emoji']} {badge['name']}!")
-    
-    return messages
+    def check_streak_badges(self, user_handle, current_streak, best_streak):
+        """Check and award streak-based badges"""
+        awarded = []
+        
+        # Week Streak
+        if current_streak >= 7:
+            success, msg = self.award_badge(user_handle, "week_streak", f"Achieved {current_streak}-day streak")
+            if success:
+                awarded.append("week_streak")
+        
+        # Month Legend
+        if current_streak >= 30:
+            success, msg = self.award_badge(user_handle, "month_legend", f"Achieved {current_streak}-day streak")
+            if success:
+                awarded.append("month_legend")
+        
+        # Century Club
+        if current_streak >= 100:
+            success, msg = self.award_badge(user_handle, "century_club", f"Achieved {current_streak}-day streak")
+            if success:
+                awarded.append("century_club")
+        
+        return awarded
 
+    def display_badge(self, badge_key):
+        """Get display string for a badge"""
+        if badge_key not in self.data["badge_definitions"]:
+            return "Unknown Badge"
+        
+        badge = self.data["badge_definitions"][badge_key]
+        return f"{badge['name']} - {badge['description']} ({badge['points']} pts)"
+
+# Example usage and streak integration
 if __name__ == "__main__":
-    # Demo the system
-    system = BadgeSystem()
-    print("Badge system loaded!")
-    print(f"Available badges: {len(system.data['badge_definitions'])}")
+    badge_system = BadgeSystem()
     
-    # Show leaderboard
-    leaderboard = system.get_leaderboard()
-    print("\n🏆 Badge Leaderboard:")
-    for user, count in leaderboard:
-        print(f"  {system.get_badge_summary(user)}")
+    # Example: Award first ship badge
+    # badge_system.award_badge("@demo_user", "first_ship", "Shipped their first project")
+    
+    # Example: Check streak badges for current users
+    # badge_system.check_streak_badges("@demo_user", 1, 1)
+    # badge_system.check_streak_badges("@vibe_champion", 1, 1)

@@ -1,69 +1,84 @@
 {
   "badge_definitions": {
     "first_ship": {
-      "name": "First Ship",
-      "description": "Shipped your first project to the board",
-      "emoji": "🚢",
-      "category": "shipping"
+      "name": "First Ship 🚢",
+      "description": "Shipped your first project in the workshop",
+      "category": "milestone",
+      "points": 10,
+      "rarity": "common"
     },
     "week_streak": {
-      "name": "Week Streak",
+      "name": "Week Warrior 💪",
       "description": "Maintained a 7-day activity streak",
-      "emoji": "💪",
-      "category": "consistency"
+      "category": "consistency",
+      "points": 25,
+      "rarity": "uncommon"
     },
-    "two_week_streak": {
-      "name": "Two Week Warrior",
-      "description": "Maintained a 14-day activity streak",
-      "emoji": "🔥",
-      "category": "consistency"
-    },
-    "monthly_legend": {
-      "name": "Monthly Legend",
-      "description": "Maintained a 30-day activity streak",
-      "emoji": "🏆",
-      "category": "consistency"
-    },
-    "century_club": {
-      "name": "Century Club",
-      "description": "Maintained a 100-day activity streak",
-      "emoji": "👑",
-      "category": "consistency"
+    "month_legend": {
+      "name": "Monthly Legend 🏆",
+      "description": "Achieved a 30-day activity streak",
+      "category": "consistency",
+      "points": 100,
+      "rarity": "rare"
     },
     "game_master": {
-      "name": "Game Master",
-      "description": "Built or shipped a game",
-      "emoji": "🎮",
-      "category": "gaming"
+      "name": "Game Master 🎮",
+      "description": "Created or facilitated a workshop game",
+      "category": "leadership",
+      "points": 50,
+      "rarity": "uncommon"
     },
     "early_bird": {
-      "name": "Early Bird",
-      "description": "First to be active in the workshop today",
-      "emoji": "🌅",
-      "category": "timing"
+      "name": "Early Bird 🌅",
+      "description": "Active in the workshop before 8 AM",
+      "category": "timing",
+      "points": 15,
+      "rarity": "common"
     },
     "night_owl": {
-      "name": "Night Owl",
-      "description": "Last to be active in the workshop",
-      "emoji": "🦉",
-      "category": "timing"
-    },
-    "vibe_keeper": {
-      "name": "Vibe Keeper",
-      "description": "Helped maintain positive workshop energy",
-      "emoji": "✨",
-      "category": "community"
+      "name": "Night Owl 🦉",
+      "description": "Active in the workshop after 10 PM",
+      "category": "timing",
+      "points": 15,
+      "rarity": "common"
     },
     "comeback_kid": {
-      "name": "Comeback Kid",
+      "name": "Comeback Kid 🔄",
       "description": "Returned after a break and restarted your streak",
-      "emoji": "💫",
-      "category": "resilience"
+      "category": "resilience",
+      "points": 20,
+      "rarity": "common"
+    },
+    "century_club": {
+      "name": "Century Club 👑",
+      "description": "Legendary 100-day activity streak",
+      "category": "consistency",
+      "points": 500,
+      "rarity": "legendary"
+    },
+    "helper": {
+      "name": "Helper 🤝",
+      "description": "Helped another workshop member with their project",
+      "category": "community",
+      "points": 20,
+      "rarity": "common"
+    },
+    "innovator": {
+      "name": "Innovator 💡",
+      "description": "Introduced a new idea or feature to the workshop",
+      "category": "creativity",
+      "points": 30,
+      "rarity": "uncommon"
     }
   },
   "user_badges": {
     "@demo_user": [],
     "@vibe_champion": []
   },
-  "badge_log": []
+  "badge_log": [],
+  "stats": {
+    "total_badges_awarded": 0,
+    "most_common_badge": null,
+    "rarest_earned": null
+  }
 }

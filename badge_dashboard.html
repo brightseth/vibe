@@ -3,447 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎖️ /vibe Achievement Dashboard</title>
+    <title>/vibe Workshop - Achievement Badges</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
+            margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
-
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
-
+        
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            color: white;
+            margin-bottom: 40px;
         }
-
-        .header h1 {
-            font-size: 2.5rem;
+        
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
         }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        
+        .section {
+            margin: 40px 0;
         }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card-title {
-            font-size: 1.3rem;
+        
+        .section-title {
+            font-size: 1.5em;
             font-weight: 600;
-            margin-bottom: 15px;
-            color: #4a5568;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .badge-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .badge-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .badge-description {
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .badge-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        
+        .badge-points {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .badge-rarity {
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .rarity-common { color: #28a745; }
+        .rarity-uncommon { color: #007bff; }
+        .rarity-rare { color: #6f42c1; }
+        .rarity-legendary { color: #fd7e14; }
+        
+        .leaderboard {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-info {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .badge {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        .badge.earned {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            border-color: #38a169;
-            color: white;
-            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
-        }
-
-        .badge.locked {
-            opacity: 0.4;
-        }
-
-        .badge-emoji {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .badge-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-
-        .badge-description {
-            font-size: 0.65rem;
-            opacity: 0.8;
-            line-height: 1.2;
-        }
-
-        .user-profile {
-            border-left: 4px solid #667eea;
-        }
-
-        .user-handle {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .stat {
-            text-align: center;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #48bb78, #38a169);
-            transition: width 0.3s ease;
-        }
-
-        .next-milestone {
-            background: #fff5f5;
-            border-left: 4px solid #f56565;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .milestone-text {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .milestone-badge {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #f56565;
-            margin-bottom: 5px;
-        }
-
-        .leaderboard {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-
-        .leaderboard-item {
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
             border-radius: 8px;
-            margin-bottom: 10px;
-            background: #f7fafc;
-        }
-
-        .leaderboard-position {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #667eea;
-            width: 30px;
-        }
-
-        .leaderboard-handle {
-            flex: 1;
-            font-weight: 600;
-        }
-
-        .leaderboard-score {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #38a169;
-        }
-
-        .rarity-common { background-color: #e2e8f0; }
-        .rarity-uncommon { background-color: #c6f6d5; }
-        .rarity-rare { background-color: #bee3f8; }
-        .rarity-epic { background-color: #e9d8fd; }
-        .rarity-legendary { background-color: #fed7d7; }
-
-        .loading {
             text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
-        .refresh-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 15px 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
         }
-
-        .refresh-button:hover {
-            background: #5a6acf;
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .badge-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎖️ /vibe Achievement Dashboard</h1>
-            <p>Track your journey, celebrate milestones, build consistency</p>
+            <div class="title">🏆 Achievement Badges</div>
+            <div class="subtitle">Track your /vibe workshop journey</div>
         </div>
-
-        <div id="dashboard-content" class="loading">
-            <div>🔄 Loading achievement data...</div>
+        
+        <div class="section">
+            <div class="section-title">📊 Quick Stats</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">Badge Types</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Badges Earned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+            </div>
         </div>
-
-        <button class="refresh-button" onclick="loadDashboard()">
-            🔄 Refresh
-        </button>
-    </div>
-
-    <script>
-        // Sample data - in production this would come from your API
-        const sampleData = {
-            users: [
-                {
-                    handle: "@demo_user",
-                    current_streak: 1,
-                    best_streak: 1,
-                    total_badges: 1,
-                    badges: ["first_day"],
-                    next_milestone: {
-                        name: "Seedling",
-                        emoji: "🌱",
-                        days_remaining: 2,
-                        progress: 33
-                    }
-                },
-                {
-                    handle: "@vibe_champion",
-                    current_streak: 1,
-                    best_streak: 1,
-                    total_badges: 1,
-                    badges: ["first_day"],
-                    next_milestone: {
-                        name: "Seedling", 
-                        emoji: "🌱",
-                        days_remaining: 2,
-                        progress: 33
-                    }
-                }
-            ],
-            badges: {
-                "first_day": {
-                    "name": "First Day",
-                    "description": "Started your /vibe journey",
-                    "emoji": "🎉",
-                    "rarity": "common"
-                },
-                "seedling": {
-                    "name": "Seedling",
-                    "description": "Growing your consistency habit",
-                    "emoji": "🌱", 
-                    "rarity": "common"
-                },
-                "week_warrior": {
-                    "name": "Week Warrior",
-                    "description": "One week of dedication",
-                    "emoji": "💪",
-                    "rarity": "uncommon"
-                },
-                "fortnight_force": {
-                    "name": "Fortnight Force",
-                    "description": "Two weeks of commitment",
-                    "emoji": "🔥",
-                    "rarity": "rare"
-                },
-                "monthly_legend": {
-                    "name": "Monthly Legend",
-                    "description": "A full month of consistency",
-                    "emoji": "🏆",
-                    "rarity": "epic"
-                },
-                "century_club": {
-                    "name": "Century Club",
-                    "description": "100 days of dedication",
-                    "emoji": "👑",
-                    "rarity": "legendary"
-                }
-            }
-        };
-
-        function renderUserProfile(user) {
-            const badgeElements = Object.keys(sampleData.badges).map(badgeId => {
-                const badge = sampleData.badges[badgeId];
-                const earned = user.badges.includes(badgeId);
-                return `
-                    <div class="badge ${earned ? 'earned' : 'locked'} rarity-${badge.rarity}">
-                        <span class="badge-emoji">${badge.emoji}</span>
-                        <div class="badge-name">${badge.name}</div>
-                        <div class="badge-description">${badge.description}</div>
-                    </div>
-                `;
-            }).join('');
-
-            return `
-                <div class="card user-profile">
-                    <div class="user-handle">${user.handle}</div>
-                    <div class="stat-grid">
-                        <div class="stat">
-                            <div class="stat-value">${user.current_streak}</div>
-                            <div class="stat-label">Current Streak</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${user.best_streak}</div>
-                            <div class="stat-label">Best Streak</div>
-                        </div>
-                    </div>
-                    
-                    ${user.next_milestone ? `
-                        <div class="next-milestone">
-                            <div class="milestone-badge">${user.next_milestone.emoji} ${user.next_milestone.name}</div>
-                            <div class="milestone-text">${user.next_milestone.days_remaining} days remaining</div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${user.next_milestone.progress}%"></div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="badge-grid">
-                        ${badgeElements}
+        
+        <div class="section">
+            <div class="section-title">🎯 Available Badges</div>
+            <div class="badge-grid">
+                <div class="badge-card">
+                    <div class="badge-name">🚢 First Ship</div>
+                    <div class="badge-description">Shipped your first project in the workshop</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">10 pts</span>
+                        <span class="badge-rarity rarity-common">Common</span>
                     </div>
                 </div>
-            `;
-        }
-
-        function renderLeaderboard() {
-            const sortedUsers = [...sampleData.users].sort((a, b) => b.total_badges - a.total_badges);
-            
-            const leaderboardItems = sortedUsers.map((user, index) => `
+                
+                <div class="badge-card">
+                    <div class="badge-name">💪 Week Warrior</div>
+                    <div class="badge-description">Maintained a 7-day activity streak</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">25 pts</span>
+                        <span class="badge-rarity rarity-uncommon">Uncommon</span>
+                    </div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-name">🏆 Monthly Legend</div>
+                    <div class="badge-description">Achieved a 30-day activity streak</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">100 pts</span>
+                        <span class="badge-rarity rarity-rare">Rare</span>
+                    </div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-name">🎮 Game Master</div>
+                    <div class="badge-description">Created or facilitated a workshop game</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">50 pts</span>
+                        <span class="badge-rarity rarity-uncommon">Uncommon</span>
+                    </div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-name">👑 Century Club</div>
+                    <div class="badge-description">Legendary 100-day activity streak</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">500 pts</span>
+                        <span class="badge-rarity rarity-legendary">Legendary</span>
+                    </div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-name">🤝 Helper</div>
+                    <div class="badge-description">Helped another workshop member with their project</div>
+                    <div class="badge-meta">
+                        <span class="badge-points">20 pts</span>
+                        <span class="badge-rarity rarity-common">Common</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🥇 Leaderboard</div>
+            <div class="leaderboard">
                 <div class="leaderboard-item">
-                    <div class="leaderboard-position">#${index + 1}</div>
-                    <div class="leaderboard-handle">${user.handle}</div>
-                    <div class="leaderboard-score">${user.total_badges} 🏆</div>
-                </div>
-            `).join('');
-
-            return `
-                <div class="leaderboard">
-                    <div class="card-title">
-                        🏆 Achievement Leaderboard
+                    <div class="user-info">
+                        <div class="user-avatar">D</div>
+                        <div>
+                            <div style="font-weight: 600;">@demo_user</div>
+                            <div style="color: #666; font-size: 0.9em;">1-day streak</div>
+                        </div>
                     </div>
-                    ${leaderboardItems}
+                    <div>
+                        <div style="font-weight: 600;">0 points</div>
+                        <div style="color: #666; font-size: 0.9em;">0 badges</div>
+                    </div>
                 </div>
-            `;
-        }
-
-        function loadDashboard() {
-            const content = document.getElementById('dashboard-content');
-            
-            // Render user profiles
-            const userProfiles = sampleData.users.map(renderUserProfile).join('');
-            
-            content.innerHTML = `
-                <div class="dashboard-grid">
-                    ${userProfiles}
+                
+                <div class="leaderboard-item">
+                    <div class="user-info">
+                        <div class="user-avatar">V</div>
+                        <div>
+                            <div style="font-weight: 600;">@vibe_champion</div>
+                            <div style="color: #666; font-size: 0.9em;">1-day streak</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">0 points</div>
+                        <div style="color: #666; font-size: 0.9em;">0 badges</div>
+                    </div>
                 </div>
-                ${renderLeaderboard()}
-            `;
-        }
-
-        // Load dashboard on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadDashboard, 500); // Small delay for loading effect
-        });
-
-        // Auto-refresh every 30 seconds
-        setInterval(loadDashboard, 30000);
-    </script>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; color: #666;">
+            <p>🎯 Keep showing up to earn more badges! Your consistency matters in /vibe.</p>
+        </div>
+    </div>
 </body>
 </html>
