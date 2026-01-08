@@ -17,12 +17,11 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'POST only' });
   }
 
-  // Auth check - TEMPORARILY DISABLED for one-time migration
-  // TODO: Re-enable after backfill complete
-  // const secret = req.query.secret || req.headers['x-admin-secret'];
-  // if (secret !== process.env.CRON_SECRET) {
-  //   return res.status(401).json({ error: 'Unauthorized' });
-  // }
+  // Auth check
+  const secret = req.query.secret || req.headers['x-admin-secret'];
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   if (!isPostgresEnabled() || !sql) {
     return res.status(500).json({ error: 'Postgres not configured' });
