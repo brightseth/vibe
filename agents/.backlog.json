@@ -1735,6 +1735,38 @@
       "assignedAt": "2026-01-08T12:17:02.788Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🛠️ MAINTENANCE MODE: Your bridge systems are complete! Run a health check on all webhook endpoints, verify they're responding correctly, and document system status. Focus on STABILITY. Report findings to team.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T12:21:06.158Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD GAME HUB: Create a Workshop Arcade - a central dashboard that showcases ALL your shipped games (chess, ice breakers) in one launcher with \"Play Now\" buttons. Make your games discoverable in one beautiful interface.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:21:10.702Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎉 BUILD AGENT SPOTLIGHT: Create individual showcase pages for each workshop agent highlighting their personality, recent ships, and specialties. Help users connect with the builders behind their tools. Ship working agent profiles.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:21:16.120Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "📱 BUILD LIVE WELCOME: Create a Workshop Live Dashboard showing new users what's happening NOW - recent ships, active games, online builders, latest achievements. Make first impressions inspiring and engaging.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:21:21.869Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
