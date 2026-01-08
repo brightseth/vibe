@@ -935,6 +935,54 @@
       "assignedAt": "2026-01-08T08:40:13.947Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE PRIORITY: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is your ONLY focus - ignore all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T08:59:54.761Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE PRIORITY: Build simple multiplayer tic-tac-toe game. Create room system, turn-based gameplay, win detection, basic UI. Ignore all drawing/word game assignments. This is your ONLY focus.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:00:00.522Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "SINGLE PRIORITY: Build simple Skills Exchange prototype. Create system where users can offer 5 core skills (coding, design, marketing, writing, product) and request others. Include basic matching logic. This is your ONLY focus.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:00:04.950Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 FRESH START: Build X webhook receiver at /api/webhooks/x. Create a simple Express endpoint that accepts POST requests, parses JSON payload, logs to console, and returns 200 OK. Ship working webhook endpoint. Ignore all previous assignments - start fresh!",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:05:31.026Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 FRESH START: Build a simple multiplayer tic-tac-toe game. Create room system, turn-based gameplay, win detection, and basic UI. Focus on core multiplayer functionality. Ship working prototype. Ignore all previous assignments - start fresh!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:05:36.373Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 FRESH START: Write 'Workshop Recovery January 2026' celebration report. Highlight our recent successful ships: chess game ✅, streaks leaderboard ✅, user matching ✅, ice breaker games ✅. Celebrate our building velocity and post to community board. Ignore all previous assignments - start fresh!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:05:40.290Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Workshop Achievement Badges Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+        
+        .badges-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #4a5568;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .badge-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        
+        .badge-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .badge-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .badge-emoji {
+            font-size: 1.5em;
+        }
+        
+        .badge-name {
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .badge-description {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .badge-threshold {
+            background: #f7fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            color: #4a5568;
+            border-left: 3px solid #667eea;
+        }
+        
+        .tier-bronze { border-left-color: #cd7f32; }
+        .tier-silver { border-left-color: #c0c0c0; }
+        .tier-gold { border-left-color: #ffd700; }
+        .tier-legendary { border-left-color: #9f7aea; }
+        
+        .leaderboard {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 15px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-rank {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .user-handle {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .user-badges {
+            color: #718096;
+            font-size: 0.9em;
+        }
+        
+        .progress-bar {
+            background: #e2e8f0;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .refresh-note {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9em;
+            margin-top: 30px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Workshop Achievement Badges</h1>
+            <p class="subtitle">Gamification system for /vibe workshop participation</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Available Badges</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Total Awards</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Participation Rate</div>
+            </div>
+        </div>
+        
+        <div class="badges-section">
+            <h2 class="section-title">🎖️ Available Badges</h2>
+            <div class="badge-grid">
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🌱</span>
+                        <span class="badge-name">First Day</span>
+                    </div>
+                    <div class="badge-description">Started your streak journey</div>
+                    <div class="badge-threshold tier-bronze">Threshold: 1 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🌅</span>
+                        <span class="badge-name">Early Bird</span>
+                    </div>
+                    <div class="badge-description">Active in the workshop for 3 consecutive days</div>
+                    <div class="badge-threshold tier-bronze">Threshold: 3 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">💪</span>
+                        <span class="badge-name">Week Warrior</span>
+                    </div>
+                    <div class="badge-description">Maintained a 7-day activity streak</div>
+                    <div class="badge-threshold tier-silver">Threshold: 7 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🔥</span>
+                        <span class="badge-name">Consistency King</span>
+                    </div>
+                    <div class="badge-description">Maintained a 14-day streak</div>
+                    <div class="badge-threshold tier-silver">Threshold: 14 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🏆</span>
+                        <span class="badge-name">Monthly Legend</span>
+                    </div>
+                    <div class="badge-description">Maintained a 30-day activity streak</div>
+                    <div class="badge-threshold tier-gold">Threshold: 30 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">👑</span>
+                        <span class="badge-name">Century Club</span>
+                    </div>
+                    <div class="badge-description">Maintained a 100-day activity streak</div>
+                    <div class="badge-threshold tier-legendary">Threshold: 100 day streak</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🚢</span>
+                        <span class="badge-name">First Ship</span>
+                    </div>
+                    <div class="badge-description">Made your first announcement to the board</div>
+                    <div class="badge-threshold tier-bronze">Threshold: 1 ship</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-header">
+                        <span class="badge-emoji">🎮</span>
+                        <span class="badge-name">Game Master</span>
+                    </div>
+                    <div class="badge-description">Participated in 5 workshop games</div>
+                    <div class="badge-threshold tier-gold">Threshold: 5 games</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="badges-section">
+            <h2 class="section-title">🏅 Current Leaderboard</h2>
+            <div class="leaderboard">
+                <div class="leaderboard-item">
+                    <div class="user-info">
+                        <div class="user-rank">1</div>
+                        <div>
+                            <div class="user-handle">@demo_user</div>
+                            <div class="user-badges">1 badge • 🌱 First Day</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-item">
+                    <div class="user-info">
+                        <div class="user-rank">2</div>
+                        <div>
+                            <div class="user-handle">@vibe_champion</div>
+                            <div class="user-badges">1 badge • 🌱 First Day</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="refresh-note">
+            ⚡ Dashboard updates automatically as users earn new badges<br>
+            Next milestone: 🌅 Early Bird badge at 3-day streaks
+        </div>
+    </div>
+</body>
+</html>
