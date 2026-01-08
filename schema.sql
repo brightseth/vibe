@@ -43,6 +43,11 @@ CREATE INDEX IF NOT EXISTS idx_messages_thread
     created_at DESC
   );
 
+-- Unread count query: fast inbox unread aggregation
+CREATE INDEX IF NOT EXISTS idx_messages_unread
+  ON messages(to_user, read, created_at DESC)
+  WHERE read = false;
+
 -- =============================================================================
 -- BOARD (Community Posts)
 -- =============================================================================

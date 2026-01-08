@@ -199,6 +199,51 @@ function createCachedWrapper(kv) {
       }
     },
 
+    // MGET - bulk get multiple keys in ONE call (N+1 fix)
+    async mget(keys, options = {}) {
+      if (!keys || keys.length === 0) return [];
+
+      const ttl = options.ttl || CACHE_TTL.default;
+      const results = new Array(keys.length).fill(null);
+      const uncachedKeys = [];
+      const uncachedIndices = [];
+
+      // Check cache first
+      keys.forEach((key, i) => {
+        const cached = cacheGet(key);
+        if (cached !== null) {
+          results[i] = cached;
+        } else {
+          uncachedKeys.push(key);
+          uncachedIndices.push(i);
+        }
+      });
+
+      // If all cached, return early
+      if (uncachedKeys.length === 0) {
+        return results;
+      }
+
+      stats.misses += uncachedKeys.length;
+
+      // Fetch uncached keys in single call
+      try {
+        const fetched = await kv.mget(...uncachedKeys);
+        fetched.forEach((value, i) => {
+          const originalIndex = uncachedIndices[i];
+          results[originalIndex] = value;
+          if (value !== null) {
+            cacheSet(uncachedKeys[i], value, ttl);
+          }
+        });
+      } catch (e) {
+        stats.errors++;
+        console.error('[kv-cache] MGET error:', e.message);
+      }
+
+      return results;
+    },
+
     // ZRANGE with caching (for presence)
     async zrange(key, start, stop, options) {
       const cacheKey = `zrange:${key}:${start}:${stop}:${JSON.stringify(options || {})}`;
@@ -265,7 +310,10 @@ function createCachedWrapper(kv) {
     },
 
     async zadd(key, ...args) {
-      cacheInvalidatePrefix(`zrange:${key}`);
+      // Surgical invalidation: only clear the full-range cache, not every slice
+      // This prevents every heartbeat from nuking all presence caches
+      const fullRangeCacheKey = `zrange:${key}:0:-1:{"rev":true}`;
+      cacheInvalidate(fullRangeCacheKey);
       try {
         return await kv.zadd(key, ...args);
       } catch (e) {
@@ -349,6 +397,7 @@ function createFallbackKV() {
   return {
     async get(key) { return fallbackStore.get(key) || null; },
     async set(key, value) { fallbackStore.set(key, value); return 'OK'; },
+    async mget(keys) { return keys.map(k => fallbackStore.get(k) || null); },
     async hget(hash, field) {
       const h = fallbackStore.get(hash) || {};
       return h[field] || null;

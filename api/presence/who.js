@@ -38,35 +38,38 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ users: [], cached: true });
     }
 
-    // Get presence data for each handle (cached)
-    const users = await Promise.all(
-      handles.map(async (handle) => {
-        // Using presence:data:${handle} to match main presence.js API
-        const data = await kv.get(`presence:data:${handle}`, { ttl: CACHE_TTL.presence });
-        if (!data) return null;
+    // Build keys for bulk fetch - ONE KV call instead of N calls
+    const presenceKeys = handles.map(h => `presence:data:${h}`);
 
-        // Data is stored as JSON object
-        const lastSeen = data.lastSeen ? new Date(data.lastSeen).getTime() : 0;
-        const age = now - lastSeen;
+    // Bulk fetch all presence data in single mget() call
+    const presenceData = await kv.mget(presenceKeys, { ttl: CACHE_TTL.presence });
 
-        return {
-          handle: data.username || handle,
-          one_liner: data.workingOn || '',
-          status: age < IDLE_THRESHOLD ? 'active' : 'idle',
-          lastSeen: lastSeen,
-          last_seen: formatTimeAgo(lastSeen),
-          // Context (from context object)
-          file: data.context?.file || null,
-          branch: data.context?.branch || null,
-          error: data.context?.error || null,
-          note: data.context?.note || null,
-          // Mood (explicit or inferred)
-          mood: data.mood || null,
-          mood_inferred: data.mood_inferred === true,
-          mood_reason: data.mood_reason || null
-        };
-      })
-    );
+    // Map results to user objects
+    const users = handles.map((handle, i) => {
+      const data = presenceData[i];
+      if (!data) return null;
+
+      // Data is stored as JSON object
+      const lastSeen = data.lastSeen ? new Date(data.lastSeen).getTime() : 0;
+      const age = now - lastSeen;
+
+      return {
+        handle: data.username || handle,
+        one_liner: data.workingOn || '',
+        status: age < IDLE_THRESHOLD ? 'active' : 'idle',
+        lastSeen: lastSeen,
+        last_seen: formatTimeAgo(lastSeen),
+        // Context (from context object)
+        file: data.context?.file || null,
+        branch: data.context?.branch || null,
+        error: data.context?.error || null,
+        note: data.context?.note || null,
+        // Mood (explicit or inferred)
+        mood: data.mood || null,
+        mood_inferred: data.mood_inferred === true,
+        mood_reason: data.mood_reason || null
+      };
+    });
 
     // Filter nulls and sort (active first)
     const activeUsers = users
