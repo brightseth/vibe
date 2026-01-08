@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 /vibe Streak Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+        }
+        
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #fffa65);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .health-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .health-thriving { background: linear-gradient(45deg, #4CAF50, #8BC34A); }
+        .health-healthy { background: linear-gradient(45deg, #2196F3, #03DAC6); }
+        .health-building { background: linear-gradient(45deg, #FF9800, #FFD54F); }
+        .health-emerging { background: linear-gradient(45deg, #9C27B0, #E1BEE7); }
+        
+        .health-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .user-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .streak-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .streak-current {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .insights {
+            grid-column: 1 / -1;
+        }
+        
+        .insight {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid;
+        }
+        
+        .insight-success { border-left-color: #4CAF50; }
+        .insight-critical { border-left-color: #f44336; }
+        .insight-milestone { border-left-color: #ffd700; }
+        .insight-opportunity { border-left-color: #2196F3; }
+        .insight-milestone_prep { border-left-color: #ff6b35; }
+        
+        .insight-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            position: relative;
+        }
+        
+        .milestone-preview {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 107, 53, 0.2));
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .milestone-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: #ff6b35;
+        }
+        
+        .update-time {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 /vibe Streak Dashboard</h1>
+            <p>Track consistency • Celebrate milestones • Build momentum</p>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="card">
+            <h2>📊 Workshop Summary</h2>
+            <div class="stats-grid" id="summaryStats">
+                <!-- Stats populated by JavaScript -->
+            </div>
+            
+            <!-- Health Status -->
+            <div class="health-status" id="healthStatus">
+                <!-- Health status populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- User Streaks -->
+        <div class="card">
+            <h2>👥 Active Streaks</h2>
+            <div id="userStreaks">
+                <!-- User data populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Insights -->
+        <div class="card insights">
+            <h2>🧠 Live Insights</h2>
+            <div id="workshopInsights">
+                <!-- Insights populated by JavaScript -->
+            </div>
+            
+            <!-- Milestone Preview -->
+            <div class="milestone-preview">
+                <div class="milestone-title">🎯 Next Major Milestone</div>
+                <div class="countdown" id="nextMilestone">
+                    Day 3: Seedling 🌱 Achievement
+                </div>
+                <div style="text-align: center; margin-top: 10px; opacity: 0.8;">
+                    Both users ready if they maintain streaks!
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="update-time" id="lastUpdate"></div>
+    
+    <script>
+        // Sample data - in production would load from live_streak_analytics.json
+        const analyticsData = {
+            "summary": {
+                "total_users": 2,
+                "active_streaks": 2,
+                "avg_streak": 1.0,
+                "longest_current": 1,
+                "total_achievements": 2
+            },
+            "health": {
+                "status": "building",
+                "score": 55,
+                "description": "Growing community establishing habits",
+                "active_rate": 100.0
+            },
+            "users": {
+                "@demo_user": {"current": 1, "best": 1},
+                "@vibe_champion": {"current": 1, "best": 1}
+            },
+            "workshop_insights": [
+                {
+                    "type": "success",
+                    "message": "Perfect workshop start! All users have active streaks 🔥",
+                    "icon": "🚀"
+                },
+                {
+                    "type": "critical", 
+                    "message": "Critical retention point: 2 user(s) at day 1 - tomorrow is day 2!",
+                    "icon": "⚡"
+                },
+                {
+                    "type": "milestone_prep",
+                    "message": "Day 3 Seedling 🌱 milestone ready for both users if streaks continue",
+                    "icon": "🎯"
+                }
+            ],
+            "timestamp": new Date().toISOString()
+        };
+        
+        function renderDashboard() {
+            // Render summary stats
+            const summaryStats = document.getElementById('summaryStats');
+            const summary = analyticsData.summary;
+            
+            summaryStats.innerHTML = `
+                <div class="stat">
+                    <span class="stat-value">${summary.total_users}</span>
+                    <span class="stat-label">Total Users</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${summary.active_streaks}</span>
+                    <span class="stat-label">Active Streaks</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${summary.avg_streak}</span>
+                    <span class="stat-label">Avg Streak</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">${summary.total_achievements}</span>
+                    <span class="stat-label">Achievements</span>
+                </div>
+            `;
+            
+            // Render health status
+            const healthStatus = document.getElementById('healthStatus');
+            const health = analyticsData.health;
+            
+            healthStatus.className = `health-status health-${health.status}`;
+            healthStatus.innerHTML = `
+                <div class="health-score">${health.score}/100</div>
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">
+                    ${health.status.toUpperCase()}
+                </div>
+                <div>${health.description}</div>
+                <div style="margin-top: 10px; font-size: 0.9rem;">
+                    ${health.active_rate}% active participation
+                </div>
+            `;
+            
+            // Render user streaks
+            const userStreaks = document.getElementById('userStreaks');
+            const users = analyticsData.users;
+            
+            userStreaks.innerHTML = '';
+            Object.entries(users).forEach(([username, data]) => {
+                const progressToNext = ((data.current % 3) / 3) * 100; // Progress to next 3-day milestone
+                const nextMilestone = data.current < 3 ? 'Seedling 🌱' : 
+                                   data.current < 7 ? 'Week Warrior 💪' : 'Flame 🔥';
+                
+                userStreaks.innerHTML += `
+                    <div class="user-card">
+                        <div class="user-name">${username}</div>
+                        <div class="streak-info">
+                            <div>
+                                <span class="streak-current">${data.current}</span> day${data.current !== 1 ? 's' : ''}
+                            </div>
+                            <div style="opacity: 0.8;">
+                                Best: ${data.best} day${data.best !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">
+                            Next: ${nextMilestone} (${3 - data.current} days)
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.max(progressToNext, 20)}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Render insights
+            const insightsContainer = document.getElementById('workshopInsights');
+            const insights = analyticsData.workshop_insights;
+            
+            insightsContainer.innerHTML = '';
+            insights.forEach(insight => {
+                insightsContainer.innerHTML += `
+                    <div class="insight insight-${insight.type}">
+                        <div class="insight-icon">${insight.icon}</div>
+                        <div>${insight.message}</div>
+                    </div>
+                `;
+            });
+            
+            // Update timestamp
+            const lastUpdate = document.getElementById('lastUpdate');
+            lastUpdate.textContent = `Last updated: ${new Date(analyticsData.timestamp).toLocaleString()}`;
+        }
+        
+        // Auto-refresh every 30 seconds (in production would fetch new data)
+        function autoRefresh() {
+            // In production, would fetch from live_streak_analytics.json
+            console.log('🔄 Dashboard refreshed');
+        }
+        
+        // Initialize dashboard
+        renderDashboard();
+        setInterval(autoRefresh, 30000);
+        
+        console.log('🔥 /vibe Streak Dashboard loaded!');
+        console.log('Built by @streaks-agent for maximum engagement');
+    </script>
+</body>
+</html>
