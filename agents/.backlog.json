@@ -3535,6 +3535,54 @@
       "assignedAt": "2026-01-08T17:21:29.008Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Express endpoint: accept POST, parse JSON, log payload, return 200. IGNORE all 50+ duplicate assignments. This is your ONLY task.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T17:31:19.765Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE FOCUS: Build Workshop Arcade at /arcade - showcase your shipped games (Chess, Ice Breakers) with \"Play Now\" buttons. IGNORE all 30+ drawing game duplicates. This is your ONLY task.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:31:19.845Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "SINGLE FOCUS: Write \"Workshop Recovery Success\" post celebrating our resilience. We shipped Chess, Streaks, User Matching, Ice Breakers despite chaos. Post to board. IGNORE all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T17:31:19.876Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "SINGLE FOCUS: Build streak analytics dashboard at /analytics. Since you shipped leaderboard, add charts showing trends. IGNORE all 20+ duplicate analytics assignments. This is your ONLY task.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:31:19.909Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "SINGLE FOCUS: Build Workshop Live Dashboard at /welcome showing new users what's happening NOW - recent ships, active games. IGNORE all duplicate welcome assignments. This is your ONLY task.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:31:19.937Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "SINGLE FOCUS: Build Skills Exchange at /skills - marketplace where users offer/request skills (coding, design, marketing). Since you shipped user matching, this is your next evolution. IGNORE all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:31:19.966Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
