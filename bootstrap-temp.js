@@ -1,17 +1,9 @@
-// Temporary bootstrap runner for skills exchange
-const bootstrapSkills = require('./mcp-server/tools/bootstrap-skills.js');
-const store = require('./mcp-server/store');
+// Temporary script to bootstrap skills exchange
+const { handler } = require('./mcp-server/tools/bootstrap-skills.js');
 
-async function runBootstrap() {
-  console.log('🚀 Bootstrapping Skills Exchange marketplace...');
-  
-  try {
-    const result = await bootstrapSkills.handler({ force: false });
-    console.log('\n' + result.display);
-    console.log('\n✅ Bootstrap complete!');
-  } catch (error) {
-    console.error('❌ Bootstrap failed:', error);
-  }
+async function run() {
+  const result = await handler({});
+  console.log(result.display || result.error || 'Done');
 }
 
-runBootstrap();
+run().catch(console.error);

@@ -35,7 +35,7 @@ const definition = {
       },
       game: {
         type: 'string',
-        description: 'Game to launch (hangman, guessnumber, etc.) - used with launch action'
+        description: 'Game to launch (hangman, guessnumber, wordchain, twentyquestions, etc.) - used with launch action'
       },
       command: {
         type: 'string',
@@ -152,13 +152,74 @@ async function launchGame(handle, gameType, difficulty = 'medium', move = null) 
       
       return { display };
 
+    case 'wordchain':
+      if (!gameState || gameState.gameOver || move === 'new') {
+        gameState = wordchain.createInitialWordChainState();
+        isNewGame = true;
+      }
+      
+      if (move && move !== 'new') {
+        // For solo word chain, player alternates as both players
+        const isPlayer1Move = gameState.currentPlayer === 'player1';
+        const result = wordchain.makeMove(gameState, move, isPlayer1Move);
+        if (result.error) {
+          return { display: `❌ ${result.error}` };
+        }
+        gameState = result.gameState;
+      }
+      
+      await saveUserGameState(handle, gameType, gameState);
+      
+      let display = wordchain.formatWordChainDisplay(gameState);
+      if (isNewGame) {
+        display = `🔗 **Started new Word Chain game!**\n\n${display}`;
+        display += '\n\n*Build a chain where each word starts with the last letter of the previous word*';
+      }
+      
+      if (!gameState.gameOver) {
+        display += '\n\n*Use `vibe arcade --action launch --game wordchain --move apple` to add a word*';
+      } else {
+        display += '\n\n*Use `vibe arcade --action launch --game wordchain --move new` to start again*';
+      }
+      
+      return { display };
+
+    case 'twentyquestions':
+      if (!gameState || gameState.gameOver || move === 'new') {
+        gameState = twentyquestions.createInitialTwentyQuestionsState('guess', null, difficulty);
+        isNewGame = true;
+      }
+      
+      if (move && move !== 'new') {
+        const result = twentyquestions.askQuestion(gameState, move);
+        if (result.error) {
+          return { display: `❌ ${result.error}` };
+        }
+        gameState = result.gameState;
+      }
+      
+      await saveUserGameState(handle, gameType, gameState);
+      
+      let display = twentyquestions.formatTwentyQuestionsDisplay(gameState);
+      if (isNewGame) {
+        display = `❓ **Started new 20 Questions game!**\n\nI'm thinking of something in the **${gameState.category}** category.\n\n${display}`;
+      }
+      
+      if (!gameState.gameOver) {
+        display += '\n\n*Use `vibe arcade --action launch --game twentyquestions --move "Is it alive?"` to ask a question*';
+      } else {
+        display += '\n\n*Use `vibe arcade --action launch --game twentyquestions --move new` to start again*';
+      }
+      
+      return { display };
+
     // Add more games here as needed
     default:
       // Check if it's a game that exists in the arcade but not integrated yet
       if (arcade.GAMES[gameType]) {
         const game = arcade.GAMES[gameType];
         return { 
-          display: `🎮 **${game.name}** is available in the arcade but not yet integrated with the launcher.\n\n${game.icon} *${game.description}*\n\n**Currently supported:** hangman, guessnumber\n\n🚀 More games coming soon to the launcher!` 
+          display: `🎮 **${game.name}** is available in the arcade but not yet integrated with the launcher.\n\n${game.icon} *${game.description}*\n\n**Currently supported:** hangman, guessnumber, wordchain, twentyquestions\n\n🚀 More games coming soon to the launcher!` 
         };
       } else {
         return { display: `❌ Game "${gameType}" not found in the arcade.\n\nUse \`vibe arcade --action browse\` to see available games!` };
@@ -206,7 +267,7 @@ async function handler(args) {
 
     case 'launch':
       if (!game) {
-        return { display: '❌ Please specify a game to launch. Use `--game hangman` for example.\n\n**Available:** hangman, guessnumber' };
+        return { display: '❌ Please specify a game to launch. Use `--game hangman` for example.\n\n**Available:** hangman, guessnumber, wordchain, twentyquestions' };
       }
       
       return await launchGame(handle, game, difficulty, move);
@@ -220,7 +281,7 @@ async function handler(args) {
       recDisplay += `**Players:** ${recommendation.players}\n`;
       recDisplay += `**Difficulty:** ${recommendation.difficulty}\n\n`;
       
-      if (['hangman', 'guessnumber'].includes(recommendation.id)) {
+      if (['hangman', 'guessnumber', 'wordchain', 'twentyquestions'].includes(recommendation.id)) {
         recDisplay += `✅ **Ready to play!** Use \`vibe arcade --action launch --game ${recommendation.id}\``;
       } else {
         recDisplay += `🚧 *This game is in the arcade but not yet available in the launcher.*`;
@@ -238,10 +299,12 @@ async function handler(args) {
       
       helpDisplay += `**🎯 Ready to launch:**\n`;
       helpDisplay += `• **Hangman** - guess the word letter by letter\n`;
-      helpDisplay += `• **Number Guessing** - find the secret number\n\n`;
+      helpDisplay += `• **Number Guessing** - find the secret number\n`;
+      helpDisplay += `• **Word Chain** - build chains of connected words\n`;
+      helpDisplay += `• **20 Questions** - guess what I'm thinking with yes/no questions\n\n`;
       
-      helpDisplay += `**🚧 In arcade (${Object.keys(arcade.GAMES).length - 2} more games):**\n`;
-      helpDisplay += `Chess, Tic-Tac-Toe, Word Chain, Snake, Memory, and more!\n\n`;
+      helpDisplay += `**🚧 In arcade (${Object.keys(arcade.GAMES).length - 4} more games):**\n`;
+      helpDisplay += `Chess, Tic-Tac-Toe, Snake, Memory, Drawing, and more!\n\n`;
       
       helpDisplay += `**🚀 Coming soon:** Full integration with all arcade games!`;
       
