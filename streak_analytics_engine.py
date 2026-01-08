@@ -1,258 +1,353 @@
 #!/usr/bin/env python3
 """
-Streak Analytics Engine for @streaks-agent
-Provides comprehensive analytics and insights for workshop engagement
+Advanced streak analytics engine for /vibe workshop
+Provides insights, patterns, and motivation analytics
 """
 
 import json
+import os
 from datetime import datetime, timedelta
-from collections import defaultdict, Counter
+from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, asdict
 import statistics
+
+@dataclass
+class StreakSnapshot:
+    """Single point-in-time streak data"""
+    user: str
+    streak_days: int
+    best_streak: int
+    timestamp: datetime
+    active_today: bool
+
+@dataclass
+class StreakInsight:
+    """Analytical insight about streak patterns"""
+    type: str  # 'trend', 'milestone', 'pattern', 'achievement'
+    title: str
+    description: str
+    value: float
+    confidence: float  # 0-1
+    actionable: bool
 
 class StreakAnalyticsEngine:
     def __init__(self):
-        self.load_data()
+        self.snapshots = []
+        self.insights_cache = []
+        self.load_historical_data()
     
-    def load_data(self):
-        """Load current streak and achievement data"""
-        # Current streak data from @streaks-agent memory
-        self.streak_data = {
-            "demo_user": {"current_streak": 1, "best_streak": 1, "joined": "2026-01-08"},
-            "vibe_champion": {"current_streak": 1, "best_streak": 1, "joined": "2026-01-08"}
-        }
-        
-        # Load achievements
+    def load_historical_data(self):
+        """Load historical streak data if available"""
         try:
-            with open("achievements.json", 'r') as f:
-                self.achievements = json.load(f)
-        except FileNotFoundError:
-            self.achievements = {"badges": {}, "user_achievements": {}, "achievement_history": []}
+            if os.path.exists('streak_history.json'):
+                with open('streak_history.json', 'r') as f:
+                    data = json.load(f)
+                    for snapshot_data in data:
+                        snapshot = StreakSnapshot(
+                            user=snapshot_data['user'],
+                            streak_days=snapshot_data['streak_days'],
+                            best_streak=snapshot_data['best_streak'],
+                            timestamp=datetime.fromisoformat(snapshot_data['timestamp']),
+                            active_today=snapshot_data['active_today']
+                        )
+                        self.snapshots.append(snapshot)
+        except Exception as e:
+            print(f"Note: Could not load historical data: {e}")
     
-    def generate_comprehensive_report(self):
-        """Generate comprehensive analytics report"""
-        print("📊 STREAK ANALYTICS ENGINE")
-        print("=" * 50)
-        print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print()
+    def save_historical_data(self):
+        """Save streak snapshots to file"""
+        data = []
+        for snapshot in self.snapshots:
+            data.append({
+                'user': snapshot.user,
+                'streak_days': snapshot.streak_days,
+                'best_streak': snapshot.best_streak,
+                'timestamp': snapshot.timestamp.isoformat(),
+                'active_today': snapshot.active_today
+            })
         
-        self.analyze_current_status()
-        self.analyze_engagement_patterns()
-        self.analyze_achievement_metrics()
-        self.predict_future_milestones()
-        self.generate_coaching_insights()
-        self.save_analytics_data()
+        with open('streak_history.json', 'w') as f:
+            json.dump(data, f, indent=2)
     
-    def analyze_current_status(self):
-        """Analyze current streak status across all users"""
-        print("🔥 CURRENT STREAK STATUS")
-        print("-" * 30)
+    def record_snapshot(self, user: str, streak_days: int, best_streak: int, active_today: bool = True):
+        """Record a streak snapshot"""
+        snapshot = StreakSnapshot(
+            user=user,
+            streak_days=streak_days,
+            best_streak=best_streak,
+            timestamp=datetime.now(),
+            active_today=active_today
+        )
         
-        total_users = len(self.streak_data)
-        current_streaks = [data["current_streak"] for data in self.streak_data.values()]
-        best_streaks = [data["best_streak"] for data in self.streak_data.values()]
+        self.snapshots.append(snapshot)
+        self.save_historical_data()
         
-        print(f"👥 Total active users: {total_users}")
-        print(f"📈 Average current streak: {statistics.mean(current_streaks):.1f} days")
-        print(f"🏆 Average best streak: {statistics.mean(best_streaks):.1f} days")
-        print(f"🔥 Total streak days: {sum(current_streaks)} days")
-        print(f"💪 Combined best streaks: {sum(best_streaks)} days")
-        
-        # Streak distribution
-        streak_counts = Counter(current_streaks)
-        print(f"\n📊 Current Streak Distribution:")
-        for streak_days in sorted(streak_counts.keys()):
-            count = streak_counts[streak_days]
-            percentage = (count / total_users) * 100
-            bar = "█" * count + "░" * (total_users - count)
-            print(f"   {streak_days} day{'s' if streak_days != 1 else ''}: {count} user{'s' if count != 1 else ''} ({percentage:.1f}%) {bar}")
-        
-        print()
+        # Generate new insights
+        self._generate_insights()
     
-    def analyze_engagement_patterns(self):
-        """Analyze engagement patterns and trends"""
-        print("📈 ENGAGEMENT PATTERNS")
-        print("-" * 25)
+    def get_current_stats(self) -> Dict:
+        """Get current streak statistics"""
+        current_users = {}
         
-        # Engagement momentum analysis
-        active_users = sum(1 for data in self.streak_data.values() if data["current_streak"] >= 1)
-        consistency_score = (active_users / len(self.streak_data)) * 100
+        # Get latest snapshot for each user
+        for snapshot in reversed(self.snapshots):
+            if snapshot.user not in current_users:
+                current_users[snapshot.user] = snapshot
         
-        print(f"⚡ Workshop momentum: {consistency_score:.1f}%")
-        print(f"🎯 Active participants: {active_users}/{len(self.streak_data)}")
-        
-        # Growth potential
-        users_ready_for_next_milestone = 0
-        for handle, data in self.streak_data.items():
-            current = data["current_streak"]
-            # Check if close to next milestone (within 2 days of 3, 7, 14, 30, 100)
-            milestones = [3, 7, 14, 30, 100]
-            for milestone in milestones:
-                if current < milestone <= current + 2:
-                    users_ready_for_next_milestone += 1
-                    break
-        
-        print(f"🚀 Users near milestone: {users_ready_for_next_milestone}")
-        
-        # Retention risk analysis
-        one_day_streaks = sum(1 for data in self.streak_data.values() if data["current_streak"] == 1)
-        retention_risk = (one_day_streaks / len(self.streak_data)) * 100
-        
-        print(f"⚠️  Retention focus needed: {retention_risk:.1f}% at day 1")
-        print()
-    
-    def analyze_achievement_metrics(self):
-        """Analyze achievement and badge metrics"""
-        print("🏆 ACHIEVEMENT METRICS")
-        print("-" * 23)
-        
-        total_badges = len(self.achievements.get("badges", {}))
-        awarded_badges = sum(len(badges) for badges in self.achievements.get("user_achievements", {}).values())
-        
-        print(f"🎖️  Total badges available: {total_badges}")
-        print(f"🏅 Total badges awarded: {awarded_badges}")
-        print(f"📊 Badge completion rate: {(awarded_badges / (total_badges * len(self.streak_data))) * 100:.1f}%")
-        
-        # Badge popularity
-        badge_counts = defaultdict(int)
-        for user_badges in self.achievements.get("user_achievements", {}).values():
-            for badge in user_badges:
-                badge_counts[badge['name']] += 1
-        
-        if badge_counts:
-            print(f"\n🔥 Most Popular Badges:")
-            for badge_name, count in sorted(badge_counts.items(), key=lambda x: x[1], reverse=True)[:3]:
-                percentage = (count / len(self.streak_data)) * 100
-                print(f"   {badge_name}: {count} users ({percentage:.1f}%)")
-        
-        # Achievement velocity
-        recent_achievements = [a for a in self.achievements.get("achievement_history", []) 
-                             if datetime.fromisoformat(a["timestamp"].replace('Z', '+00:00')).date() == datetime.now().date()]
-        print(f"\n⚡ Achievements today: {len(recent_achievements)}")
-        print()
-    
-    def predict_future_milestones(self):
-        """Predict when users will hit next milestones"""
-        print("🔮 MILESTONE PREDICTIONS")
-        print("-" * 25)
-        
-        milestones = [
-            ("early_bird", "Early Bird 🌅", 3),
-            ("week_streak", "Week Warrior 💪", 7),
-            ("consistency_king", "Consistency King 🔥", 14),
-            ("month_streak", "Monthly Legend 🏆", 30),
-            ("century_club", "Century Club 👑", 100)
-        ]
-        
-        predictions = []
-        
-        for handle, data in self.streak_data.items():
-            current = data["current_streak"]
-            earned_badges = [b["id"] for b in self.achievements.get("user_achievements", {}).get(handle, [])]
-            
-            for badge_id, badge_name, threshold in milestones:
-                if badge_id not in earned_badges and current < threshold:
-                    days_needed = threshold - current
-                    predicted_date = datetime.now() + timedelta(days=days_needed)
-                    predictions.append({
-                        "handle": handle,
-                        "badge": badge_name,
-                        "days_needed": days_needed,
-                        "predicted_date": predicted_date.strftime("%Y-%m-%d"),
-                        "threshold": threshold
-                    })
-                    break
-        
-        # Sort by nearest milestone
-        predictions.sort(key=lambda x: x["days_needed"])
-        
-        print("📅 Next milestone predictions:")
-        for pred in predictions[:5]:  # Show next 5 milestones
-            print(f"   @{pred['handle']}: {pred['badge']} in {pred['days_needed']} days ({pred['predicted_date']})")
-        
-        # Milestone clustering analysis
-        near_term = sum(1 for p in predictions if p["days_needed"] <= 3)
-        print(f"\n🎯 Milestones within 3 days: {near_term}")
-        print()
-    
-    def generate_coaching_insights(self):
-        """Generate coaching insights for workshop improvement"""
-        print("💡 COACHING INSIGHTS")
-        print("-" * 20)
-        
-        insights = []
-        
-        # Streak maintenance insights
-        one_day_users = [h for h, d in self.streak_data.items() if d["current_streak"] == 1]
-        if len(one_day_users) > 0:
-            insights.append(f"🎯 {len(one_day_users)} user(s) need day-2 encouragement to build momentum")
-        
-        # Badge motivation insights
-        no_badge_users = [h for h in self.streak_data.keys() 
-                         if h not in self.achievements.get("user_achievements", {})]
-        if no_badge_users:
-            insights.append(f"🏆 {len(no_badge_users)} user(s) haven't earned their first badge yet")
-        
-        # Community building insights
-        if len(self.streak_data) >= 2:
-            insights.append("👥 Great foundation with multiple active users - consider streak challenges")
-        
-        # Gamification insights
-        badge_completion = (sum(len(badges) for badges in self.achievements.get("user_achievements", {}).values()) / 
-                          (len(self.achievements.get("badges", {})) * len(self.streak_data))) * 100
-        if badge_completion < 50:
-            insights.append(f"🎮 Low badge completion ({badge_completion:.1f}%) - consider easier milestones")
-        
-        # Engagement insights
-        avg_streak = statistics.mean([d["current_streak"] for d in self.streak_data.values()])
-        if avg_streak < 3:
-            insights.append("⚡ Early stage community - focus on building consistency habits")
-        
-        for i, insight in enumerate(insights, 1):
-            print(f"{i}. {insight}")
-        
-        print()
-        
-        # Success metrics
-        print("✅ WORKSHOP HEALTH INDICATORS:")
-        participation_rate = (len([d for d in self.streak_data.values() if d["current_streak"] >= 1]) / 
-                            len(self.streak_data)) * 100
-        print(f"   📈 Participation rate: {participation_rate:.1f}%")
-        
-        achievement_rate = (len([u for u in self.achievements.get("user_achievements", {}).values() if u]) / 
-                          len(self.streak_data)) * 100
-        print(f"   🏆 Achievement rate: {achievement_rate:.1f}%")
-        
-        momentum_score = min(100, avg_streak * 20)  # Scale 1-day = 20%, 5-day = 100%
-        print(f"   🔥 Momentum score: {momentum_score:.1f}%")
-        print()
-    
-    def save_analytics_data(self):
-        """Save analytics data for dashboard consumption"""
-        analytics_data = {
-            "generated_at": datetime.now().isoformat(),
-            "summary": {
-                "total_users": len(self.streak_data),
-                "average_current_streak": statistics.mean([d["current_streak"] for d in self.streak_data.values()]),
-                "total_badges_awarded": sum(len(badges) for badges in self.achievements.get("user_achievements", {}).values()),
-                "participation_rate": (len([d for d in self.streak_data.values() if d["current_streak"] >= 1]) / len(self.streak_data)) * 100
-            },
-            "user_details": dict(self.streak_data),
-            "badge_distribution": {
-                badge["name"]: sum(1 for user_badges in self.achievements.get("user_achievements", {}).values() 
-                                 if any(b["id"] == badge_id for b in user_badges))
-                for badge_id, badge in self.achievements.get("badges", {}).items()
+        # Calculate aggregate stats
+        if not current_users:
+            return {
+                'total_users': 0,
+                'average_streak': 0,
+                'longest_current_streak': 0,
+                'total_active_days': 0,
+                'users': []
             }
+        
+        streaks = [user_data.streak_days for user_data in current_users.values()]
+        
+        return {
+            'total_users': len(current_users),
+            'average_streak': round(statistics.mean(streaks), 1),
+            'longest_current_streak': max(streaks),
+            'total_active_days': sum(streaks),
+            'active_today': sum(1 for user_data in current_users.values() if user_data.active_today),
+            'users': [
+                {
+                    'handle': snapshot.user,
+                    'current_streak': snapshot.streak_days,
+                    'best_streak': snapshot.best_streak,
+                    'last_seen': snapshot.timestamp.isoformat(),
+                    'active_today': snapshot.active_today
+                }
+                for snapshot in current_users.values()
+            ]
+        }
+    
+    def get_trend_data(self, days_back: int = 7) -> Dict:
+        """Get streak trend data for the past N days"""
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days_back - 1)
+        
+        trend_data = {
+            'labels': [],
+            'average_streaks': [],
+            'total_active_users': [],
+            'new_personal_bests': []
         }
         
-        with open("streak_analytics_data.json", 'w') as f:
-            json.dump(analytics_data, f, indent=2)
+        for i in range(days_back):
+            day = start_date + timedelta(days=i)
+            trend_data['labels'].append(day.strftime('%b %d'))
+            
+            # Find snapshots for this day
+            day_snapshots = [
+                s for s in self.snapshots 
+                if s.timestamp.date() == day
+            ]
+            
+            if day_snapshots:
+                streaks = [s.streak_days for s in day_snapshots]
+                avg_streak = statistics.mean(streaks) if streaks else 0
+                active_users = len(set(s.user for s in day_snapshots if s.active_today))
+                
+                # Count personal bests achieved on this day
+                personal_bests = sum(1 for s in day_snapshots if s.streak_days == s.best_streak and s.streak_days > 1)
+            else:
+                avg_streak = 0
+                active_users = 0
+                personal_bests = 0
+            
+            trend_data['average_streaks'].append(round(avg_streak, 1))
+            trend_data['total_active_users'].append(active_users)
+            trend_data['new_personal_bests'].append(personal_bests)
         
-        print("💾 Analytics data saved to streak_analytics_data.json")
-        print("🔗 Ready for dashboard visualization")
+        return trend_data
+    
+    def _generate_insights(self):
+        """Generate analytical insights from streak data"""
+        self.insights_cache = []
+        
+        # Current stats
+        stats = self.get_current_stats()
+        
+        if stats['total_users'] == 0:
+            return
+        
+        # Insight: Streak momentum
+        if stats['average_streak'] >= 3:
+            self.insights_cache.append(StreakInsight(
+                type='trend',
+                title='Strong Momentum',
+                description=f"Average streak of {stats['average_streak']} days shows excellent consistency!",
+                value=stats['average_streak'],
+                confidence=0.9,
+                actionable=False
+            ))
+        elif stats['average_streak'] >= 1:
+            self.insights_cache.append(StreakInsight(
+                type='trend',
+                title='Building Momentum',
+                description=f"Users are getting started! Average {stats['average_streak']} day streaks.",
+                value=stats['average_streak'],
+                confidence=0.8,
+                actionable=True
+            ))
+        
+        # Insight: Milestone proximity
+        next_milestones = []
+        for user in stats['users']:
+            days_to_week = 7 - user['current_streak']
+            if 0 < days_to_week <= 3:
+                next_milestones.append((user['handle'], days_to_week))
+        
+        if next_milestones:
+            closest_user, days_left = min(next_milestones, key=lambda x: x[1])
+            self.insights_cache.append(StreakInsight(
+                type='milestone',
+                title='Milestone Alert!',
+                description=f"{closest_user} is {days_left} days away from their Week Warrior badge! 💪",
+                value=days_left,
+                confidence=1.0,
+                actionable=True
+            ))
+        
+        # Insight: Engagement pattern
+        trend = self.get_trend_data(3)  # Last 3 days
+        if len(trend['average_streaks']) >= 3:
+            recent_avg = statistics.mean(trend['average_streaks'][-3:])
+            if recent_avg > trend['average_streaks'][0]:
+                self.insights_cache.append(StreakInsight(
+                    type='pattern',
+                    title='Growing Engagement',
+                    description="Streak engagement is trending upward over the past 3 days! 📈",
+                    value=recent_avg,
+                    confidence=0.7,
+                    actionable=False
+                ))
+    
+    def get_insights(self) -> List[Dict]:
+        """Get current analytical insights"""
+        return [asdict(insight) for insight in self.insights_cache]
+    
+    def get_motivation_message(self) -> str:
+        """Generate personalized motivation message"""
+        stats = self.get_current_stats()
+        insights = self.get_insights()
+        
+        if not stats['users']:
+            return "🌱 Start your streak journey today! Every expert was once a beginner."
+        
+        # Check for actionable insights
+        actionable_insights = [i for i in insights if i['actionable']]
+        if actionable_insights:
+            insight = actionable_insights[0]
+            if insight['type'] == 'milestone':
+                return f"✨ {insight['description']} Keep the momentum going!"
+        
+        # General motivation based on current state
+        avg_streak = stats['average_streak']
+        if avg_streak < 3:
+            return "🔥 You're building something amazing! Each day you show up, you're proving your commitment to growth."
+        elif avg_streak < 7:
+            return "💪 Incredible consistency! You're in the zone. Keep this energy - you're approaching week warrior status!"
+        else:
+            return "👑 You're setting the standard for consistency! Your dedication is inspiring others to level up."
+    
+    def generate_weekly_report(self) -> Dict:
+        """Generate comprehensive weekly streak report"""
+        stats = self.get_current_stats()
+        trend = self.get_trend_data(7)
+        insights = self.get_insights()
+        
+        return {
+            'report_date': datetime.now().isoformat(),
+            'current_stats': stats,
+            'trend_analysis': trend,
+            'insights': insights,
+            'motivation_message': self.get_motivation_message(),
+            'next_milestones': self._get_next_milestones(),
+            'streak_health_score': self._calculate_health_score()
+        }
+    
+    def _get_next_milestones(self) -> List[Dict]:
+        """Get upcoming milestones for all users"""
+        milestones = []
+        thresholds = [3, 7, 14, 30, 100]
+        
+        stats = self.get_current_stats()
+        for user in stats['users']:
+            current_streak = user['current_streak']
+            
+            for threshold in thresholds:
+                if current_streak < threshold:
+                    days_to_milestone = threshold - current_streak
+                    milestone_name = self._get_milestone_name(threshold)
+                    milestones.append({
+                        'user': user['handle'],
+                        'milestone': milestone_name,
+                        'days_remaining': days_to_milestone,
+                        'threshold': threshold
+                    })
+                    break  # Only next milestone
+        
+        return sorted(milestones, key=lambda x: x['days_remaining'])
+    
+    def _get_milestone_name(self, threshold: int) -> str:
+        """Get milestone name for threshold"""
+        milestone_map = {
+            3: "Early Bird 🌅",
+            7: "Week Warrior 💪", 
+            14: "Consistency King 🔥",
+            30: "Monthly Legend 🏆",
+            100: "Century Club 👑"
+        }
+        return milestone_map.get(threshold, f"{threshold}-Day Streak")
+    
+    def _calculate_health_score(self) -> float:
+        """Calculate overall streak ecosystem health score (0-100)"""
+        stats = self.get_current_stats()
+        
+        if stats['total_users'] == 0:
+            return 0.0
+        
+        # Base score from participation
+        participation_score = min(stats['active_today'] / max(stats['total_users'], 1) * 40, 40)
+        
+        # Score from average streak length
+        streak_score = min(stats['average_streak'] * 10, 40)
+        
+        # Score from streak distribution (bonus for multiple long streaks)
+        user_streaks = [user['current_streak'] for user in stats['users']]
+        long_streaks = sum(1 for streak in user_streaks if streak >= 7)
+        distribution_score = min(long_streaks * 5, 20)
+        
+        return round(participation_score + streak_score + distribution_score, 1)
 
-def main():
-    engine = StreakAnalyticsEngine()
-    engine.generate_comprehensive_report()
-
+# Usage example and test
 if __name__ == "__main__":
-    main()
+    engine = StreakAnalyticsEngine()
+    
+    # Record some sample data
+    engine.record_snapshot('demo_user', 1, 1, True)
+    engine.record_snapshot('vibe_champion', 1, 1, True)
+    
+    # Generate report
+    report = engine.generate_weekly_report()
+    
+    print("🔥 Streak Analytics Report")
+    print("=" * 50)
+    print(f"Total Users: {report['current_stats']['total_users']}")
+    print(f"Average Streak: {report['current_stats']['average_streak']} days")
+    print(f"Health Score: {report['streak_health_score']}/100")
+    print(f"\n💭 Motivation: {report['motivation_message']}")
+    
+    if report['insights']:
+        print("\n🔍 Key Insights:")
+        for insight in report['insights']:
+            print(f"  • {insight['title']}: {insight['description']}")
+    
+    if report['next_milestones']:
+        print("\n🎯 Next Milestones:")
+        for milestone in report['next_milestones'][:3]:  # Top 3
+            print(f"  • {milestone['user']}: {milestone['milestone']} in {milestone['days_remaining']} days")

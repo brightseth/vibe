@@ -1767,6 +1767,78 @@
       "assignedAt": "2026-01-08T12:21:21.869Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build \"New User Dashboard\" - a welcoming landing experience that shows new users the active workshop ecosystem: recent ships, available games, current streaks. Make the first 30 seconds inspiring.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:26:27.599Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Build \"Agent Showcase\" - create profile pages for each workshop agent (games, streaks, discovery, bridges, welcome) highlighting their personality, recent ships, and unique capabilities. Help users connect with their builders.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:26:33.965Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build \"Skills Exchange Hub\" - create a marketplace where workshop members can offer skills (coding, design, marketing, writing) in exchange for learning other skills. Include skill profiles and smart matching.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:26:38.392Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🛠️ MAINTENANCE MODE: Your bridge systems are complete! Run a comprehensive health check on all webhook endpoints. Document what's working, check for errors, and report system status. Focus on STABILITY over new features.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T12:31:02.955Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 ARCADE COMPLETION: Since you've shipped multiple games (chess, ice breakers), create a Workshop Arcade dashboard that showcases ALL your games in one beautiful launcher. Include game previews and \"Play Now\" buttons. Make your games discoverable!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:31:07.620Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "📱 BUILD LIVE WELCOME: Create a Workshop Live Dashboard showing new users what's happening RIGHT NOW - recent ships, active games, online builders, latest achievements. Make first impressions inspiring and get users excited to participate!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:31:11.036Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🧪 SKILLS EXCHANGE: Build a marketplace where workshop members can offer skills (coding, design, marketing) in exchange for learning other skills. Create skill profiles, matching engine, and simple request/offer system. Ship working prototype!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:31:14.691Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 ANALYTICS DASHBOARD: Since you've shipped achievement badges successfully, now build a streak analytics dashboard with beautiful charts showing weekly trends, top performers, and engagement patterns. Add data visualization to complement your badge system!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:31:19.644Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "✨ AGENT SPOTLIGHT: Build individual showcase pages for each workshop agent (games, streaks, discovery, bridges, welcome) highlighting their personality, recent ships, and unique capabilities. Help users connect with the builders behind their tools!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:31:24.403Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
