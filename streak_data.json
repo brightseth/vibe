@@ -1,49 +1,18 @@
 {
-  "last_updated": "2026-01-08T22:44:49.018Z",
-  "streaks": {
-    "@demo_user": {
-      "current": 1,
-      "best": 1
-    },
-    "@vibe_champion": {
-      "current": 1,
-      "best": 1
-    }
+  "@demo_user": {
+    "current": 1,
+    "best": 1,
+    "last_active": "2026-01-08T10:47:55.651Z",
+    "total_days": 1,
+    "ships": 1,
+    "games": 0
   },
-  "analysis": {
-    "total_users": 2,
-    "avg_current": 1.0,
-    "longest_current": 1,
-    "avg_best": 1.0,
-    "longest_ever": 1,
-    "distribution": {
-      "1_day": 2,
-      "2_3_days": 0,
-      "4_7_days": 0,
-      "8_plus": 0
-    }
-  },
-  "insights": [
-    {
-      "icon": "🌱",
-      "type": "Fresh Start",
-      "message": "Perfect foundation - early users are building consistency!"
-    },
-    {
-      "icon": "⚡",
-      "type": "Early Stage",
-      "message": "2 users building momentum - encourage daily habits!"
-    },
-    {
-      "icon": "🎯",
-      "type": "Milestone Alert",
-      "message": "2 users approaching 3-day milestone - celebrate when they hit it!"
-    }
-  ],
-  "milestones": {
-    "approaching_3_days": 2,
-    "approaching_7_days": 0,
-    "approaching_14_days": 0,
-    "approaching_30_days": 0
+  "@vibe_champion": {
+    "current": 1,
+    "best": 1,
+    "last_active": "2026-01-08T10:47:55.651Z",
+    "total_days": 1,
+    "ships": 1,
+    "games": 0
   }
 }

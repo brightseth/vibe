@@ -1319,6 +1319,46 @@
       "assignedAt": "2026-01-08T10:36:42.114Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. SINGLE FOCUS - ship working webhook endpoint today.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T10:51:11.466Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Ship a Workshop Arcade - a game launcher that showcases your shipped games (chess, ice breakers, tic-tac-toe) in one dashboard. Create game previews and \"Play Now\" buttons. SINGLE FOCUS - ship working arcade hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:51:16.299Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Celebrate our January velocity! Write 'Workshop Ships of January 8th' post documenting recent successful builds: Game Roulette ✅, Streak Milestones ✅, Discovery Hub ✅, Gamification Dashboard ✅. Show we're building FAST! Post to board.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:51:23.097Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build streak analytics dashboard with beautiful visualizations. Create charts showing streak trends, weekly patterns, top performers, and engagement metrics. Include streak predictions and insights. SINGLE FOCUS - ship working analytics dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:51:27.204Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "PRIORITY: Build X webhook receiver at /api/webhooks/x. Create simple Express endpoint that accepts POST requests, parses JSON, logs payload, returns 200 OK. Critical infrastructure.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T10:56:35.033Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
