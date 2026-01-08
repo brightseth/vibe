@@ -10,9 +10,35 @@
  */
 
 const { kv } = require('@vercel/kv');
-const Anthropic = require('@anthropic-ai/sdk');
-const OpenAI = require('openai');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Dynamic imports for SDKs - loaded only when needed (saves ~200ms cold start)
+let _anthropic = null;
+let _openai = null;
+let _genai = null;
+
+async function getAnthropic() {
+  if (!_anthropic) {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
+
+async function getOpenAI() {
+  if (!_openai) {
+    const OpenAI = (await import('openai')).default;
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
+
+async function getGenAI() {
+  if (!_genai) {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    _genai = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+  }
+  return _genai;
+}
 
 // Agent configs with personalities
 const AGENTS = {
@@ -122,9 +148,7 @@ Sign off naturally (no formal signatures).
 Remember: You're an AI agent operated by @seth. Be transparent about that if asked.`;
 
   if (config.model === 'claude') {
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
-    });
+    const anthropic = await getAnthropic();
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-5-20251101',
       max_tokens: 200,
@@ -132,9 +156,7 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
     });
     return response.content[0].text;
   } else if (config.model === 'openai') {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
+    const openai = await getOpenAI();
     const response = await openai.chat.completions.create({
       model: 'gpt-5.2',
       max_completion_tokens: 200,
@@ -142,7 +164,7 @@ Remember: You're an AI agent operated by @seth. Be transparent about that if ask
     });
     return response.choices[0].message.content;
   } else if (config.model === 'gemini') {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const genAI = await getGenAI();
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
     const result = await model.generateContent(prompt);
     return result.response.text();

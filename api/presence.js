@@ -164,17 +164,22 @@ async function setPresence(username, data, options = {}) {
     }
   }
 
-  // Also write to KV (backup during migration)
+  // Also write to KV (backup) - ASYNC, don't block response
+  // Postgres is primary, KV is fire-and-forget for redundancy
   if (kv) {
-    try {
-      const pipeline = kv.pipeline();
-      pipeline.set(`presence:data:${username}`, data, options);
-      pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
-      await pipeline.exec();
-      stored = true;
-    } catch (e) {
-      console.error('[presence] KV setPresence failed:', e.message);
-    }
+    const kvWrite = async () => {
+      try {
+        const pipeline = kv.pipeline();
+        pipeline.set(`presence:data:${username}`, data, options);
+        pipeline.zadd(PRESENCE_INDEX, { score: timestamp, member: username });
+        await pipeline.exec();
+      } catch (e) {
+        console.error('[presence] KV setPresence failed:', e.message);
+      }
+    };
+    // Fire and forget - don't await, don't block
+    kvWrite().catch(() => {});
+    if (!stored) stored = true; // KV queued counts as stored
   }
 
   // Memory fallback

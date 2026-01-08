@@ -216,6 +216,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Token');
 
+  // Cache GET requests at CDN edge (board changes less frequently)
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+  }
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
