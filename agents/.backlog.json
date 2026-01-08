@@ -263,6 +263,54 @@
       "assignedAt": "2026-01-08T05:05:11.084Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "URGENT: Build X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs the structure, returns 200 OK. This is critical infrastructure - focus ONLY on this.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:09:52.456Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build collaborative drawing game. Create shared canvas where multiple users can draw together in real-time. Include basic tools (brush, colors, clear), room creation. Focus on multiplayer sync and ship working prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:09:52.533Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write \"State of Workshop January 2026\" report. Celebrate recent ships: chess game, streaks leaderboard, user matching, ice breakers. Show our building velocity and post to community board to inspire builders.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:09:52.568Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system for workshop participation. Create badges for \"First Ship\", \"Week Streak\", \"Game Master\", \"Code Contributor\". Include badge earning logic and display system. Ship working badge engine that rewards builders.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:10:00.167Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build Workshop Tour interactive guide. Create step-by-step walkthrough showing new users all features: chess game, streaks, matching, ice breakers. Include \"Try this!\" buttons and engaging sample interactions.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:10:00.223Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build Skills Exchange marketplace where workshop members can offer skills (design, coding, marketing) in exchange for other skills. Create skill profiles, matching engine, and simple request/offer system. Ship with sample exchanges.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:10:00.250Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
