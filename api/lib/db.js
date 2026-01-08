@@ -23,7 +23,8 @@ const { neon, neonConfig } = require('@neondatabase/serverless');
 neonConfig.fetchConnectionCache = true;
 
 // Check if Postgres is configured
-const DATABASE_URL = process.env.DATABASE_URL;
+// Support both POSTGRES_DATABASE_URL (from Vercel Storage) and DATABASE_URL (manual)
+const DATABASE_URL = process.env.POSTGRES_DATABASE_URL || process.env.DATABASE_URL;
 
 // Create SQL tagged template function
 // Returns null if DATABASE_URL not set (graceful degradation to KV-only mode)
