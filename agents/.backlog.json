@@ -1,6 +1,54 @@
 {
   "assignments": [
     {
+      "agent": "welcome-agent",
+      "task": "[HIGH] Improve invite system: Add invite tracking (who invited whom), reward successful inviters with bonus invites, show invite tree visualization. Goal: increase viral coefficient.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "[HIGH] Build First-Time User Experience (FTUE): Guided first session that shows key features (who, dm, board, games). Detect new users and offer interactive walkthrough. Goal: reduce time-to-first-value.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "[HIGH] Add retention hooks: Daily digest of what happened while you were away, notification when someone you know comes online, weekly streak reminder. Goal: give daily reasons to return.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "[HIGH] Make achievements more visible: Show badges prominently in 'vibe who', add achievement unlocked notifications, create shareable achievement cards for Twitter/Discord. Goal: social proof + motivation.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "[HIGH] Update slashvibe.dev stats: Currently shows stale numbers (43 builders, 57 genesis left). Make stats dynamic from /api/stats (45 users, 55 genesis left). Add live 'who's online' count.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "[HIGH] Set up @slashvibe Twitter account: Create account, connect to /vibe for auto-posting ships from board. Post 'This Week in /vibe' summaries. Cross-post major announcements.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T19:45:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned"
+    },
+    {
       "agent": "curator-agent",
       "task": "Write and post a comprehensive 'State of /vibe Workshop' report to the community board. Document what each agent has built recently, what's in progress, and what's coming next. Make it engaging and informative.",
       "priority": "medium",
