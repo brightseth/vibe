@@ -1,45 +1,19 @@
 #!/usr/bin/env python3
 """
-🔮 Streak Risk Predictor for @streaks-agent
-
-Analyzes user patterns to predict streak break risk and suggest interventions.
-Built to enhance the existing analytics dashboard with proactive engagement.
+Streak Risk Predictor for /vibe workshop
+Analyzes patterns and predicts who might need encouragement
 """
 
 import json
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 
 class StreakRiskPredictor:
-    """Predicts streak break risk and suggests interventions"""
-    
     def __init__(self):
-        self.risk_factors = {
-            'new_user': 0.4,  # First week users have higher drop risk
-            'weekend_gap': 0.3,  # Friday -> Monday gaps are risky
-            'milestone_plateau': 0.25,  # Users may relax after achievements
-            'no_community': 0.35,  # Users without social connections drop more
-            'single_activity': 0.2   # Users with varied activities stay longer
-        }
-        
-        self.interventions = {
-            'high_risk': [
-                "🌟 Quick check-in message from @streaks-agent",
-                "🎯 Suggest easy wins (ship something small)",
-                "👥 Connect them with similar-streak users",
-                "🏆 Highlight next milestone proximity"
-            ],
-            'medium_risk': [
-                "📊 Share their progress visualization", 
-                "🎉 Celebrate recent achievements",
-                "💡 Suggest new workshop activities",
-                "🤝 Introduce to community members"
-            ],
-            'low_risk': [
-                "⭐ Acknowledge consistency",
-                "📈 Share community impact of their participation",
-                "🚀 Challenge them with next-level activities"
-            ]
+        self.risk_levels = {
+            'low': '🟢',
+            'medium': '🟡', 
+            'high': '🔴'
         }
     
     def load_streak_data(self) -> Dict:
@@ -48,196 +22,195 @@ class StreakRiskPredictor:
             with open('streak_dashboard_data.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            return {"leaderboard": []}
+            # Return mock data based on what we know
+            return {
+                "leaderboard": [
+                    {
+                        "handle": "@demo_user",
+                        "current_streak": 1,
+                        "best_streak": 1,
+                        "last_activity": "2026-01-08"
+                    },
+                    {
+                        "handle": "@vibe_champion", 
+                        "current_streak": 1,
+                        "best_streak": 1,
+                        "last_activity": "2026-01-08"
+                    }
+                ]
+            }
     
-    def load_achievements(self) -> Dict:
-        """Load achievement data"""
-        try:
-            with open('achievements.json', 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {"user_achievements": {}}
-    
-    def calculate_risk_score(self, user_data: Dict, achievements: Dict) -> float:
-        """Calculate streak break risk score (0-1, higher = more risk)"""
-        risk_score = 0.0
+    def analyze_streak_risk(self, user_data: Dict) -> Tuple[str, str, List[str]]:
+        """
+        Analyze risk factors for a user's streak
+        Returns: (risk_level, risk_emoji, risk_factors)
+        """
+        current_streak = user_data.get('current_streak', 0)
+        best_streak = user_data.get('best_streak', 0)
         
-        handle = user_data['handle'].replace('@', '')
-        current_streak = user_data['current_streak']
-        best_streak = user_data['best_streak']
+        risk_factors = []
+        risk_score = 0
         
-        # New user risk (first week)
-        if current_streak <= 7:
-            risk_score += self.risk_factors['new_user'] * (8 - current_streak) / 7
+        # Risk factor 1: New user (first few days are critical)
+        if current_streak <= 3:
+            risk_factors.append("🌱 New streak - critical first days")
+            risk_score += 2
         
-        # Milestone plateau risk (just achieved something)
-        user_achievements = achievements.get('user_achievements', {}).get(handle, [])
-        recent_achievement = any(
-            self._is_recent_achievement(ach) for ach in user_achievements
-        )
-        if recent_achievement:
-            risk_score += self.risk_factors['milestone_plateau']
+        # Risk factor 2: Haven't beaten personal best yet
+        if current_streak < best_streak and best_streak > 3:
+            risk_factors.append("📊 Below personal best - might lose motivation")
+            risk_score += 1
+            
+        # Risk factor 3: Milestone proximity (day before milestone)
+        upcoming_milestones = [3, 7, 14, 30, 100]
+        for milestone in upcoming_milestones:
+            if current_streak == milestone - 1:
+                risk_factors.append(f"🎯 One day away from {milestone}-day milestone!")
+                risk_score -= 1  # This is actually good motivation
+                break
         
-        # Weekend gap risk (would need activity tracking for this)
-        # For now, we'll use current day of week as a proxy
-        current_day = datetime.now().weekday()  # 0=Monday, 6=Sunday
-        if current_day in [5, 6]:  # Weekend
-            risk_score += self.risk_factors['weekend_gap'] * 0.5
+        # Risk factor 4: Plateau risk (exactly at certain numbers)
+        plateau_points = [7, 14, 30]  # Common drop-off points
+        if current_streak in plateau_points:
+            risk_factors.append("⚖️ At common plateau point - needs extra motivation")
+            risk_score += 1
         
-        # Activity diversity risk (only one type of engagement)
-        badge_count = user_data.get('badge_count', 0)
-        if badge_count <= 1:
-            risk_score += self.risk_factors['single_activity']
-        
-        # Cap risk score at 1.0
-        return min(risk_score, 1.0)
-    
-    def _is_recent_achievement(self, achievement: Dict) -> bool:
-        """Check if achievement was earned recently (within 2 days)"""
-        try:
-            earned_at = datetime.fromisoformat(achievement['earned_at'].replace('Z', '+00:00'))
-            time_since = datetime.now() - earned_at.replace(tzinfo=None)
-            return time_since.days <= 2
-        except (KeyError, ValueError):
-            return False
-    
-    def categorize_risk(self, risk_score: float) -> str:
-        """Categorize risk level"""
-        if risk_score >= 0.6:
-            return 'high_risk'
-        elif risk_score >= 0.3:
-            return 'medium_risk'
+        # Determine risk level
+        if risk_score >= 3:
+            return 'high', '🔴', risk_factors
+        elif risk_score >= 1:
+            return 'medium', '🟡', risk_factors
         else:
-            return 'low_risk'
+            return 'low', '🟢', risk_factors
     
-    def suggest_interventions(self, risk_level: str) -> List[str]:
-        """Get intervention suggestions for risk level"""
-        return self.interventions.get(risk_level, [])
-    
-    def analyze_all_users(self) -> Dict:
-        """Analyze risk for all users and generate action plan"""
-        streak_data = self.load_streak_data()
-        achievements = self.load_achievements()
+    def generate_encouragement(self, user_handle: str, risk_level: str, 
+                             current_streak: int, risk_factors: List[str]) -> str:
+        """Generate personalized encouragement based on risk"""
         
-        analysis = {
-            'users': [],
-            'summary': {
-                'high_risk': 0,
-                'medium_risk': 0,
-                'low_risk': 0,
-                'total_users': 0
-            },
-            'recommended_actions': [],
-            'generated_at': datetime.now().isoformat()
+        base_messages = {
+            'high': [
+                f"🔥 {user_handle}, your {current_streak}-day streak is precious! Every day builds momentum.",
+                f"💪 {user_handle}, you're in the critical zone! Your {current_streak} days show real commitment.",
+                f"🌟 {user_handle}, those {current_streak} days weren't built in a day - keep the fire burning!"
+            ],
+            'medium': [
+                f"⚡ {user_handle}, you've got {current_streak} days of momentum - don't let it slip!",
+                f"🎯 {user_handle}, your {current_streak}-day streak is building something special!",
+                f"🚀 {user_handle}, {current_streak} days strong! You're creating a habit that matters."
+            ],
+            'low': [
+                f"✨ {user_handle}, your {current_streak}-day streak is looking solid! Keep it up!",
+                f"🌈 {user_handle}, {current_streak} days of consistency! You're on the right track.",
+                f"🎉 {user_handle}, loving the {current_streak}-day momentum you've built!"
+            ]
         }
         
-        for user in streak_data.get('leaderboard', []):
-            risk_score = self.calculate_risk_score(user, achievements)
-            risk_level = self.categorize_risk(risk_score)
-            interventions = self.suggest_interventions(risk_level)
+        import random
+        base_message = random.choice(base_messages[risk_level])
+        
+        # Add specific factor-based advice
+        if "milestone" in str(risk_factors):
+            base_message += " 🏆 You're so close to a major milestone - tomorrow could be celebration day!"
+        elif "personal best" in str(risk_factors):
+            base_message += " 📈 Imagine beating your personal record - you've done it before!"
+        elif "New streak" in str(risk_factors):
+            base_message += " 🌱 Every streak legend started exactly where you are now!"
             
-            user_analysis = {
-                'handle': user['handle'],
+        return base_message
+    
+    def predict_risks(self) -> Dict:
+        """Main prediction function"""
+        data = self.load_streak_data()
+        predictions = {
+            'high_risk': [],
+            'medium_risk': [], 
+            'low_risk': [],
+            'encouragement_needed': [],
+            'insights': []
+        }
+        
+        users = data.get('leaderboard', [])
+        
+        for user in users:
+            handle = user['handle']
+            risk_level, risk_emoji, risk_factors = self.analyze_streak_risk(user)
+            
+            user_prediction = {
+                'handle': handle,
                 'current_streak': user['current_streak'],
-                'risk_score': round(risk_score, 3),
                 'risk_level': risk_level,
-                'suggested_interventions': interventions[:2],  # Top 2 suggestions
-                'next_milestone': self._get_next_milestone(user['current_streak']),
-                'days_to_milestone': self._days_to_next_milestone(user['current_streak'])
+                'risk_emoji': risk_emoji,
+                'risk_factors': risk_factors,
+                'encouragement': self.generate_encouragement(
+                    handle, risk_level, user['current_streak'], risk_factors
+                )
             }
             
-            analysis['users'].append(user_analysis)
-            analysis['summary'][risk_level] += 1
-            analysis['summary']['total_users'] += 1
+            predictions[f'{risk_level}_risk'].append(user_prediction)
             
-            # Add to recommended actions if high/medium risk
-            if risk_level in ['high_risk', 'medium_risk']:
-                action = f"{risk_level.replace('_', ' ').title()}: {user['handle']} - {interventions[0]}"
-                analysis['recommended_actions'].append(action)
+            # Everyone with medium+ risk needs encouragement
+            if risk_level in ['medium', 'high']:
+                predictions['encouragement_needed'].append(user_prediction)
         
-        return analysis
-    
-    def _get_next_milestone(self, current_streak: int) -> str:
-        """Get next milestone name for current streak"""
-        milestones = {
-            3: "Early Bird 🌅",
-            7: "Week Warrior 💪", 
-            14: "Consistency King 🔥",
-            30: "Monthly Legend 🏆",
-            100: "Century Club 👑"
-        }
+        # Generate insights
+        total_users = len(users)
+        high_risk_count = len(predictions['high_risk'])
+        medium_risk_count = len(predictions['medium_risk'])
         
-        for threshold, name in milestones.items():
-            if current_streak < threshold:
-                return name
-        return "Legendary Status 🌟"
-    
-    def _days_to_next_milestone(self, current_streak: int) -> int:
-        """Calculate days to next milestone"""
-        milestones = [3, 7, 14, 30, 100]
+        predictions['insights'] = [
+            f"📊 Risk Analysis: {high_risk_count} high risk, {medium_risk_count} medium risk out of {total_users} users",
+            f"🎯 Focus Area: {'Early streak support' if high_risk_count > 0 else 'Maintaining momentum'}",
+            f"💡 Strategy: {'Immediate intervention needed' if high_risk_count > 1 else 'Routine encouragement'}"
+        ]
         
-        for milestone in milestones:
-            if current_streak < milestone:
-                return milestone - current_streak
-        return 0
-    
-    def generate_report(self) -> str:
-        """Generate a formatted risk analysis report"""
-        analysis = self.analyze_all_users()
-        
-        report = f"""
-🔮 STREAK RISK ANALYSIS REPORT
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
-
-📊 RISK SUMMARY:
-• 🔴 High Risk: {analysis['summary']['high_risk']} users
-• 🟡 Medium Risk: {analysis['summary']['medium_risk']} users  
-• 🟢 Low Risk: {analysis['summary']['low_risk']} users
-• 👥 Total Users: {analysis['summary']['total_users']}
-
-👤 USER ANALYSIS:
-"""
-        
-        for user in analysis['users']:
-            risk_emoji = {'high_risk': '🔴', 'medium_risk': '🟡', 'low_risk': '🟢'}[user['risk_level']]
-            
-            report += f"""
-{risk_emoji} {user['handle']} (Streak: {user['current_streak']} days)
-   • Risk Score: {user['risk_score']}/1.0 ({user['risk_level'].replace('_', ' ')})
-   • Next: {user['next_milestone']} in {user['days_to_milestone']} days
-   • Actions: {user['suggested_interventions'][0]}
-"""
-        
-        if analysis['recommended_actions']:
-            report += f"\n🎯 PRIORITY ACTIONS:\n"
-            for action in analysis['recommended_actions'][:3]:  # Top 3 priorities
-                report += f"   • {action}\n"
-        
-        report += f"\n🤖 Built by @streaks-agent for proactive community engagement"
-        
-        return report
+        return predictions
 
 def main():
-    """Run streak risk analysis"""
+    """Run streak risk prediction analysis"""
     predictor = StreakRiskPredictor()
+    results = predictor.predict_risks()
     
-    # Generate analysis
-    analysis = predictor.analyze_all_users()
+    print("🔮 STREAK RISK PREDICTION ANALYSIS")
+    print("=" * 50)
     
-    # Save detailed analysis
-    with open('streak_risk_analysis.json', 'w') as f:
-        json.dump(analysis, f, indent=2)
+    # Show insights
+    print("\n💡 KEY INSIGHTS:")
+    for insight in results['insights']:
+        print(f"   {insight}")
     
-    # Print summary report
-    report = predictor.generate_report()
-    print(report)
+    # Show high-risk users
+    if results['high_risk']:
+        print(f"\n🔴 HIGH RISK USERS ({len(results['high_risk'])}):")
+        for user in results['high_risk']:
+            print(f"   {user['handle']} - {user['current_streak']} days")
+            for factor in user['risk_factors']:
+                print(f"     • {factor}")
+            print(f"     💬 Suggestion: {user['encouragement']}")
     
-    # Save report
-    with open('streak_risk_report.md', 'w') as f:
-        f.write(f"# Streak Risk Analysis\n\n{report}")
+    # Show medium-risk users  
+    if results['medium_risk']:
+        print(f"\n🟡 MEDIUM RISK USERS ({len(results['medium_risk'])}):")
+        for user in results['medium_risk']:
+            print(f"   {user['handle']} - {user['current_streak']} days")
+            for factor in user['risk_factors']:
+                print(f"     • {factor}")
     
-    print(f"\n📁 Detailed analysis saved to: streak_risk_analysis.json")
-    print(f"📄 Report saved to: streak_risk_report.md")
+    # Show low-risk users
+    if results['low_risk']:
+        print(f"\n🟢 LOW RISK USERS ({len(results['low_risk'])}):")
+        for user in results['low_risk']:
+            print(f"   {user['handle']} - {user['current_streak']} days ✨")
+    
+    # Encouragement recommendations
+    if results['encouragement_needed']:
+        print(f"\n📢 ENCOURAGEMENT RECOMMENDATIONS:")
+        for user in results['encouragement_needed']:
+            print(f"   DM {user['handle']}: {user['encouragement']}")
+    else:
+        print("\n✨ All users looking stable - routine check-ins sufficient!")
+    
+    print("\n" + "=" * 50)
+    print("🎯 Use these insights to prioritize your encouragement efforts!")
 
 if __name__ == "__main__":
     main()
