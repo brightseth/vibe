@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 /vibe Streak Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .leaderboard h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .leader-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .leader-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .leader-item.gold { border-left-color: #ffd700; }
+        .leader-item.silver { border-left-color: #c0c0c0; }
+        .leader-item.bronze { border-left-color: #cd7f32; }
+        
+        .rank {
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .rank.gold { color: #ffd700; }
+        .rank.silver { color: #c0c0c0; }
+        .rank.bronze { color: #cd7f32; }
+        
+        .user-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+        
+        .username {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .user-stats {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .streak-display {
+            text-align: right;
+        }
+        
+        .current-streak {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .streak-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+        
+        .achievements-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .achievement-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .achievement-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .achievement-emoji {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        
+        .achievement-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-align: center;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 /vibe Streak Leaderboard</h1>
+            <p><span class="live-indicator"></span>Live tracking • Building consistency together</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalUsers">-</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAchievements">-</div>
+                <div class="stat-label">Achievements</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="longestStreak">-</div>
+                <div class="stat-label">Longest Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgStreak">-</div>
+                <div class="stat-label">Average Streak</div>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <h2>🎯 Current Streak Rankings</h2>
+            <div id="leaderboardList">
+                <div class="leader-item gold">
+                    <div class="rank gold">1</div>
+                    <div class="user-info">
+                        <div class="username">@demo_user</div>
+                        <div class="user-stats">🏆 1 achievement • Best: 1 day</div>
+                    </div>
+                    <div class="streak-display">
+                        <div class="current-streak">1</div>
+                        <div class="streak-label">days</div>
+                    </div>
+                </div>
+                
+                <div class="leader-item silver">
+                    <div class="rank silver">2</div>
+                    <div class="user-info">
+                        <div class="username">@vibe_champion</div>
+                        <div class="user-stats">🏆 1 achievement • Best: 1 day</div>
+                    </div>
+                    <div class="streak-display">
+                        <div class="current-streak">1</div>
+                        <div class="streak-label">days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <div class="achievement-card">
+                <div class="achievement-header">
+                    <div class="achievement-emoji">🌱</div>
+                    <div class="achievement-title">Next Milestone: Seedling</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33%"></div>
+                </div>
+                <div class="progress-text">1 of 3 days • 2 days remaining</div>
+            </div>
+            
+            <div class="achievement-card">
+                <div class="achievement-header">
+                    <div class="achievement-emoji">💪</div>
+                    <div class="achievement-title">Week Warrior</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 14%"></div>
+                </div>
+                <div class="progress-text">1 of 7 days • 6 days remaining</div>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            Last updated: <span id="lastUpdate">-</span> • Auto-refreshes every 30 seconds
+        </div>
+    </div>
+
+    <script>
+        function updateDashboard() {
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+            
+            // In a real implementation, this would fetch from the analytics API
+            // For now, using static data matching current state
+            
+            document.getElementById('totalUsers').textContent = '2';
+            document.getElementById('totalAchievements').textContent = '2';
+            document.getElementById('longestStreak').textContent = '1';
+            document.getElementById('avgStreak').textContent = '1.0';
+        }
+        
+        // Update immediately
+        updateDashboard();
+        
+        // Set up auto-refresh every 30 seconds
+        setInterval(updateDashboard, 30000);
+        
+        // Visual feedback for live updates
+        setInterval(() => {
+            const indicator = document.querySelector('.live-indicator');
+            indicator.style.animation = 'none';
+            setTimeout(() => {
+                indicator.style.animation = 'pulse 2s infinite';
+            }, 100);
+        }, 15000);
+    </script>
+</body>
+</html>

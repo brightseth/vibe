@@ -1,102 +1,74 @@
 #!/usr/bin/env python3
 """
-Live Badge Check and Award Script
-Built by @streaks-agent for immediate badge checking
+Quick badge check for streaks-agent workflow integration
 """
 
 import sys
 import os
 sys.path.append('.')
 
-from achievements import AchievementTracker
-import json
+from enhanced_achievement_system import EnhancedAchievementSystem
 
-def main():
-    print("🏆 BADGE CHECK AND AWARD SYSTEM")
-    print("=" * 40)
+def check_badges_for_current_users():
+    """Check and return celebration messages for current users"""
+    system = EnhancedAchievementSystem()
     
-    tracker = AchievementTracker()
-    
-    # Current users with 1-day streaks
-    users = [
-        {"handle": "demo_user", "streak": 1, "best": 1},
-        {"handle": "vibe_champion", "streak": 1, "best": 1}
+    # Current streak data
+    users_data = [
+        {"handle": "demo_user", "streak": 1, "best": 1, "ships": 0},
+        {"handle": "vibe_champion", "streak": 1, "best": 1, "ships": 0}
     ]
     
-    new_achievements_found = False
+    results = []
     
-    for user in users:
+    for user in users_data:
         handle = user["handle"]
         current_streak = user["streak"]
         best_streak = user["best"]
+        ships = user["ships"]
         
-        print(f"\n👤 Checking {handle}")
-        print(f"   Current streak: {current_streak} days")
-        print(f"   Best streak: {best_streak} days")
+        # Check for new achievements
+        new_achievements = system.check_user_achievements(
+            handle=handle,
+            current_streak=current_streak,
+            best_streak=best_streak,
+            ships_count=ships
+        )
         
-        # Check for new badges
-        user_stats = {
-            'streak_days': current_streak,
-            'best_streak': best_streak,
-            'ships': 0,  # Will track this later
-            'games': 0,  # Will track this later
-            'dms': 0     # Will track this later
-        }
-        
-        new_badges = tracker.check_new_badges(handle, user_stats)
-        
-        if new_badges:
-            new_achievements_found = True
-            print(f"   🎉 NEW BADGES EARNED: {len(new_badges)}")
-            for badge_id in new_badges:
-                badge = tracker.badge_definitions[badge_id]
-                print(f"     • {badge['name']} - {badge['description']}")
+        for achievement in new_achievements:
+            badge_id = achievement["badge_id"]
             
-            # Generate celebration message
-            celebration = tracker.format_badge_announcement(handle, new_badges)
-            print(f"   📢 Celebration: {celebration}")
-        else:
-            print(f"   ℹ️  No new badges at this time")
+            # Only celebrate if we haven't already
+            if not system.has_been_celebrated(handle, badge_id):
+                celebration_msg = system.generate_celebration_message(handle, achievement)
+                
+                results.append({
+                    'handle': handle,
+                    'badge_id': badge_id,
+                    'message': celebration_msg,
+                    'should_dm': True,
+                    'should_announce': badge_id in ['week_warrior', 'fortnight_force', 'monthly_legend', 'century_club']
+                })
+                
+                # Log the celebration
+                system.log_celebration(handle, badge_id, celebration_msg)
         
-        # Show current badge collection
-        current_badges = tracker.get_user_badges(handle)
-        if current_badges:
-            print(f"   🏅 Total badges: {len(current_badges)}")
-            for badge in current_badges:
-                print(f"     • {badge['name']}")
-        else:
-            print(f"   📥 No badges yet")
+        # Check progress toward next milestone
+        next_milestone = system.get_next_milestone(handle, current_streak)
+        if next_milestone:
+            results.append({
+                'handle': handle,
+                'type': 'progress',
+                'message': f"{handle} is {next_milestone['days_remaining']} days away from {next_milestone['badge']['name']} {next_milestone['badge']['emoji']} ({next_milestone['progress_percent']}% complete)",
+                'should_dm': False,
+                'should_announce': False
+            })
     
-    print(f"\n🏆 LEADERBOARD")
-    print("=" * 40)
-    leaderboard = tracker.get_leaderboard()
-    
-    if leaderboard:
-        for i, entry in enumerate(leaderboard, 1):
-            print(f"{i}. {entry['handle']} - {entry['badge_count']} badges")
-            if entry['latest_badges']:
-                print(f"   Latest: {', '.join(entry['latest_badges'])}")
-    else:
-        print("No badges awarded yet")
-    
-    # Summary
-    print(f"\n📊 SUMMARY")
-    print("=" * 40)
-    
-    total_users = len(users)
-    total_with_badges = len([u for u in users if len(tracker.get_user_badges(u['handle'])) > 0])
-    
-    print(f"Users tracked: {total_users}")
-    print(f"Users with badges: {total_with_badges}")
-    print(f"New achievements found: {'Yes' if new_achievements_found else 'No'}")
-    
-    if new_achievements_found:
-        print("\n🎯 RECOMMENDED ACTIONS:")
-        print("- Send personal DM celebrations to users with new badges")
-        print("- Announce First Day achievements to encourage others")
-        print("- Update achievement status documentation")
-    
-    return new_achievements_found
+    return results
 
 if __name__ == "__main__":
-    main()
+    results = check_badges_for_current_users()
+    
+    print("Badge check results:")
+    for result in results:
+        print(f"  - {result}")
