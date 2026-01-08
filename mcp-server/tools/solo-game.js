@@ -1,7 +1,7 @@
 /**
  * vibe solo-game — Play single-player games
  *
- * Supports: hangman, rps (rock paper scissors)
+ * Supports: hangman, rps (rock paper scissors), memory
  */
 
 const config = require('../config');
@@ -12,6 +12,7 @@ const { requireInit } = require('./_shared');
 // Import game implementations
 const hangman = require('../games/hangman');
 const rps = require('../games/rockpaperscissors');
+const memory = require('../games/memory');
 
 // Post game results to board
 async function postSoloGameResult(player, game, won, score = null) {
@@ -43,18 +44,18 @@ async function postSoloGameResult(player, game, won, score = null) {
 
 const definition = {
   name: 'vibe_solo_game',
-  description: 'Play single-player games. Supports: hangman, rps (rock paper scissors)',
+  description: 'Play single-player games. Supports: hangman, rps (rock paper scissors), memory',
   inputSchema: {
     type: 'object',
     properties: {
       game: {
         type: 'string',
         description: 'Game to play',
-        enum: ['hangman', 'rps']
+        enum: ['hangman', 'rps', 'memory']
       },
       action: {
         type: 'string',
-        description: 'Game action: hangman(guess, hint, new, status) | rps(rock, paper, scissors, new, status)'
+        description: 'Game action: hangman(guess, hint, new, status) | rps(rock, paper, scissors, new, status) | memory(input, new, status)'
       },
       guess: {
         type: 'string',
@@ -63,6 +64,10 @@ const definition = {
       move: {
         type: 'string',
         description: 'Your move for rock paper scissors (rock, paper, scissors)'
+      },
+      pattern: {
+        type: 'string',
+        description: 'Emoji pattern to submit for memory game (space-separated like "🔴 🟡 🟢")'
       },
       difficulty: {
         type: 'string',
@@ -118,11 +123,18 @@ function formatRPSPayload(payload) {
   return rps.formatRPSDisplay(payload.state, 'Computer');
 }
 
+/**
+ * Format memory display
+ */
+function formatMemoryPayload(payload) {
+  return memory.formatMemoryDisplay(payload.state);
+}
+
 async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const { game, action, guess, move, difficulty, bestof } = args;
+  const { game, action, guess, move, pattern, difficulty, bestof } = args;
   const myHandle = config.getHandle();
 
   if (game === 'hangman') {
@@ -283,7 +295,96 @@ async function handler(args) {
     return { display: 'Unknown action. Use: rock, paper, scissors, new, or status' };
   }
 
-  return { display: 'Unknown game. Supported games: hangman, rps' };
+  if (game === 'memory') {
+    // Get current game state
+    let gameState = await getCurrentGameState(myHandle, 'memory');
+
+    // Handle different actions
+    if (action === 'new' || !gameState) {
+      // Start new game
+      const gameDifficulty = difficulty || 'medium';
+      gameState = memory.createInitialMemoryState(gameDifficulty);
+      
+      await saveGameState(myHandle, 'memory', gameState, `Started new ${gameDifficulty} memory pattern game!`);
+      
+      const payload = createGamePayload('memory', gameState);
+      return {
+        display: `## New Memory Pattern Game (${gameDifficulty})\n\n${formatMemoryPayload(payload)}`
+      };
+    }
+
+    if (action === 'status' || (!action && !pattern)) {
+      // Show current game state
+      const payload = createGamePayload('memory', gameState);
+      let displayText = `## Memory Pattern Game\n\n${formatMemoryPayload(payload)}`;
+      
+      if (gameState.gameOver) {
+        displayText += `\n\nUse \`vibe solo-game memory --action new\` to start a new game`;
+      }
+      
+      return { display: displayText };
+    }
+
+    if (action === 'input') {
+      // Start input phase
+      const result = memory.startInput(gameState);
+      
+      if (result.error) {
+        return { display: `Error: ${result.error}` };
+      }
+
+      const newGameState = result.gameState;
+      
+      await saveGameState(myHandle, 'memory', newGameState, 'Ready for input!');
+      
+      const payload = createGamePayload('memory', newGameState);
+      return {
+        display: `## Memory Pattern Game\n\n${formatMemoryPayload(payload)}`
+      };
+    }
+
+    if (pattern) {
+      // Submit pattern guess
+      const result = memory.submitPattern(gameState, pattern);
+      
+      if (result.error) {
+        return { display: `Error: ${result.error}` };
+      }
+
+      const newGameState = result.gameState;
+      
+      // Save updated state
+      let message = `Submitted pattern: ${pattern}`;
+      if (newGameState.gameOver) {
+        if (newGameState.won) {
+          message += ' - You won! 🎉';
+          // Post to board for wins
+          postSoloGameResult(myHandle, 'Memory Pattern', true, `Level ${newGameState.maxLevelReached}, Score ${newGameState.score}`);
+        } else {
+          message += ' - Game over! 🧠';
+        }
+      } else if (newGameState.lastResult === 'correct') {
+        message += ' - Correct! Next level!';
+      } else if (newGameState.lastResult === 'wrong') {
+        message += ' - Wrong! Try again!';
+      }
+      
+      await saveGameState(myHandle, 'memory', newGameState, message);
+      
+      const payload = createGamePayload('memory', newGameState);
+      let displayText = `## Memory Pattern Game\n\n${formatMemoryPayload(payload)}`;
+      
+      if (newGameState.gameOver) {
+        displayText += `\n\nUse \`vibe solo-game memory --action new\` to start a new game`;
+      }
+      
+      return { display: displayText };
+    }
+
+    return { display: 'Unknown action. Use: new, status, input, or --pattern "🔴 🟡 🟢"' };
+  }
+
+  return { display: 'Unknown game. Supported games: hangman, rps, memory' };
 }
 
 module.exports = { definition, handler };
