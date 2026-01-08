@@ -476,24 +476,29 @@ export default async function handler(req, res) {
 
         // Rate limit handle checks to prevent enumeration
         if (kv) {
-          const ipHash = hashIP(getClientIP(req));
-          const rateResult = await checkRateLimit(kv, 'check', ipHash);
-          setRateLimitHeaders(res, rateResult);
+          try {
+            const ipHash = hashIP(getClientIP(req));
+            const rateResult = await checkRateLimit(kv, 'check', ipHash);
+            setRateLimitHeaders(res, rateResult);
 
-          if (!rateResult.success) {
-            return rateLimitResponse(res, rateResult);
+            if (!rateResult.success) {
+              return rateLimitResponse(res, rateResult);
+            }
+
+            const availability = await isHandleAvailable(kv, handle);
+            return res.status(200).json({
+              success: true,
+              handle,
+              available: availability.available,
+              reason: availability.reason || null
+            });
+          } catch (e) {
+            console.error('[presence] KV check failed:', e.message);
+            // Fall through to dev mode response
           }
-
-          const availability = await isHandleAvailable(kv, handle);
-          return res.status(200).json({
-            success: true,
-            handle,
-            available: availability.available,
-            reason: availability.reason || null
-          });
         }
 
-        // Dev mode - always available
+        // Dev mode / KV unavailable - optimistically available
         return res.status(200).json({
           success: true,
           handle,
@@ -513,65 +518,70 @@ export default async function handler(req, res) {
 
         const handle = normalizeHandle(username);
         const kv = await getKV();
+        let claimResult = null;
 
-        // ============ RATE LIMITING ============
+        // Try KV-based registration (rate limiting + handle claim)
         if (kv) {
-          const ipHash = hashIP(getClientIP(req));
-          const rateResult = await checkRateLimit(kv, 'register', ipHash);
-          setRateLimitHeaders(res, rateResult);
+          try {
+            // ============ RATE LIMITING ============
+            const ipHash = hashIP(getClientIP(req));
+            const rateResult = await checkRateLimit(kv, 'register', ipHash);
+            setRateLimitHeaders(res, rateResult);
 
-          if (!rateResult.success) {
-            console.warn(`[presence] Registration rate limit exceeded for IP hash ${ipHash}`);
-            return rateLimitResponse(res, rateResult);
-          }
-        }
+            if (!rateResult.success) {
+              console.warn(`[presence] Registration rate limit exceeded for IP hash ${ipHash}`);
+              return rateLimitResponse(res, rateResult);
+            }
 
-        // ============ HANDLE AVAILABILITY CHECK ============
-        // Check if this is a new registration or existing user
-        if (kv) {
-          const existingHandle = await getHandleRecord(kv, handle);
+            // ============ HANDLE AVAILABILITY CHECK ============
+            // Check if this is a new registration or existing user
+            const existingHandle = await getHandleRecord(kv, handle);
 
-          if (existingHandle) {
-            // Handle exists - create new session for existing user
-            const serverSessionId = generateServerSessionId();
-            const token = generateToken(serverSessionId, handle);
-            await registerSession(serverSessionId, handle);
+            if (existingHandle) {
+              // Handle exists - create new session for existing user
+              const serverSessionId = generateServerSessionId();
+              const token = generateToken(serverSessionId, handle);
+              await registerSession(serverSessionId, handle);
 
-            console.log(`[presence] Existing handle @${handle} logged in with new session`);
-            return res.status(200).json({
-              success: true,
-              action: 'login',
-              sessionId: serverSessionId,
-              handle,
-              token,
-              expiresIn: `${SESSION_TTL}s`,
-              message: `Welcome back, @${handle}!`,
-              registered: false
+              console.log(`[presence] Existing handle @${handle} logged in with new session`);
+              return res.status(200).json({
+                success: true,
+                action: 'login',
+                sessionId: serverSessionId,
+                handle,
+                token,
+                expiresIn: `${SESSION_TTL}s`,
+                message: `Welcome back, @${handle}!`,
+                registered: false
+              });
+            }
+
+            // ============ ATOMIC HANDLE CLAIM ============
+            claimResult = await claimHandle(kv, handle, {
+              isAgent: false,
+              operator: null
             });
-          }
 
-          // ============ ATOMIC HANDLE CLAIM ============
-          const claimResult = await claimHandle(kv, handle, {
-            isAgent: false,
-            operator: null
-          });
+            if (!claimResult.success) {
+              const statusCode = claimResult.error === 'handle_taken' ? 409 : 400;
+              return res.status(statusCode).json({
+                success: false,
+                error: claimResult.error,
+                message: claimResult.message,
+                suggestions: claimResult.suggestions || []
+              });
+            }
 
-          if (!claimResult.success) {
-            const statusCode = claimResult.error === 'handle_taken' ? 409 : 400;
-            return res.status(statusCode).json({
-              success: false,
-              error: claimResult.error,
-              message: claimResult.message,
-              suggestions: claimResult.suggestions || []
+            console.log(`[presence] New handle @${handle} registered`);
+
+            // Send welcome DM from @vibe (async, don't block registration)
+            sendWelcomeDM(handle, claimResult).catch(e => {
+              console.error(`[presence] Failed to send welcome DM to @${handle}:`, e.message);
             });
+          } catch (e) {
+            console.error('[presence] KV registration failed:', e.message);
+            // Fall through to dev-mode registration
           }
-
-          console.log(`[presence] New handle @${handle} registered`);
-
-          // Send welcome DM from @vibe (async, don't block registration)
-          sendWelcomeDM(handle, claimResult).catch(e => {
-            console.error(`[presence] Failed to send welcome DM to @${handle}:`, e.message);
-          });
         }
 
         // Generate session for new or dev-mode registration
