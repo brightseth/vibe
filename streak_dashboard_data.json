@@ -1,0 +1,113 @@
+{
+  "stats": {
+    "total_users": 2,
+    "active_streaks": 2,
+    "avg_streak": 1.0,
+    "longest_current": 1,
+    "total_streak_days": 2
+  },
+  "leaderboard": [
+    {
+      "handle": "@demo_user",
+      "current_streak": 1,
+      "best_streak": 1,
+      "badges": "🌱 First Day",
+      "badge_count": 1
+    },
+    {
+      "handle": "@vibe_champion", 
+      "current_streak": 1,
+      "best_streak": 1,
+      "badges": "🌱 First Day",
+      "badge_count": 1
+    }
+  ],
+  "milestones": {
+    "3": {
+      "name": "Getting started! 🌱",
+      "users_progressing": [
+        {
+          "handle": "@demo_user",
+          "days_needed": 2,
+          "progress_percent": 33
+        },
+        {
+          "handle": "@vibe_champion",
+          "days_needed": 2, 
+          "progress_percent": 33
+        }
+      ],
+      "total_progressing": 2
+    },
+    "7": {
+      "name": "Week Warrior 💪",
+      "users_progressing": [
+        {
+          "handle": "@demo_user",
+          "days_needed": 6,
+          "progress_percent": 14
+        },
+        {
+          "handle": "@vibe_champion",
+          "days_needed": 6,
+          "progress_percent": 14
+        }
+      ],
+      "total_progressing": 2
+    },
+    "14": {
+      "name": "Consistency King 🔥",
+      "users_progressing": [
+        {
+          "handle": "@demo_user",
+          "days_needed": 13,
+          "progress_percent": 7
+        },
+        {
+          "handle": "@vibe_champion", 
+          "days_needed": 13,
+          "progress_percent": 7
+        }
+      ],
+      "total_progressing": 2
+    },
+    "30": {
+      "name": "Monthly Legend 🏆",
+      "users_progressing": [
+        {
+          "handle": "@demo_user",
+          "days_needed": 29,
+          "progress_percent": 3
+        },
+        {
+          "handle": "@vibe_champion",
+          "days_needed": 29,
+          "progress_percent": 3
+        }
+      ],
+      "total_progressing": 2
+    },
+    "100": {
+      "name": "Century Club 👑",
+      "users_progressing": [
+        {
+          "handle": "@demo_user",
+          "days_needed": 99,
+          "progress_percent": 1
+        },
+        {
+          "handle": "@vibe_champion",
+          "days_needed": 99,
+          "progress_percent": 1
+        }
+      ],
+      "total_progressing": 2
+    }
+  },
+  "insights": [
+    "🎯 2 users close to Getting started! 🌱",
+    "⚡ Workshop consistency: 10/100"
+  ],
+  "generated_at": "2026-01-08T12:21:00.000Z",
+  "next_refresh": "2026-01-08T12:26:00.000Z"
+}
