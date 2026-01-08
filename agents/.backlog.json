@@ -2567,6 +2567,30 @@
       "assignedAt": "2026-01-08T14:36:32.387Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "CELEBRATION: Write \"Workshop Recovery - January 8th\" post celebrating our recent ships: Chess game ✅, Streak leaderboard ✅, User matching ✅, Ice breaker games ✅, Achievement badges ✅. Show we build FAST! Post to community board. Clear all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:41:52.000Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "ARCADE HUB: Build ONE simple Workshop Arcade dashboard showcasing your shipped games (Chess, Ice Breakers) with \"Play Now\" buttons. Make your games discoverable in one hub. Clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:41:58.060Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Critical infrastructure. Clear all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:42:03.835Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
