@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe workshop - Streak Engagement Insights</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.95;
+            font-size: 1.2em;
+        }
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            padding: 30px;
+        }
+        .insight-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #ff9a9e;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .insight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        .insight-card h3 {
+            margin: 0 0 20px 0;
+            color: #ff6b8a;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+        .metric-value {
+            font-size: 2.8em;
+            font-weight: 800;
+            color: #333;
+            margin: 15px 0;
+        }
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: span 2;
+        }
+        .prediction-card h3 {
+            color: white;
+        }
+        .prediction-value {
+            color: #ffd700;
+        }
+        .engagement-chart {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            grid-column: span 3;
+        }
+        .engagement-chart h3 {
+            margin: 0 0 25px 0;
+            color: #ff6b8a;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        .user-insights {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .user-row:last-child {
+            border-bottom: none;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            margin-right: 12px;
+        }
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .risk-level {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .risk-low { color: #27ae60; }
+        .risk-medium { color: #f39c12; }
+        .risk-high { color: #e74c3c; }
+        .prediction-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        .insight-subtitle {
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 10px;
+        }
+        .refresh-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 35px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 154, 158, 0.4);
+            font-weight: 600;
+            font-size: 1em;
+        }
+        .refresh-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 154, 158, 0.5);
+        }
+        @media (max-width: 1024px) {
+            .prediction-card, .engagement-chart {
+                grid-column: span 1;
+            }
+        }
+        @media (max-width: 768px) {
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+            .prediction-card, .engagement-chart {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔮 Engagement Insights</h1>
+            <p>AI-powered predictions and patterns for sustainable streak building</p>
+        </div>
+        
+        <div class="insights-grid">
+            <div class="insight-card">
+                <h3>🎯 Engagement Score</h3>
+                <div class="metric-value">8.5</div>
+                <p class="insight-subtitle">out of 10 based on current patterns</p>
+            </div>
+            
+            <div class="insight-card">
+                <h3>📈 Momentum Index</h3>
+                <div class="metric-value">+23%</div>
+                <p class="insight-subtitle">streak growth potential</p>
+            </div>
+            
+            <div class="insight-card">
+                <h3>⚠️ Risk Level</h3>
+                <div class="metric-value risk-low">LOW</div>
+                <p class="insight-subtitle">streak dropout probability</p>
+            </div>
+            
+            <div class="insight-card prediction-card">
+                <h3>🔮 7-Day Prediction</h3>
+                <div class="metric-value prediction-value">92%</div>
+                <p class="insight-subtitle">probability users will maintain streaks</p>
+            </div>
+            
+            <div class="engagement-chart">
+                <h3>📊 Engagement Pattern Analysis</h3>
+                <canvas id="engagementChart" width="400" height="200"></canvas>
+            </div>
+            
+            <div class="user-insights">
+                <h3>👥 Individual Risk Assessment</h3>
+                <div class="user-row">
+                    <div class="user-info">
+                        <div class="user-avatar">DU</div>
+                        <div>
+                            <div class="user-name">@demo_user</div>
+                            <div class="risk-level risk-low">Low risk • Strong start pattern</div>
+                        </div>
+                    </div>
+                    <div class="prediction-badge">95% likely to continue</div>
+                </div>
+                <div class="user-row">
+                    <div class="user-info">
+                        <div class="user-avatar">VC</div>
+                        <div>
+                            <div class="user-name">@vibe_champion</div>
+                            <div class="risk-level risk-low">Low risk • Consistent activity</div>
+                        </div>
+                    </div>
+                    <div class="prediction-badge">89% likely to continue</div>
+                </div>
+            </div>
+            
+            <div class="insight-card">
+                <h3>🏆 Optimal Streak Length</h3>
+                <div class="metric-value">14</div>
+                <p class="insight-subtitle">days for maximum engagement retention</p>
+            </div>
+            
+            <div class="insight-card">
+                <h3>⏰ Best Activity Time</h3>
+                <div class="metric-value">9AM</div>
+                <p class="insight-subtitle">PST for highest engagement</p>
+            </div>
+            
+            <div class="insight-card">
+                <h3>🔥 Streak Velocity</h3>
+                <div class="metric-value">+2.1</div>
+                <p class="insight-subtitle">average daily growth rate</p>
+            </div>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="refreshInsights()">
+        🔄 Refresh Insights
+    </button>
+    
+    <script>
+        // Engagement Pattern Chart
+        const ctx = document.getElementById('engagementChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM'],
+                datasets: [
+                    {
+                        label: 'Predicted Engagement',
+                        data: [2, 1, 8, 6, 7, 4],
+                        borderColor: '#ff9a9e',
+                        backgroundColor: 'rgba(255, 154, 158, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ff9a9e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    },
+                    {
+                        label: 'Actual Activity',
+                        data: [1, 0, 9, 5, 6, 3],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        title: {
+                            display: true,
+                            text: 'Activity Level'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time of Day'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+        
+        function refreshInsights() {
+            // Simulate updating metrics with slight variations
+            const engagementScore = (8.0 + Math.random() * 2).toFixed(1);
+            const momentum = ((20 + Math.random() * 10)).toFixed(0);
+            
+            document.querySelector('.insight-card .metric-value').textContent = engagementScore;
+            document.querySelectorAll('.insight-card .metric-value')[1].textContent = `+${momentum}%`;
+            
+            // Add a subtle animation
+            document.querySelectorAll('.insight-card').forEach(card => {
+                card.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    card.style.transform = 'scale(1)';
+                }, 200);
+            });
+        }
+        
+        // Auto-refresh insights every 10 minutes
+        setInterval(refreshInsights, 600000);
+        
+        // Add some interactive hover effects
+        document.querySelectorAll('.insight-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderLeftColor = '#ffd700';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.borderLeftColor = '#ff9a9e';
+            });
+        });
+    </script>
+</body>
+</html>
