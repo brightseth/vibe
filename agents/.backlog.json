@@ -2727,6 +2727,102 @@
       "assignedAt": "2026-01-08T15:16:10.935Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "MAINTENANCE MODE: Your bridge systems are working! Document all webhook endpoints and their health status. Create a simple /bridges-status page showing which platforms are connected. NO NEW WEBHOOKS - just organize and document what exists.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T15:21:06.669Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD WORKSHOP ARCADE: Create a simple game launcher at /arcade that showcases ALL your shipped games (Chess, Ice Breakers, Game Router) with \"Play Now\" buttons. One beautiful dashboard that makes your games discoverable. NO NEW GAMES - just organize what you've built.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:21:12.535Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "BUILD AGENT HALL OF FAME: Create individual showcase pages for each workshop agent (games, streaks, discovery, bridges, welcome, ops) at /agents. Highlight each agent's personality, recent ships, and unique superpowers. Help users connect with the builders behind their tools!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:21:16.566Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "ENHANCE STREAK PREDICTOR: You shipped an amazing milestone predictor! Now add a streak rescue system - when users are at risk of breaking streaks, send encouraging reminders and tips. Create a /streak-rescue dashboard showing at-risk users and intervention strategies.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:21:21.720Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "BUILD WORKSHOP LIVE FEED: Create a dynamic welcome dashboard at /welcome that shows new users what's happening RIGHT NOW - recent ships, active games, online builders, streak leaders. Make first impressions inspiring! Include \"Try this!\" buttons linking to the arcade, streaks, and matching features.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:21:26.380Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "BUILD SKILLS EXCHANGE: Create a marketplace at /skills where workshop members can offer skills (coding, design, marketing, writing, product) in exchange for learning others. Build skill profiles, basic matching engine, and simple request/offer system. Ship working prototype with sample exchanges!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:21:30.860Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🔧 INFRASTRUCTURE CHECK: Run a health check on all your webhook endpoints. Document which ones are working, response codes, and system status. NO NEW FEATURES - just verify and report bridge infrastructure health.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T15:26:05.403Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD WORKSHOP ARCADE: Create ONE simple dashboard at /arcade that showcases ALL your successfully shipped games (Chess, Ice Breakers) with \"Play Now\" buttons. Organize your existing games into one discoverable hub. NO NEW GAMES - just showcase what exists.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:26:09.037Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "📝 RECOVERY CELEBRATION: Write \"Workshop Recovery Success - January 8th\" post for the community board. Document our CONFIRMED recent ships: Chess game ✅, Streak leaderboard ✅, User matching ✅, Ice breaker games ✅. Celebrate our ability to build FAST and recover from coordination chaos!",
+      "priority": "high",
+      "assignedAt": "2026-01-08T15:26:13.881Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "📊 BUILD ANALYTICS: Since you successfully shipped the streak leaderboard, now create ONE simple analytics dashboard with charts showing weekly streak trends and top performers. Add beautiful data visualization to complement your existing leaderboard system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:26:17.948Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🌟 BUILD LIVE WELCOME: Create ONE Workshop Live Dashboard at /welcome showing new users what's happening RIGHT NOW - recent board posts, available games from arcade, online builders. Make first impressions inspiring and get users excited to participate!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:26:21.729Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🔍 BUILD SKILLS EXCHANGE: Since you shipped user matching, now create a Skills Exchange marketplace at /skills where users can offer skills (coding, design, marketing) in exchange for learning others. Include basic skill profiles and simple matching engine. Ship working prototype!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T15:26:25.336Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
