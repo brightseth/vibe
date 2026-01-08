@@ -1,88 +1,48 @@
 {
   "badges": {
-    "first_day": {
-      "name": "First Day",
-      "description": "Started your streak journey!",
-      "emoji": "🎉",
-      "threshold": 1
-    },
     "first_ship": {
-      "name": "First Ship",
-      "description": "Shipped your first project to the workshop",
-      "emoji": "🚀",
-      "threshold": 1
+      "name": "First Ship 🚢",
+      "description": "Made your first announcement to the board",
+      "threshold": 1,
+      "type": "ship_count"
     },
     "week_streak": {
-      "name": "Week Warrior",
-      "description": "Maintained a 7-day streak",
-      "emoji": "💪",
-      "threshold": 7
+      "name": "Week Warrior 💪",
+      "description": "Maintained a 7-day activity streak",
+      "threshold": 7,
+      "type": "streak"
     },
     "month_streak": {
-      "name": "Monthly Legend",
-      "description": "Sustained a 30-day streak",
-      "emoji": "🏆",
-      "threshold": 30
+      "name": "Monthly Legend 🏆",
+      "description": "Maintained a 30-day activity streak",
+      "threshold": 30,
+      "type": "streak"
     },
     "century_club": {
-      "name": "Century Club",
-      "description": "Achieved 100 days of consistency",
-      "emoji": "👑",
-      "threshold": 100
+      "name": "Century Club 👑",
+      "description": "Maintained a 100-day activity streak",
+      "threshold": 100,
+      "type": "streak"
     },
     "game_master": {
-      "name": "Game Master",
-      "description": "Built and shipped a game to the workshop",
-      "emoji": "🎮",
-      "threshold": 1
+      "name": "Game Master 🎮",
+      "description": "Participated in 5 workshop games",
+      "threshold": 5,
+      "type": "game_count"
     },
-    "vibe_keeper": {
-      "name": "Vibe Keeper",
-      "description": "Consistently maintains positive workshop energy",
-      "emoji": "✨",
-      "threshold": 14
+    "consistency_king": {
+      "name": "Consistency King 🔥",
+      "description": "Maintained a 14-day streak",
+      "threshold": 14,
+      "type": "streak"
+    },
+    "early_bird": {
+      "name": "Early Bird 🌅",
+      "description": "Active in the workshop for 3 consecutive days",
+      "threshold": 3,
+      "type": "streak"
     }
   },
-  "user_badges": {
-    "@demo_user": [
-      {
-        "badge_id": "first_day",
-        "name": "First Day",
-        "emoji": "🎉",
-        "description": "Started your streak journey!",
-        "awarded_at": "2026-01-08T22:50:00.000Z",
-        "streak_when_earned": 1,
-        "celebration_sent": true
-      }
-    ],
-    "@vibe_champion": [
-      {
-        "badge_id": "first_day",
-        "name": "First Day",
-        "emoji": "🎉",
-        "description": "Started your streak journey!",
-        "awarded_at": "2026-01-08T22:50:00.000Z",
-        "streak_when_earned": 1,
-        "celebration_sent": true
-      }
-    ]
-  },
-  "achievement_log": [
-    {
-      "user": "@demo_user",
-      "badge_id": "first_day",
-      "badge_name": "First Day",
-      "awarded_at": "2026-01-08T22:50:00.000Z",
-      "streak_when_earned": 1,
-      "celebration_sent": true
-    },
-    {
-      "user": "@vibe_champion",
-      "badge_id": "first_day",
-      "badge_name": "First Day",
-      "awarded_at": "2026-01-08T22:50:00.000Z",
-      "streak_when_earned": 1,
-      "celebration_sent": true
-    }
-  ]
+  "user_achievements": {},
+  "achievement_history": []
 }

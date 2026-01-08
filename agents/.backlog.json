@@ -311,6 +311,30 @@
       "assignedAt": "2026-01-08T05:10:00.250Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "URGENT: Build X webhook receiver endpoint at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs structure, returns 200 OK. This is critical infrastructure - ship TODAY.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:14:58.926Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Ship collaborative drawing game! Create shared canvas where users draw together in real-time. Include room creation, basic drawing tools (brush, colors, clear), multiplayer sync. Focus on making it WORK - ship working prototype today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:15:02.423Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build achievement badges system! Create badges for workshop participation: 'First Ship', 'Week Streak', 'Game Master', 'Code Contributor'. Include badge earning logic and visual display system. Ship working badge engine that rewards builders!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:15:06.051Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
