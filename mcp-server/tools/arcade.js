@@ -1,318 +1,173 @@
 /**
- * vibe arcade — Browse and launch games from the Workshop Arcade
- *
- * Comprehensive game launcher for all /vibe games
+ * vibe arcade — Browse and discover all /vibe games
+ * 
+ * Your gateway to 20+ games built by @games-agent!
  */
 
 const config = require('../config');
-const store = require('../store');
-const { createGamePayload, formatPayload } = require('../protocol');
 const { requireInit } = require('./_shared');
 
-// Import all game modules
+// Import arcade system
 const arcade = require('../games/arcade');
-const hangman = require('../games/hangman');
-const wordchain = require('../games/wordchain');
-const twentyquestions = require('../games/twentyquestions');
-const wordassociation = require('../games/wordassociation');
-const snake = require('../games/snake');
-const rockpaperscissors = require('../games/rockpaperscissors');
-const memory = require('../games/memory');
-const riddle = require('../games/riddle');
-const guessnumber = require('../games/guessnumber');
-const colorguess = require('../games/colorguess');
+const gameRoulette = require('../games/gameroulette');
+
+// Global arcade state (simple in-memory storage)
+let arcadeState = null;
+let rouletteState = null;
+
+function getArcadeState() {
+  if (!arcadeState) {
+    arcadeState = arcade.createInitialArcadeState();
+  }
+  return arcadeState;
+}
+
+function getRouletteState() {
+  if (!rouletteState) {
+    rouletteState = gameRoulette.createInitialGameRouletteState();
+  }
+  return rouletteState;
+}
 
 const definition = {
   name: 'vibe_arcade',
-  description: 'Browse and launch games from the Workshop Arcade. View game collection, get recommendations, or start playing!',
+  description: 'Browse and discover all /vibe games. Use "arcade" for main menu, "roulette" for random game',
   inputSchema: {
     type: 'object',
     properties: {
-      action: {
-        type: 'string',
-        description: 'What to do: browse, launch, recommend, help',
-        enum: ['browse', 'launch', 'recommend', 'help']
-      },
-      game: {
-        type: 'string',
-        description: 'Game to launch (hangman, guessnumber, wordchain, twentyquestions, etc.) - used with launch action'
-      },
       command: {
         type: 'string',
-        description: 'Arcade navigation command (category name, game name, back, main) - used with browse action'
-      },
-      difficulty: {
-        type: 'string',
-        description: 'Difficulty level for supported games',
-        enum: ['easy', 'medium', 'hard']
-      },
-      move: {
-        type: 'string',
-        description: 'Game move/input for continuing a game'
+        description: 'Arcade command: "main", category name, game name, "back", "roulette", "random", or mood',
+        default: 'main'
       }
-    }
+    },
+    required: []
   }
 };
-
-// Get user's arcade state or create new one
-async function getUserArcadeState(handle) {
-  const key = `arcade:${handle}`;
-  let state = await store.getGlobalData(key);
-  
-  if (!state) {
-    state = arcade.createInitialArcadeState();
-    await store.setGlobalData(key, state);
-  }
-  
-  return state;
-}
-
-// Save user's arcade state
-async function saveUserArcadeState(handle, state) {
-  const key = `arcade:${handle}`;
-  await store.setGlobalData(key, state);
-}
-
-// Get user's game state for a specific game
-async function getUserGameState(handle, gameType) {
-  const key = `game:${handle}:${gameType}`;
-  return await store.getGlobalData(key);
-}
-
-// Save user's game state
-async function saveUserGameState(handle, gameType, gameState) {
-  const key = `game:${handle}:${gameType}`;
-  await store.setGlobalData(key, gameState);
-}
-
-// Launch a single-player game
-async function launchGame(handle, gameType, difficulty = 'medium', move = null) {
-  let gameState = await getUserGameState(handle, gameType);
-  let isNewGame = false;
-
-  // Handle different game types
-  switch (gameType) {
-    case 'hangman':
-      if (!gameState || gameState.gameOver || move === 'new') {
-        gameState = hangman.createInitialHangmanState(difficulty);
-        isNewGame = true;
-      }
-      
-      if (move && move !== 'new') {
-        const result = hangman.makeGuess(gameState, move);
-        if (result.error) {
-          return { display: `❌ ${result.error}` };
-        }
-        gameState = result.gameState;
-      }
-      
-      await saveUserGameState(handle, gameType, gameState);
-      
-      let display = hangman.formatHangmanDisplay(gameState);
-      if (isNewGame) {
-        display = `🎯 **Started new Hangman game!**\n\n${display}`;
-        const hint = hangman.getHint(gameState.word, gameState.difficulty);
-        display += `\n\n💡 **Hint:** ${hint}`;
-      }
-      
-      if (!gameState.gameOver) {
-        display += '\n\n*Use `vibe arcade --action launch --game hangman --move X` to guess a letter*';
-      } else {
-        display += '\n\n*Use `vibe arcade --action launch --game hangman --move new` to start again*';
-      }
-      
-      return { display };
-
-    case 'guessnumber':
-      if (!gameState || gameState.gameOver || move === 'new') {
-        gameState = guessnumber.createInitialGuessNumberState(difficulty);
-        isNewGame = true;
-      }
-      
-      if (move && move !== 'new' && !isNaN(move)) {
-        const result = guessnumber.makeGuess(gameState, move);
-        if (result.error) {
-          return { display: `❌ ${result.error}` };
-        }
-        gameState = result.gameState;
-      }
-      
-      await saveUserGameState(handle, gameType, gameState);
-      
-      let display = guessnumber.formatGuessNumberDisplay(gameState);
-      if (isNewGame) {
-        display = `🔢 **Started new Number Guessing game!**\n\n${display}`;
-      }
-      
-      if (!gameState.gameOver) {
-        display += '\n\n*Use `vibe arcade --action launch --game guessnumber --move 42` to make a guess*';
-      } else {
-        display += '\n\n*Use `vibe arcade --action launch --game guessnumber --move new` to start again*';
-      }
-      
-      return { display };
-
-    case 'wordchain':
-      if (!gameState || gameState.gameOver || move === 'new') {
-        gameState = wordchain.createInitialWordChainState();
-        isNewGame = true;
-      }
-      
-      if (move && move !== 'new') {
-        // For solo word chain, player alternates as both players
-        const isPlayer1Move = gameState.currentPlayer === 'player1';
-        const result = wordchain.makeMove(gameState, move, isPlayer1Move);
-        if (result.error) {
-          return { display: `❌ ${result.error}` };
-        }
-        gameState = result.gameState;
-      }
-      
-      await saveUserGameState(handle, gameType, gameState);
-      
-      let display = wordchain.formatWordChainDisplay(gameState);
-      if (isNewGame) {
-        display = `🔗 **Started new Word Chain game!**\n\n${display}`;
-        display += '\n\n*Build a chain where each word starts with the last letter of the previous word*';
-      }
-      
-      if (!gameState.gameOver) {
-        display += '\n\n*Use `vibe arcade --action launch --game wordchain --move apple` to add a word*';
-      } else {
-        display += '\n\n*Use `vibe arcade --action launch --game wordchain --move new` to start again*';
-      }
-      
-      return { display };
-
-    case 'twentyquestions':
-      if (!gameState || gameState.gameOver || move === 'new') {
-        gameState = twentyquestions.createInitialTwentyQuestionsState('guess', null, difficulty);
-        isNewGame = true;
-      }
-      
-      if (move && move !== 'new') {
-        const result = twentyquestions.askQuestion(gameState, move);
-        if (result.error) {
-          return { display: `❌ ${result.error}` };
-        }
-        gameState = result.gameState;
-      }
-      
-      await saveUserGameState(handle, gameType, gameState);
-      
-      let display = twentyquestions.formatTwentyQuestionsDisplay(gameState);
-      if (isNewGame) {
-        display = `❓ **Started new 20 Questions game!**\n\nI'm thinking of something in the **${gameState.category}** category.\n\n${display}`;
-      }
-      
-      if (!gameState.gameOver) {
-        display += '\n\n*Use `vibe arcade --action launch --game twentyquestions --move "Is it alive?"` to ask a question*';
-      } else {
-        display += '\n\n*Use `vibe arcade --action launch --game twentyquestions --move new` to start again*';
-      }
-      
-      return { display };
-
-    // Add more games here as needed
-    default:
-      // Check if it's a game that exists in the arcade but not integrated yet
-      if (arcade.GAMES[gameType]) {
-        const game = arcade.GAMES[gameType];
-        return { 
-          display: `🎮 **${game.name}** is available in the arcade but not yet integrated with the launcher.\n\n${game.icon} *${game.description}*\n\n**Currently supported:** hangman, guessnumber, wordchain, twentyquestions\n\n🚀 More games coming soon to the launcher!` 
-        };
-      } else {
-        return { display: `❌ Game "${gameType}" not found in the arcade.\n\nUse \`vibe arcade --action browse\` to see available games!` };
-      }
-  }
-}
-
-// Get a game recommendation
-function getRecommendation(category = null) {
-  if (category) {
-    const games = arcade.getGamesByCategory(category);
-    if (games.length === 0) {
-      return null;
-    }
-    const game = games[Math.floor(Math.random() * games.length)];
-    return game;
-  } else {
-    return arcade.getRandomRecommendation();
-  }
-}
 
 async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const handle = config.getHandle();
-  const { action = 'browse', game, command, difficulty = 'medium', move } = args;
+  const myHandle = config.getHandle();
+  const command = args.command || 'main';
+  const cmd = command.toLowerCase().trim();
 
-  switch (action) {
-    case 'browse':
-      // Arcade browsing interface
-      let arcadeState = await getUserArcadeState(handle);
-      
-      if (command) {
-        const result = arcade.handleArcadeCommand(arcadeState, command);
-        if (result.error) {
-          return { display: `❌ ${result.error}` };
-        }
-        arcadeState = result.gameState;
-        await saveUserArcadeState(handle, arcadeState);
-      }
-      
-      const display = arcade.formatArcadeDisplay(arcadeState);
-      return { display };
-
-    case 'launch':
-      if (!game) {
-        return { display: '❌ Please specify a game to launch. Use `--game hangman` for example.\n\n**Available:** hangman, guessnumber, wordchain, twentyquestions' };
-      }
-      
-      return await launchGame(handle, game, difficulty, move);
-
-    case 'recommend':
-      const recommendation = getRecommendation();
-      let recDisplay = `🎯 **Game Recommendation**\n\n`;
-      recDisplay += `${recommendation.icon} **${recommendation.name}**\n`;
-      recDisplay += `*${recommendation.description}*\n\n`;
-      recDisplay += `**Category:** ${arcade.CATEGORIES[recommendation.category].name}\n`;
-      recDisplay += `**Players:** ${recommendation.players}\n`;
-      recDisplay += `**Difficulty:** ${recommendation.difficulty}\n\n`;
-      
-      if (['hangman', 'guessnumber', 'wordchain', 'twentyquestions'].includes(recommendation.id)) {
-        recDisplay += `✅ **Ready to play!** Use \`vibe arcade --action launch --game ${recommendation.id}\``;
-      } else {
-        recDisplay += `🚧 *This game is in the arcade but not yet available in the launcher.*`;
-      }
-      
-      return { display: recDisplay };
-
-    case 'help':
-      let helpDisplay = `🎮 **Workshop Arcade Help**\n\n`;
-      helpDisplay += `**Browse games:** \`vibe arcade --action browse\`\n`;
-      helpDisplay += `**Navigate arcade:** \`vibe arcade --action browse --command classic\`\n`;
-      helpDisplay += `**Launch game:** \`vibe arcade --action launch --game hangman\`\n`;
-      helpDisplay += `**Make moves:** \`vibe arcade --action launch --game hangman --move A\`\n`;
-      helpDisplay += `**Get recommendation:** \`vibe arcade --action recommend\`\n\n`;
-      
-      helpDisplay += `**🎯 Ready to launch:**\n`;
-      helpDisplay += `• **Hangman** - guess the word letter by letter\n`;
-      helpDisplay += `• **Number Guessing** - find the secret number\n`;
-      helpDisplay += `• **Word Chain** - build chains of connected words\n`;
-      helpDisplay += `• **20 Questions** - guess what I'm thinking with yes/no questions\n\n`;
-      
-      helpDisplay += `**🚧 In arcade (${Object.keys(arcade.GAMES).length - 4} more games):**\n`;
-      helpDisplay += `Chess, Tic-Tac-Toe, Snake, Memory, Drawing, and more!\n\n`;
-      
-      helpDisplay += `**🚀 Coming soon:** Full integration with all arcade games!`;
-      
-      return { display: helpDisplay };
-
-    default:
-      return { display: '❌ Invalid action. Use: browse, launch, recommend, or help' };
+  // Handle roulette and random commands
+  if (cmd === 'roulette' || cmd === 'random' || cmd === 'surprise') {
+    const rState = getRouletteState();
+    const result = gameRoulette.getRandomGame(rState, myHandle);
+    
+    if (result.error) {
+      return { display: `🎲 **Game Roulette Error:** ${result.error}` };
+    }
+    
+    rouletteState = result.gameState;
+    const display = gameRoulette.formatRouletteDisplay(result.gameState, result.recommendation, myHandle);
+    
+    return { display };
   }
+
+  // Handle mood-based recommendations
+  const moods = ['chill', 'competitive', 'social', 'quick', 'thoughtful', 'creative'];
+  if (moods.includes(cmd)) {
+    const rState = getRouletteState();
+    const result = gameRoulette.getSmartRecommendation(rState, myHandle, cmd);
+    
+    if (result.success) {
+      rouletteState = result.gameState;
+      let display = `🎯 **${cmd.toUpperCase()} MOOD MATCH**\n\n`;
+      display += gameRoulette.formatRouletteDisplay(result.gameState, result.recommendation, myHandle);
+      return { display };
+    }
+  }
+
+  // Handle special arcade commands
+  if (cmd === 'stats') {
+    const totalGames = Object.keys(arcade.GAMES).length;
+    const categories = Object.keys(arcade.CATEGORIES).length;
+    
+    let display = `🎮 **Workshop Arcade Stats**\n\n`;
+    display += `**Total Games:** ${totalGames}\n`;
+    display += `**Categories:** ${categories}\n\n`;
+    
+    // Show category breakdown
+    Object.entries(arcade.CATEGORIES).forEach(([id, category]) => {
+      const gameCount = arcade.getGamesByCategory(id).length;
+      display += `${category.icon} ${category.name}: ${gameCount} games\n`;
+    });
+    
+    // Show roulette stats if available
+    const rStats = gameRoulette.getRouletteStats(getRouletteState());
+    if (rStats) {
+      display += `\n**Your Session:**\n`;
+      display += `• Recommendations: ${rStats.totalRecommendations}\n`;
+      if (rStats.favoriteCategory) {
+        display += `• Favorite category: ${rStats.favoriteCategory}\n`;
+      }
+    }
+    
+    return { display };
+  }
+
+  if (cmd === 'help') {
+    let display = `🎮 **Workshop Arcade Help**\n\n`;
+    display += `**Navigation:**\n`;
+    display += `• \`arcade\` or \`arcade main\` - Main menu\n`;
+    display += `• \`arcade classic\` - Browse category\n`;
+    display += `• \`arcade chess\` - Game info\n`;
+    display += `• \`arcade back\` - Go back\n\n`;
+    display += `**Discovery:**\n`;
+    display += `• \`arcade roulette\` - Random game\n`;
+    display += `• \`arcade competitive\` - Mood-based pick\n`;
+    display += `• \`arcade stats\` - View arcade stats\n\n`;
+    display += `**Moods:** chill, competitive, social, quick, thoughtful, creative\n`;
+    display += `**Categories:** classic, word, puzzle, action, creative, social`;
+    
+    return { display };
+  }
+
+  // Handle regular arcade navigation
+  const aState = getArcadeState();
+  
+  if (cmd === 'main' || cmd === '' || cmd === 'arcade') {
+    // Reset to main menu
+    const result = arcade.navigateBack(aState);
+    if (result.success) {
+      arcadeState = result.gameState;
+    }
+    const display = arcade.formatArcadeDisplay(getArcadeState());
+    return { display };
+  }
+  
+  // Handle arcade navigation command
+  const result = arcade.handleArcadeCommand(aState, command);
+  
+  if (result.error) {
+    // Try partial matches or suggestions
+    let display = `❌ ${result.error}\n\n`;
+    
+    // Show available options based on current view
+    if (aState.view === 'main') {
+      display += `Try: category names (classic, word, puzzle, action, creative, social) or game names\n`;
+      display += `Or use: \`arcade roulette\` for a random game recommendation!`;
+    } else if (aState.view === 'category') {
+      const games = arcade.getGamesByCategory(aState.selectedCategory);
+      const gameNames = games.slice(0, 4).map(g => g.name).join(', ');
+      display += `Try: ${gameNames}... or \`arcade back\``;
+    } else {
+      display += `Try: \`arcade back\` or \`arcade main\``;
+    }
+    
+    return { display };
+  }
+  
+  if (result.success) {
+    arcadeState = result.gameState;
+  }
+  
+  const display = arcade.formatArcadeDisplay(getArcadeState());
+  return { display };
 }
 
 module.exports = { definition, handler };
