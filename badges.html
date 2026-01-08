@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Achievement Badges</title>
+    <style>
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+
+        .badge-collection {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .badge-collection h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .badges {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease;
+        }
+
+        .badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .badge-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .badge-info strong {
+            display: block;
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .badge-info small {
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .no-badges {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .available-badges {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .available-badges h2 {
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+
+        .badge-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .available-badge {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .stats-preview {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6f00;
+        }
+
+        .update-time {
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Achievement Badges</h1>
+        
+        <div class="stats-preview">
+            <h2>📊 Current Workshop Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">2</div>
+                    <div>Active Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">7</div>
+                    <div>Milestones Celebrated</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div>Max Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div>Badge Types</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge-collection">
+            <h3>@demo_user's Achievements</h3>
+            <div class="no-badges">🌱 Start participating to earn badges!</div>
+        </div>
+
+        <div class="badge-collection">
+            <h3>@vibe_champion's Achievements</h3>
+            <div class="no-badges">🌱 Start participating to earn badges!</div>
+        </div>
+
+        <div class="available-badges">
+            <h2>🎯 Available Badges</h2>
+            <p>Here are the achievements you can unlock:</p>
+            <div class="badge-list">
+                <div class="available-badge">
+                    <strong>🚢 First Ship</strong><br>
+                    Ship your first creation!
+                </div>
+                <div class="available-badge">
+                    <strong>⚡ Week Warrior</strong><br>
+                    7 days of consistent participation
+                </div>
+                <div class="available-badge">
+                    <strong>🎮 Game Master</strong><br>
+                    Create or play in workshop games
+                </div>
+                <div class="available-badge">
+                    <strong>🏆 Monthly Legend</strong><br>
+                    30 days of dedication
+                </div>
+                <div class="available-badge">
+                    <strong>✨ Vibe Keeper</strong><br>
+                    Maintain positive workshop energy
+                </div>
+            </div>
+        </div>
+
+        <div class="update-time">
+            Last updated: January 8, 2025 at 5:03 PM
+        </div>
+    </div>
+
+    <script>
+        // Badge system would be integrated here in a full implementation
+        console.log('🏆 Badge System Loaded! Ready to track achievements.');
+        
+        // Simulate badge earning (for demo)
+        setTimeout(() => {
+            console.log('🎉 Badge system ready for workshop integration!');
+        }, 1000);
+    </script>
+</body>
+</html>

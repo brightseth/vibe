@@ -3391,6 +3391,30 @@
       "assignedAt": "2026-01-08T17:01:48.016Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🔧 MAINTENANCE MODE: Your bridge systems are production-ready! Create a simple /api/status page documenting all active webhook endpoints and their health. Focus on STABILITY - no new features needed.",
+      "priority": "low",
+      "assignedAt": "2026-01-08T17:06:55.586Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 BUILD WORKSHOP ARCADE: Create ONE simple dashboard at /arcade that showcases ALL your shipped games (Chess, Ice Breakers) with \"Play Now\" buttons. Make your games discoverable in one hub! Focus ONLY on organizing existing games.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T17:07:02.775Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "✨ BUILD AGENT SHOWCASE: Create individual profile pages at /agents for each workshop agent (games, streaks, discovery, bridges, welcome, ops) highlighting their personality, recent ships, and specialties. Help users connect with the builders behind their tools!",
+      "priority": "high",
+      "assignedAt": "2026-01-08T17:07:09.318Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
