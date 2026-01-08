@@ -1,271 +1,284 @@
 #!/usr/bin/env python3
 """
-⚡ Critical Day 2 Prediction Analytics
-Built by @streaks-agent - January 8, 2026
+🎯 Critical Day 2 Transition Analytics
+Built by @streaks-agent for the most important retention period
 
-Special analysis for the critical Day 1→Day 2 streak transition.
-Both users are at the most vulnerable point for streak abandonment.
+Analyzes users at the Day 1 → Day 2 transition and provides
+actionable insights for maintaining engagement momentum.
 """
 
 import json
-import os
 from datetime import datetime, timedelta
+import os
 
-class CriticalDay2Predictor:
+class CriticalDay2Analytics:
     def __init__(self):
-        self.users = {
-            "@demo_user": {
-                "current_streak": 1,
-                "best_streak": 1,
-                "badges": ["🌱 First Day"],
-                "last_activity": "2026-01-08",
-                "badge_count": 1,
-                "engagement_momentum": "starting"
-            },
-            "@vibe_champion": {
-                "current_streak": 1,
-                "best_streak": 1,
-                "badges": ["🌱 First Day"],
-                "last_activity": "2026-01-08",
-                "badge_count": 1,
-                "engagement_momentum": "starting"
-            }
-        }
+        self.streaks_file = "data/streaks.json"
+        self.achievements_file = "achievements.json"
+        self.current_time = datetime.now()
         
-    def analyze_day2_vulnerability(self):
-        """Analyze specific Day 1→Day 2 transition risks"""
-        analysis = {
-            "critical_window": "Next 24 hours",
-            "risk_level": "HIGH",
-            "vulnerability_factors": [
-                "Novelty effect wearing off",
-                "Habit not yet formed (needs 3+ days)", 
-                "No peer pressure yet established",
-                "Achievement system still new",
-                "Weekend engagement patterns unknown"
-            ],
-            "protective_factors": [
-                "Both users achieved First Day badge ✅",
-                "Clear next milestone (Early Bird at 3 days)",
-                "Automated celebration system active",
-                "Strong gamification foundation",
-                "Peer matching (both at same level)"
-            ]
-        }
-        
-        # Calculate specific risk scores
-        for username in self.users:
-            base_day2_risk = 0.4  # 40% base risk for Day 2 transition
-            protective_bonus = -0.1  # Badge achievement reduces risk
-            peer_support_bonus = -0.05  # Same-level peer reduces risk
+    def load_data(self):
+        """Load streak and achievement data"""
+        try:
+            with open(self.streaks_file, 'r') as f:
+                self.streaks = json.load(f)
+        except FileNotFoundError:
+            self.streaks = {}
             
-            total_risk = max(0.1, base_day2_risk + protective_bonus + peer_support_bonus)
-            
-            analysis[f"{username}_risk"] = {
-                "day2_survival_probability": f"{(1-total_risk)*100:.0f}%",
-                "risk_score": f"{total_risk*100:.0f}%",
-                "key_factor": "Badge momentum + peer matching",
-                "recommendation_priority": "GENTLE_ENCOURAGEMENT"
-            }
-        
-        return analysis
+        try:
+            with open(self.achievements_file, 'r') as f:
+                self.achievements = json.load(f)
+        except FileNotFoundError:
+            self.achievements = {"user_achievements": {}}
     
-    def predict_early_bird_achievement(self):
-        """Predict Early Bird badge achievement likelihood"""
-        predictions = {}
+    def analyze_day2_risks(self):
+        """Identify users at critical Day 2 transition"""
+        critical_users = []
         
-        for username in self.users:
-            # Day 2 survival rate impacts Day 3 achievement
-            day2_survival = 0.75  # 75% chance based on badge achievement
-            day3_continuation = 0.8  # If they make Day 2, 80% chance for Day 3
+        for handle, data in self.streaks.items():
+            current_streak = data.get('current_streak', 0)
+            last_activity = data.get('last_active')
             
-            early_bird_probability = day2_survival * day3_continuation
-            
-            predictions[username] = {
-                "early_bird_probability": f"{early_bird_probability*100:.0f}%",
-                "predicted_achievement_date": "2026-01-10",
-                "days_remaining": 2,
-                "confidence_level": "MEDIUM-HIGH",
-                "key_milestone": "First major habit formation badge",
-                "celebration_impact": "HIGH - First real consistency achievement"
-            }
+            # Users with exactly 1 day streak are at Day 1 → Day 2 transition
+            if current_streak == 1:
+                risk_level = self.calculate_day2_risk(handle, last_activity)
+                critical_users.append({
+                    'handle': handle,
+                    'current_streak': current_streak,
+                    'last_activity': last_activity,
+                    'risk_level': risk_level,
+                    'has_first_day_badge': self.has_first_day_badge(handle),
+                    'hours_since_last_activity': self.hours_since_activity(last_activity),
+                    'next_milestone': 'Early Bird 🌅 (3 days)',
+                    'days_to_milestone': 2,
+                    'encouragement_priority': risk_level
+                })
         
-        return predictions
+        return sorted(critical_users, key=lambda x: x['risk_level'], reverse=True)
     
-    def generate_engagement_strategy(self):
-        """Generate Day 2 specific engagement strategy"""
-        strategy = {
-            "timing": "Next 12-24 hours",
-            "approach": "Gentle encouragement without pressure",
-            "tactics": [
-                {
-                    "name": "Subtle Progress Reminder",
-                    "description": "DM: '1 day down, Early Bird badge in sight! 🌅'",
-                    "timing": "When user comes online",
-                    "psychological_principle": "Progress visualization"
-                },
-                {
-                    "name": "Peer Connection",
-                    "description": "Highlight that both users are at same level",
-                    "timing": "If both online simultaneously", 
-                    "psychological_principle": "Social proof & competition"
-                },
-                {
-                    "name": "Low-Pressure Check-in",
-                    "description": "Simple presence detection without explicit streak mention",
-                    "timing": "Automatic via observe_vibe()",
-                    "psychological_principle": "Reduce performance anxiety"
-                },
-                {
-                    "name": "Early Bird Preview",
-                    "description": "Show what Early Bird badge looks like",
-                    "timing": "After successful Day 2",
-                    "psychological_principle": "Goal visualization"
-                }
-            ]
+    def calculate_day2_risk(self, handle, last_activity):
+        """Calculate risk score for Day 2 dropout (0-100)"""
+        if not last_activity:
+            return 100  # No activity data = highest risk
+        
+        try:
+            last_active = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+            hours_inactive = (self.current_time - last_active).total_seconds() / 3600
+            
+            # Risk increases with time since last activity
+            if hours_inactive < 12:
+                return 20  # Very low risk - active recently
+            elif hours_inactive < 24:
+                return 40  # Low risk - within 24h
+            elif hours_inactive < 36:
+                return 70  # Moderate risk - over 24h
+            else:
+                return 90  # High risk - over 36h without activity
+                
+        except Exception:
+            return 60  # Default moderate risk if parsing fails
+    
+    def has_first_day_badge(self, handle):
+        """Check if user has earned First Day badge"""
+        clean_handle = handle.replace('@', '')
+        user_badges = self.achievements.get('user_achievements', {}).get(clean_handle, [])
+        return any(badge.get('id') == 'first_day' for badge in user_badges)
+    
+    def hours_since_activity(self, last_activity):
+        """Calculate hours since last activity"""
+        if not last_activity:
+            return None
+        
+        try:
+            last_active = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+            return round((self.current_time - last_active).total_seconds() / 3600, 1)
+        except Exception:
+            return None
+    
+    def generate_engagement_recommendations(self, critical_users):
+        """Generate specific recommendations for @streaks-agent"""
+        recommendations = []
+        
+        for user in critical_users:
+            handle = user['handle']
+            risk = user['risk_level']
+            hours_inactive = user['hours_since_last_activity'] or 0
+            
+            if risk >= 80:
+                recommendations.append({
+                    'priority': 'HIGH',
+                    'handle': handle,
+                    'action': 'gentle_check_in',
+                    'message': f"Hey {handle}! 🌱 Your Day 1 streak is looking great - just wanted to check how the workshop is feeling for you so far. Early Bird badge is just 2 days away! 🌅",
+                    'timing': 'immediate',
+                    'reason': f'High risk ({risk}%) - {hours_inactive}h inactive'
+                })
+            elif risk >= 50:
+                recommendations.append({
+                    'priority': 'MEDIUM', 
+                    'handle': handle,
+                    'action': 'milestone_reminder',
+                    'message': f"Morning {handle}! 🌅 You're doing great with your Day 1 streak. Early Bird badge unlocks at 3 days - that's tomorrow if you keep it up! 💪",
+                    'timing': 'when_online',
+                    'reason': f'Moderate risk ({risk}%) - Day 2 critical period'
+                })
+            else:
+                recommendations.append({
+                    'priority': 'LOW',
+                    'handle': handle, 
+                    'action': 'positive_reinforcement',
+                    'message': f"Love seeing you active, {handle}! 🔥 Day 1 complete, Early Bird badge incoming in 2 days. You've got this!",
+                    'timing': 'natural_interaction',
+                    'reason': f'Low risk ({risk}%) - maintain positive momentum'
+                })
+        
+        return recommendations
+    
+    def calculate_community_day2_health(self, critical_users):
+        """Calculate overall Day 2 transition health score"""
+        if not critical_users:
+            return {'score': 100, 'status': 'excellent', 'message': 'No users at Day 2 risk transition'}
+        
+        avg_risk = sum(user['risk_level'] for user in critical_users) / len(critical_users)
+        users_with_badges = sum(1 for user in critical_users if user['has_first_day_badge'])
+        badge_rate = (users_with_badges / len(critical_users)) * 100
+        
+        # Health score based on inverse of risk + badge completion
+        health_score = max(0, min(100, (100 - avg_risk) * 0.7 + badge_rate * 0.3))
+        
+        if health_score >= 80:
+            status = 'excellent'
+            message = f'{len(critical_users)} users navigating Day 2 successfully'
+        elif health_score >= 60:
+            status = 'good'
+            message = f'{len(critical_users)} users need gentle Day 2 support'
+        elif health_score >= 40:
+            status = 'concerning'
+            message = f'{len(critical_users)} users at moderate Day 2 risk'
+        else:
+            status = 'critical'
+            message = f'{len(critical_users)} users at high Day 2 dropout risk'
+        
+        return {
+            'score': round(health_score, 1),
+            'status': status,
+            'message': message,
+            'users_at_risk': len(critical_users),
+            'avg_risk_level': round(avg_risk, 1),
+            'badge_completion_rate': round(badge_rate, 1)
         }
-        
-        return strategy
     
-    def identify_success_indicators(self):
-        """Define what Day 2 success looks like"""
-        indicators = {
-            "primary_success": "Both users come online tomorrow (maintain streak)",
-            "secondary_success": "At least one user maintains streak",
-            "bonus_success": "Users engage with each other",
-            "system_success": "Automated detection and encouragement works",
-            
-            "metrics_to_track": [
-                "observe_vibe() detections in next 24h",
-                "Streak updates triggered automatically", 
-                "Early Bird badge achievement on Day 3",
-                "User retention through critical window",
-                "Celebration system effectiveness"
-            ],
-            
-            "failure_signals": [
-                "No activity detected for 24+ hours",
-                "Users online but streak not updating",
-                "Achievement system not triggering",
-                "No engagement between users"
-            ]
-        }
-        
-        return indicators
-    
-    def generate_report(self):
-        """Generate comprehensive Day 2 analysis report"""
-        timestamp = datetime.now()
+    def generate_analytics_report(self):
+        """Generate comprehensive Day 2 analytics report"""
+        self.load_data()
+        critical_users = self.analyze_day2_risks()
+        recommendations = self.generate_engagement_recommendations(critical_users)
+        community_health = self.calculate_community_day2_health(critical_users)
         
         report = {
-            "title": "🎯 Critical Day 2 Prediction Analysis",
-            "generated_by": "@streaks-agent",
-            "timestamp": timestamp.isoformat(),
-            "analysis_window": "Next 24 hours (Day 1→Day 2 transition)",
-            
-            "executive_summary": {
-                "situation": "Both users at critical Day 1→Day 2 streak transition",
-                "risk_level": "MODERATE-HIGH (normal for this phase)",
-                "success_probability": "75% - Strong foundation with badges earned",
-                "key_factor": "Gentle encouragement + peer support",
-                "recommendation": "Active monitoring with light-touch engagement"
-            },
-            
-            "vulnerability_analysis": self.analyze_day2_vulnerability(),
-            "early_bird_predictions": self.predict_early_bird_achievement(),
-            "engagement_strategy": self.generate_engagement_strategy(),
-            "success_indicators": self.identify_success_indicators(),
-            
-            "immediate_actions": [
-                "✅ Observe user activity via observe_vibe()",
-                "✅ Auto-update streaks when users detected online",
-                "✅ Send gentle encouragement DMs if appropriate",
-                "✅ Monitor for peer interaction opportunities",
-                "✅ Prepare Early Bird badge celebration for Day 3"
-            ],
-            
-            "predicted_outcomes": {
-                "best_case": "Both users maintain streaks → Early Bird badges Jan 10",
-                "likely_case": "At least one user continues → First real milestone",
-                "worst_case": "One/both drop off → System learns retention patterns"
-            }
+            'timestamp': self.current_time.isoformat(),
+            'analysis_focus': 'Critical Day 2 Transition Period',
+            'users_at_day2_transition': len(critical_users),
+            'critical_users': critical_users,
+            'engagement_recommendations': recommendations,
+            'community_health': community_health,
+            'key_insights': self.generate_key_insights(critical_users, community_health),
+            'streaks_agent_priorities': self.generate_agent_priorities(recommendations)
         }
         
         return report
     
-    def save_report(self, report):
-        """Save analysis report"""
-        filename = "critical_day2_analysis.json"
-        with open(filename, 'w') as f:
-            json.dump(report, f, indent=2)
+    def generate_key_insights(self, critical_users, health):
+        """Generate actionable insights"""
+        insights = []
         
-        print(f"📊 Day 2 analysis saved to {filename}")
-        return filename
+        if not critical_users:
+            insights.append("No users currently at Day 2 transition - focus on general engagement")
+        else:
+            high_risk = [u for u in critical_users if u['risk_level'] >= 70]
+            if high_risk:
+                insights.append(f"{len(high_risk)} users need immediate Day 2 support")
+            
+            badges_complete = sum(1 for u in critical_users if u['has_first_day_badge'])
+            if badges_complete == len(critical_users):
+                insights.append("Perfect First Day badge completion - good foundation")
+            else:
+                insights.append(f"{len(critical_users) - badges_complete} users missing First Day badges")
+            
+            avg_inactive = sum(u['hours_since_last_activity'] or 0 for u in critical_users) / len(critical_users)
+            if avg_inactive > 24:
+                insights.append(f"Average {avg_inactive:.1f}h since activity - engagement window closing")
+            else:
+                insights.append(f"Recent activity ({avg_inactive:.1f}h avg) - good engagement window")
+        
+        return insights
+    
+    def generate_agent_priorities(self, recommendations):
+        """Generate prioritized action list for @streaks-agent"""
+        high_priority = [r for r in recommendations if r['priority'] == 'HIGH']
+        medium_priority = [r for r in recommendations if r['priority'] == 'MEDIUM']
+        
+        priorities = []
+        
+        if high_priority:
+            priorities.append({
+                'action': 'immediate_outreach',
+                'users': [r['handle'] for r in high_priority],
+                'count': len(high_priority),
+                'message': 'Send gentle check-in DMs to high-risk Day 2 users'
+            })
+        
+        if medium_priority:
+            priorities.append({
+                'action': 'observe_and_encourage',
+                'users': [r['handle'] for r in medium_priority],
+                'count': len(medium_priority),
+                'message': 'Monitor via observe_vibe() and encourage when online'
+            })
+        
+        priorities.append({
+            'action': 'prepare_early_bird_celebrations',
+            'users': [r['handle'] for r in recommendations],
+            'count': len(recommendations),
+            'message': 'Prepare Early Bird badge celebrations for Day 3 achievement'
+        })
+        
+        return priorities
 
 def main():
-    print("🎯 Critical Day 2 Prediction Analytics")
+    """Run Day 2 analytics and output report"""
+    analytics = CriticalDay2Analytics()
+    report = analytics.generate_analytics_report()
+    
+    # Save detailed report
+    with open('day2_transition_report.json', 'w') as f:
+        json.dump(report, f, indent=2, default=str)
+    
+    # Print executive summary for @streaks-agent
+    print("🎯 CRITICAL DAY 2 TRANSITION ANALYTICS")
     print("=" * 50)
-    print("Both @demo_user and @vibe_champion at Day 1→Day 2 transition")
+    print(f"⏰ Analysis Time: {report['timestamp']}")
+    print(f"👥 Users at Day 2 Transition: {report['users_at_day2_transition']}")
+    print(f"📊 Community Health: {report['community_health']['score']}/100 ({report['community_health']['status']})")
+    print(f"💡 Status: {report['community_health']['message']}")
     print()
     
-    predictor = CriticalDay2Predictor()
-    report = predictor.generate_report()
-    
-    # Display key insights
-    print("📋 EXECUTIVE SUMMARY")
-    print("-" * 30)
-    summary = report["executive_summary"]
-    print(f"Situation: {summary['situation']}")
-    print(f"Risk Level: {summary['risk_level']}")
-    print(f"Success Probability: {summary['success_probability']}")
-    print(f"Key Factor: {summary['key_factor']}")
+    print("🔥 KEY INSIGHTS:")
+    for insight in report['key_insights']:
+        print(f"  • {insight}")
     print()
     
-    print("⚡ VULNERABILITY ANALYSIS")
-    print("-" * 30)
-    vuln = report["vulnerability_analysis"]
-    print(f"Critical Window: {vuln['critical_window']}")
-    print(f"Overall Risk: {vuln['risk_level']}")
-    print()
-    print("Risk Factors:")
-    for factor in vuln["vulnerability_factors"][:3]:
-        print(f"  ❌ {factor}")
-    print()
-    print("Protective Factors:")
-    for factor in vuln["protective_factors"][:3]:
-        print(f"  ✅ {factor}")
+    print("🎯 IMMEDIATE PRIORITIES FOR @streaks-agent:")
+    for i, priority in enumerate(report['streaks_agent_priorities'], 1):
+        print(f"  {i}. {priority['message']} ({priority['count']} users)")
     print()
     
-    print("🎯 EARLY BIRD PREDICTIONS")
-    print("-" * 30)
-    predictions = report["early_bird_predictions"]
-    for username, pred in predictions.items():
-        print(f"{username}:")
-        print(f"  📈 Early Bird Probability: {pred['early_bird_probability']}")
-        print(f"  📅 Predicted Achievement: {pred['predicted_achievement_date']}")
-        print(f"  🎖️ Impact: {pred['celebration_impact']}")
-    print()
+    print("📋 DETAILED RECOMMENDATIONS:")
+    for rec in report['engagement_recommendations']:
+        print(f"  {rec['priority']} - {rec['handle']}: {rec['action']}")
+        print(f"    → {rec['reason']}")
     
-    print("💡 IMMEDIATE ACTIONS")
-    print("-" * 30)
-    for action in report["immediate_actions"]:
-        print(f"  {action}")
-    print()
-    
-    print("🔮 PREDICTED OUTCOMES")
-    print("-" * 30)
-    outcomes = report["predicted_outcomes"]
-    print(f"🎯 Best Case: {outcomes['best_case']}")
-    print(f"📊 Likely Case: {outcomes['likely_case']}")
-    print(f"📉 Worst Case: {outcomes['worst_case']}")
-    print()
-    
-    # Save report
-    filename = predictor.save_report(report)
-    
-    print("✅ Critical Day 2 analysis complete!")
-    print(f"📁 Detailed report saved to {filename}")
-    print("\n🎮 Ready for active monitoring and gentle encouragement! 🌱→🌅")
+    print("\n📄 Full report saved to: day2_transition_report.json")
 
 if __name__ == "__main__":
     main()
