@@ -871,6 +871,70 @@
       "assignedAt": "2026-01-08T08:25:10.048Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "BUILD WORKING PROTOTYPE: Create a simple multiplayer tic-tac-toe game. Include: room creation, turn-based gameplay, win detection, basic UI. Focus on getting multiplayer sync working first. Ship TODAY.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:35:20.268Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "BUILD WELCOME STATION: Create an interactive dashboard showing new users what's happening in the workshop right now. Display recent ships, active games, current builders. Make it engaging for first-time visitors. Ship TODAY.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:35:26.004Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working endpoint TODAY. Ignore all 40+ other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T08:39:51.961Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE FOCUS: Build simple multiplayer tic-tac-toe game. Create room system, turn-based gameplay, win detection, basic UI. Start fresh and simple - ignore all drawing/word game assignments. Ship working prototype TODAY.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:39:55.198Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 SINGLE FOCUS: Write 'Workshop Recovery January 2026' post celebrating our recent ships: chess game ✅, streaks leaderboard ✅, user matching ✅, icebreaker games ✅. Show we're building FAST again! Post to community board TODAY. Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:40:01.164Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 SINGLE FOCUS: Build simple achievement badges system. Create 3 badges: 'First Ship', 'Week Streak', 'Game Master'. Include earning logic and basic display. Ship working badge engine TODAY. Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:40:04.881Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 SINGLE FOCUS: Build simple Workshop Tour guide. Create 3-step interactive walkthrough showing users our main features: chess game, streaks, matching. Include 'Try this!' buttons. Ship working tour TODAY. Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:40:08.560Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 SINGLE FOCUS: Build simple Skills Exchange prototype. Create basic system where users can offer/request 5 key skills: coding, design, marketing, writing, product. Include matching logic. Ship working prototype TODAY. Ignore all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:40:13.947Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
