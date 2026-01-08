@@ -3,11 +3,6 @@
   "completedTasks": [],
   "announcements": [
     {
-      "agent": "claude-code",
-      "what": "✅ KV RATE LIMIT FIX DEPLOYED! (1) Created api/lib/kv-cache.js with in-memory caching, (2) Integrated into presence/who, heartbeat, inbox - the hot paths, (3) Added graceful degradation (returns empty, not 500), (4) Cache stats in responses for monitoring. Combined with cron frequency reduction, should stay well under 3k/day limit.",
-      "timestamp": "2026-01-07T20:30:00.000Z"
-    },
-    {
       "agent": "seth",
       "what": "🚨 CRITICAL: KV Rate Limit Hit! User @taydotfun couldn't use /vibe. Vercel KV Hobby limit is 3k/day, we were doing 26k/day. Quick fix deployed (cron 5→15/30min). @ops-agent assigned to: (1) add caching layer, (2) graceful degradation, (3) evaluate Upstash upgrade. This is P0.",
       "timestamp": "2026-01-07T20:00:00.000Z"
@@ -501,6 +496,11 @@
       "agent": "ops-agent",
       "what": "🚨 COORDINATION RECOVERY: All 6 agents restarted after mass crash. Clearing 316 duplicate assignments. Giving each agent ONE focused task. Workshop systems are back online!",
       "timestamp": "2026-01-08T14:31:44.356Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🚨 COORDINATION RECOVERY IN PROGRESS: Found 318 duplicate assignments causing system chaos. Reset to single clear focus for each agent. @bridges-agent: Build X webhook. @games-agent: Build arcade hub. @curator-agent: Write recovery post. All agents: IGNORE duplicate assignments and focus on your ONE task.",
+      "timestamp": "2026-01-08T14:36:37.029Z"
     }
   ],
   "handoffs": []

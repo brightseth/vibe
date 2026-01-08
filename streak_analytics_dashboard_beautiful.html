@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Streak Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 2rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .metric-large {
+            font-size: 3rem;
+            font-weight: 200;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .metric-small {
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .user-list {
+            list-style: none;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .user-item.week-streak {
+            border-left-color: #feca57;
+        }
+        
+        .user-item.month-streak {
+            border-left-color: #48dbfb;
+        }
+        
+        .user-item.century {
+            border-left-color: #ff9ff3;
+        }
+        
+        .streak-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .streak-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 300;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔥 Streak Analytics Dashboard</h1>
+        <p>Real-time insights into workshop engagement</p>
+    </div>
+    
+    <div class="dashboard">
+        <!-- Total Streaks -->
+        <div class="card">
+            <h3>📊 Active Streaks</h3>
+            <div class="metric-large pulse" id="totalStreaks">2</div>
+            <div class="metric-small">users maintaining streaks</div>
+        </div>
+        
+        <!-- Average Streak -->
+        <div class="card">
+            <h3>📈 Average Streak</h3>
+            <div class="metric-large" id="avgStreak">1.0</div>
+            <div class="metric-small">days per user</div>
+        </div>
+        
+        <!-- Longest Current -->
+        <div class="card">
+            <h3>🏆 Longest Current</h3>
+            <div class="metric-large" id="longestCurrent">1</div>
+            <div class="metric-small">days</div>
+        </div>
+        
+        <!-- User Rankings -->
+        <div class="card">
+            <h3>👥 Current Leaderboard</h3>
+            <ul class="user-list" id="userList">
+                <li class="user-item">
+                    <span>@demo_user</span>
+                    <span>1 day 🌱</span>
+                </li>
+                <li class="user-item">
+                    <span>@vibe_champion</span>
+                    <span>1 day 🌱</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Milestone Progress -->
+        <div class="card">
+            <h3>🎯 Milestone Progress</h3>
+            <div style="margin: 1rem 0;">
+                <div style="margin-bottom: 0.5rem;">Week Streak (7 days)</div>
+                <div class="streak-bar">
+                    <div class="streak-progress" style="width: 14.3%;"></div>
+                </div>
+                <div style="text-align: center; font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.8;">
+                    Best progress: 1/7 days
+                </div>
+            </div>
+        </div>
+        
+        <!-- Engagement Trend -->
+        <div class="card" style="grid-column: span 2;">
+            <h3>📈 Engagement Trend</h3>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Key Statistics -->
+        <div class="card">
+            <h3>📋 Key Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">2</span>
+                    <span class="stat-label">Total Users</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Active Rate</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">1</span>
+                    <span class="stat-label">Avg Best</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Predictions -->
+        <div class="card">
+            <h3>🔮 Predictions</h3>
+            <div style="margin: 1rem 0;">
+                <p style="margin-bottom: 1rem; opacity: 0.9;">
+                    <strong>Momentum:</strong> Strong start! Both users are active.
+                </p>
+                <p style="margin-bottom: 1rem; opacity: 0.9;">
+                    <strong>Next Milestone:</strong> Week streaks possible in 6 days
+                </p>
+                <p style="opacity: 0.9;">
+                    <strong>Risk Factor:</strong> Low - early stages are critical
+                </p>
+            </div>
+        </div>
+        
+        <!-- Achievements Preview -->
+        <div class="card" style="grid-column: span 2;">
+            <h3>🏅 Recent Achievements</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div class="stat-item">
+                    <span style="font-size: 2rem;">🌱</span>
+                    <div style="margin-top: 0.5rem;">
+                        <div style="font-weight: 500;">First Day Badge</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">@demo_user & @vibe_champion</div>
+                    </div>
+                </div>
+                <div class="stat-item" style="opacity: 0.5;">
+                    <span style="font-size: 2rem;">💪</span>
+                    <div style="margin-top: 0.5rem;">
+                        <div style="font-weight: 500;">Week Warrior</div>
+                        <div style="font-size: 0.8rem;">Coming soon...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize trend chart
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan 6', 'Jan 7', 'Jan 8'],
+                datasets: [{
+                    label: 'Active Users',
+                    data: [0, 0, 2],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Average Streak',
+                    data: [0, 0, 1],
+                    borderColor: '#feca57',
+                    backgroundColor: 'rgba(254, 202, 87, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            console.log('Refreshing streak data...');
+            // In a real implementation, this would fetch fresh data
+        }, 30000);
+    </script>
+</body>
+</html>

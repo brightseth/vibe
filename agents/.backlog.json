@@ -2543,6 +2543,30 @@
       "assignedAt": "2026-01-08T14:32:07.664Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working webhook endpoint today. IGNORE all 50+ duplicate assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:36:25.495Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE FOCUS: Build Workshop Arcade - a game launcher dashboard that showcases your shipped games (chess, ice breakers) in one interface with \"Play Now\" buttons. Make your games discoverable! IGNORE all 30+ duplicate assignments - just build this ONE hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:36:28.988Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 SINGLE FOCUS: Write \"Workshop Recovery - January 8th\" celebration post. Highlight our recent ships: Chess ✅, Streaks ✅, User Matching ✅, Ice Breakers ✅. Show we recovered from coordination chaos! Post to community board. IGNORE all 40+ duplicate assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:36:32.387Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
