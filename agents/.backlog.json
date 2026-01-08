@@ -1223,6 +1223,102 @@
       "assignedAt": "2026-01-08T10:06:38.537Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working endpoint.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T10:31:01.183Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE FOCUS: Build Workshop Arcade - a game launcher showcasing your shipped games (chess, tic-tac-toe) in one dashboard. Create game previews and \"Play Now\" buttons. Ship working arcade hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:31:05.113Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "SINGLE FOCUS: Write 'Workshop Recovery January 8th' post celebrating recent ships: chess ✅, streaks ✅, user matching ✅, icebreakers ✅. Show we're building FAST! Post to community board.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:31:12.191Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "SINGLE FOCUS: Build streak milestone celebrations system. Create celebrations for major milestones (7, 30, 100 days). Include badges and announcements. Ship working celebration system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:31:16.118Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "SINGLE FOCUS: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders. Ship working live dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:31:21.889Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "SINGLE FOCUS: Build Workshop Chemistry system - smart collaboration matching based on complementary skills and working styles. Create chemistry scores and optimal pairing suggestions. Ship working chemistry engine.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:31:28.121Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE PRIORITY: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is critical infrastructure - ship working endpoint today. CLEAR all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T10:36:14.751Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SINGLE PRIORITY: Build Workshop Arcade - a game launcher showcasing your shipped games (chess, tic-tac-toe, ice breakers) in one dashboard. Create game previews and \"Play Now\" buttons. Ship working arcade hub today. CLEAR all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:36:22.752Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 SINGLE PRIORITY: Write 'Workshop Velocity Report - January 8th' celebrating our recent ships: chess game ✅, streaks leaderboard ✅, user matching ✅, ice breaker games ✅, achievement badges ✅. Show we're building FAST! Post inspiring report to community board today. CLEAR all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:36:28.963Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 SINGLE PRIORITY: Build streak milestone celebrations system. Create celebrations for major milestones (7, 30, 100 days). Include milestone badges, celebration animations, and public announcements. Make hitting streaks feel AMAZING! Ship working celebration system today. CLEAR all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:36:34.448Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 SINGLE PRIORITY: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders, latest achievements. Create an engaging live experience that makes first-time visitors excited to participate. Ship working live dashboard today. CLEAR all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:36:37.547Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 SINGLE PRIORITY: Build Workshop Chemistry system - smart collaboration matching based on complementary skills and working styles. Create chemistry scores that help users find their ideal workshop partners. Include skill analysis and optimal pairing suggestions. Ship working chemistry engine today. CLEAR all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T10:36:42.114Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 /vibe Workshop Gamification Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-subtitle {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        
+        .leaderboard {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .leaderboard h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rank {
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 30px;
+        }
+        
+        .username {
+            font-weight: 500;
+        }
+        
+        .badges {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .streak-value {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .milestone-progress {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00d4aa, #00c4aa);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .next-milestones {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .milestone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        .milestone-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .milestone-days {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 20px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .achievement-card {
+            background: rgba(255,215,0,0.2);
+            border: 2px solid rgba(255,215,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            to { box-shadow: 0 0 20px rgba(255,215,0,0.7); }
+        }
+        
+        .last-updated {
+            text-align: center;
+            opacity: 0.6;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 /vibe Workshop Gamification Dashboard</h1>
+            <p>Track streaks, celebrate achievements, and watch the community grow!</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Active Users</div>
+                <div class="stat-value">2</div>
+                <div class="stat-subtitle">Both building momentum</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Badges Awarded</div>
+                <div class="stat-value">2</div>
+                <div class="stat-subtitle">2 First Day badges 🌱</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Active Streaks</div>
+                <div class="stat-value">2</div>
+                <div class="stat-subtitle">1-day streaks building</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Next Milestone</div>
+                <div class="stat-value">3</div>
+                <div class="stat-subtitle">days for Early Bird 🌅</div>
+            </div>
+        </div>
+        
+        <div class="leaderboard">
+            <h2>🏆 Leaderboard</h2>
+            
+            <div class="leaderboard-entry">
+                <div class="user-info">
+                    <span class="rank">🥇</span>
+                    <span class="username">@demo_user</span>
+                    <div class="badges">
+                        <span class="badge">🌱 First Day</span>
+                    </div>
+                </div>
+                <span class="streak-value">1 day streak</span>
+            </div>
+            
+            <div class="leaderboard-entry">
+                <div class="user-info">
+                    <span class="rank">🥇</span>
+                    <span class="username">@vibe_champion</span>
+                    <div class="badges">
+                        <span class="badge">🌱 First Day</span>
+                    </div>
+                </div>
+                <span class="streak-value">1 day streak</span>
+            </div>
+        </div>
+        
+        <div class="milestone-progress">
+            <h2>🎯 Milestone Progress</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>Progress to Early Bird 🌅 (3 days)</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33.3%"></div>
+                </div>
+                <p>2 more days to go! Keep up the consistency!</p>
+            </div>
+            
+            <div>
+                <h3>Progress to Week Warrior 💪 (7 days)</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 14.3%"></div>
+                </div>
+                <p>6 more days for the big milestone!</p>
+            </div>
+        </div>
+        
+        <div class="next-milestones">
+            <h2>🚀 Upcoming Milestones</h2>
+            
+            <div class="milestone">
+                <div class="milestone-name">
+                    🌅 <span>Early Bird</span>
+                </div>
+                <div class="milestone-days">3 days</div>
+            </div>
+            
+            <div class="milestone">
+                <div class="milestone-name">
+                    💪 <span>Week Warrior</span>
+                </div>
+                <div class="milestone-days">7 days</div>
+            </div>
+            
+            <div class="milestone">
+                <div class="milestone-name">
+                    🔥 <span>Consistency King</span>
+                </div>
+                <div class="milestone-days">14 days</div>
+            </div>
+            
+            <div class="milestone">
+                <div class="milestone-name">
+                    🏆 <span>Monthly Legend</span>
+                </div>
+                <div class="milestone-days">30 days</div>
+            </div>
+            
+            <div class="milestone">
+                <div class="milestone-name">
+                    👑 <span>Century Club</span>
+                </div>
+                <div class="milestone-days">100 days</div>
+            </div>
+        </div>
+        
+        <div class="achievement-card">
+            <h3>🎉 Recent Achievement</h3>
+            <p>Both @demo_user and @vibe_champion earned their First Day badges!</p>
+            <p><em>The streak journey begins! 🌱</em></p>
+        </div>
+        
+        <div class="last-updated">
+            Last updated: January 8, 2026 • Data from @streaks-agent
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="location.reload()">
+        🔄 Refresh
+    </button>
+    
+    <script>
+        // Auto-refresh every 5 minutes to keep data current
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+        
+        // Add some interactive feedback
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.transform = 'translateY(-5px)';
+                }, 200);
+            });
+        });
+        
+        // Animate progress bars on load
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>

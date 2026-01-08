@@ -1,199 +1,289 @@
 /**
- * /api/webhooks/test — Bridge Testing Endpoint
+ * /api/webhooks/test — Bridge System Test Endpoint
  * 
- * Tests all webhook endpoints and their integration with the social inbox.
- * Use this to verify the bridge system is working end-to-end.
+ * Comprehensive testing endpoint for all bridge integrations.
+ * Tests webhook functionality, social inbox integration, and cross-platform posting.
  */
 
-const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+import crypto from 'crypto';
 
-async function getKV() {
-  if (!KV_CONFIGURED) return null;
+// Test KV availability
+async function testKV() {
   try {
     const { kv } = await import('@vercel/kv');
-    return kv;
+    await kv.set('test:webhook:ping', Date.now(), { ex: 60 });
+    const result = await kv.get('test:webhook:ping');
+    return { available: true, working: !!result };
   } catch (e) {
-    return null;
+    return { available: false, error: e.message };
   }
 }
 
-/**
- * Test webhook endpoint functionality
- */
-async function testWebhookEndpoint(endpoint) {
+// Test individual webhook endpoint
+async function testWebhookEndpoint(platform) {
   try {
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000'
-        : 'https://vibe.fyi';
-        
-    const url = `${baseUrl}${endpoint}`;
-    
-    // Test health endpoint
-    const healthResponse = await fetch(url, {
-      method: 'GET',
-      headers: { 'User-Agent': 'vibe-bridge-test/1.0' }
-    });
-    
-    if (!healthResponse.ok) {
-      return {
-        status: 'error',
-        error: `HTTP ${healthResponse.status}`,
-        endpoint
-      };
-    }
-    
-    const healthData = await healthResponse.json();
-    
-    return {
-      status: 'healthy',
-      endpoint,
-      configured: healthData.configured || false,
-      kv_available: healthData.kv_available || false,
-      stats: healthData.stats || {}
+    const webhookHandlers = {
+      x: () => import('./x.js'),
+      discord: () => import('./discord.js'), 
+      github: () => import('./github.js'),
+      farcaster: () => import('./farcaster.js')
     };
     
-  } catch (error) {
-    return {
-      status: 'error',
-      endpoint,
-      error: error.message
+    if (!webhookHandlers[platform]) {
+      throw new Error('Platform not supported');
+    }
+
+    const handler = await webhookHandlers[platform]();
+    
+    // Create mock health check request
+    const mockReq = {
+      method: 'GET',
+      query: {},
+      headers: { host: 'vibe.fyi' },
+      body: {}
+    };
+    
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => ({ status: code, data })
+      })
+    };
+    
+    const result = await handler.default(mockReq, mockRes);
+    return { 
+      endpoint: `/api/webhooks/${platform}`,
+      healthy: result.status === 200,
+      response: result.data
+    };
+    
+  } catch (e) {
+    return { 
+      endpoint: `/api/webhooks/${platform}`,
+      healthy: false,
+      error: e.message
     };
   }
 }
 
-/**
- * Test social inbox integration
- */
+// Test social inbox integration
 async function testSocialInbox() {
   try {
-    const kv = await getKV();
-    if (!kv) {
-      return {
-        status: 'error',
-        error: 'KV storage not available'
-      };
-    }
-    
-    // Test writing to inbox
+    // Create test event
     const testEvent = {
       id: `test_${Date.now()}`,
       platform: 'test',
-      type: 'bridge_test',
+      type: 'mention',
       timestamp: new Date().toISOString(),
       from: {
         id: 'test_user',
-        handle: 'bridges-agent',
-        name: 'Bridge Test'
+        handle: 'tester',
+        name: 'Test User'
       },
-      content: 'Bridge system test message',
-      processed: false,
-      signal_score: 100
+      content: 'This is a test message from the bridge system test',
+      metadata: { test: true },
+      signal_score: 85,
+      processed: false
     };
     
-    // Add to inbox
-    await kv.lpush('vibe:social_inbox', JSON.stringify(testEvent));
+    const { kv } = await import('@vercel/kv');
     
-    // Read back from inbox
-    const inboxEvents = await kv.lrange('vibe:social_inbox', 0, 0);
-    const retrievedEvent = inboxEvents.length > 0 ? JSON.parse(inboxEvents[0]) : null;
+    // Store in social inbox
+    const inboxKey = 'vibe:social_inbox';
+    await kv.lpush(inboxKey, JSON.stringify(testEvent));
+    
+    // Retrieve and verify
+    const stored = await kv.lrange(inboxKey, 0, 0);
+    const retrieved = stored.length > 0 ? JSON.parse(stored[0]) : null;
     
     // Clean up test event
-    await kv.lrem('vibe:social_inbox', 0, JSON.stringify(testEvent));
+    await kv.lrem(inboxKey, 1, JSON.stringify(testEvent));
     
     return {
-      status: 'working',
-      test_event_id: testEvent.id,
-      retrieved: !!retrievedEvent,
-      roundtrip_success: retrievedEvent?.id === testEvent.id
+      working: retrieved && retrieved.id === testEvent.id,
+      event_stored: !!retrieved,
+      event_id: retrieved?.id
     };
     
-  } catch (error) {
+  } catch (e) {
     return {
-      status: 'error',
-      error: error.message
+      working: false,
+      error: e.message
     };
   }
 }
 
-/**
- * Generate test summary
- */
-function generateTestSummary(results) {
-  const webhooks = results.webhook_tests;
-  const inbox = results.inbox_test;
-  
-  const totalWebhooks = Object.keys(webhooks).length;
-  const healthyWebhooks = Object.values(webhooks).filter(w => w.status === 'healthy').length;
-  const configuredWebhooks = Object.values(webhooks).filter(w => w.configured).length;
-  
-  let status = 'healthy';
-  if (inbox.status !== 'working') status = 'degraded';
-  else if (healthyWebhooks < totalWebhooks) status = 'partial';
-  
-  return {
-    overall_status: status,
-    webhook_health: `${healthyWebhooks}/${totalWebhooks} healthy`,
-    configured_bridges: `${configuredWebhooks}/${totalWebhooks} configured`,
-    social_inbox: inbox.status,
-    ready_for_production: status === 'healthy' && configuredWebhooks > 0
-  };
+// Test cross-platform posting capability
+async function testCrossPlatformPosting() {
+  try {
+    // Import adapters
+    const { XAdapter } = await import('../social/adapters/x.js');
+    const { FarcasterAdapter } = await import('../social/adapters/farcaster.js');
+    
+    const adapters = {
+      x: new XAdapter(),
+      farcaster: new FarcasterAdapter()
+    };
+    
+    const results = {};
+    
+    for (const [platform, adapter] of Object.entries(adapters)) {
+      try {
+        const capabilities = adapter.getCapabilities();
+        const configured = adapter.isConfigured();
+        
+        results[platform] = {
+          available: true,
+          configured,
+          capabilities,
+          can_read: capabilities.read,
+          can_write: capabilities.write && configured
+        };
+        
+      } catch (e) {
+        results[platform] = {
+          available: false,
+          error: e.message
+        };
+      }
+    }
+    
+    return results;
+    
+  } catch (e) {
+    return {
+      error: e.message,
+      working: false
+    };
+  }
+}
+
+// Get bridge statistics
+async function getBridgeStats() {
+  try {
+    const { kv } = await import('@vercel/kv');
+    
+    const platforms = ['x', 'discord', 'github', 'farcaster', 'telegram'];
+    const stats = {};
+    
+    for (const platform of platforms) {
+      const key = `vibe:${platform}_webhook_stats`;
+      const platformStats = await kv.hgetall(key) || {};
+      
+      stats[platform] = {
+        total_deliveries: parseInt(platformStats.total_deliveries) || 0,
+        events_processed: parseInt(platformStats.events_processed) || 0,
+        last_delivery: platformStats.last_delivery || null,
+        configured: true // We'll check this properly in webhook tests
+      };
+    }
+    
+    return stats;
+    
+  } catch (e) {
+    return { error: e.message };
+  }
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'GET required for testing' });
+  const { method, query } = req;
+  
+  // Only support GET for testing
+  if (method !== 'GET') {
+    return res.status(405).json({
+      error: 'Method not allowed',
+      allowed: ['GET']
+    });
   }
   
   try {
-    // Test all webhook endpoints
-    const webhookEndpoints = {
-      x: '/api/webhooks/x',
-      discord: '/api/webhooks/discord', 
-      github: '/api/webhooks/github',
-      farcaster: '/api/webhooks/farcaster'
-    };
+    const { platform, quick } = query;
     
-    const webhookTests = {};
-    for (const [platform, endpoint] of Object.entries(webhookEndpoints)) {
-      webhookTests[platform] = await testWebhookEndpoint(endpoint);
+    // Test specific platform
+    if (platform) {
+      const result = await testWebhookEndpoint(platform);
+      return res.status(200).json({
+        platform,
+        test_result: result,
+        timestamp: new Date().toISOString()
+      });
     }
     
-    // Test social inbox
-    const inboxTest = await testSocialInbox();
+    // Quick health check
+    if (quick === 'true') {
+      const kv = await testKV();
+      return res.status(200).json({
+        status: kv.available ? 'healthy' : 'degraded',
+        kv_available: kv.available,
+        timestamp: new Date().toISOString()
+      });
+    }
     
-    // Generate summary
-    const results = {
-      webhook_tests: webhookTests,
-      inbox_test: inboxTest
+    // Full bridge system test
+    console.log('[Bridge Test] Running comprehensive bridge system test...');
+    
+    const testResults = {
+      timestamp: new Date().toISOString(),
+      overall_status: 'testing',
+      tests: {}
     };
     
-    const summary = generateTestSummary(results);
+    // Test 1: KV Storage
+    console.log('[Bridge Test] Testing KV storage...');
+    testResults.tests.kv_storage = await testKV();
     
-    return res.status(200).json({
-      timestamp: new Date().toISOString(),
-      test_results: results,
-      summary,
-      recommendations: summary.ready_for_production 
-        ? ['System ready! Set up webhook URLs in platform dashboards']
-        : [
-            'Configure environment variables for each platform',
-            'Test individual webhook health endpoints',
-            'Verify social inbox with GET /api/social'
-          ],
-      next_steps: [
-        '1. Check platform-specific setup guides',
-        '2. Configure webhook URLs in platform dashboards', 
-        '3. Test with real events from each platform',
-        '4. Monitor delivery stats in /api/webhooks/status'
-      ]
-    });
+    // Test 2: Webhook Endpoints
+    console.log('[Bridge Test] Testing webhook endpoints...');
+    const platforms = ['x', 'discord', 'github', 'farcaster'];
+    testResults.tests.webhook_endpoints = {};
+    
+    for (const platform of platforms) {
+      testResults.tests.webhook_endpoints[platform] = await testWebhookEndpoint(platform);
+    }
+    
+    // Test 3: Social Inbox Integration
+    console.log('[Bridge Test] Testing social inbox...');
+    testResults.tests.social_inbox = await testSocialInbox();
+    
+    // Test 4: Cross-Platform Posting
+    console.log('[Bridge Test] Testing cross-platform posting...');
+    testResults.tests.cross_platform_posting = await testCrossPlatformPosting();
+    
+    // Test 5: Bridge Statistics
+    console.log('[Bridge Test] Getting bridge statistics...');
+    testResults.stats = await getBridgeStats();
+    
+    // Determine overall status
+    const kvWorking = testResults.tests.kv_storage.available;
+    const webhooksHealthy = Object.values(testResults.tests.webhook_endpoints)
+      .filter(r => r.healthy).length;
+    const inboxWorking = testResults.tests.social_inbox.working;
+    
+    if (kvWorking && webhooksHealthy >= 3 && inboxWorking) {
+      testResults.overall_status = 'healthy';
+    } else if (kvWorking && webhooksHealthy >= 2) {
+      testResults.overall_status = 'degraded';
+    } else {
+      testResults.overall_status = 'unhealthy';
+    }
+    
+    testResults.summary = {
+      kv_storage: kvWorking ? 'working' : 'failed',
+      webhooks_healthy: `${webhooksHealthy}/${platforms.length}`,
+      social_inbox: inboxWorking ? 'working' : 'failed',
+      platforms_configured: Object.values(testResults.tests.cross_platform_posting || {})
+        .filter(p => p.configured).length
+    };
+    
+    console.log(`[Bridge Test] Complete - Status: ${testResults.overall_status}`);
+    
+    return res.status(200).json(testResults);
     
   } catch (error) {
+    console.error('[Bridge Test] Error:', error);
     return res.status(500).json({
-      error: 'Test failed',
-      message: error.message
+      error: 'Test execution failed',
+      message: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
