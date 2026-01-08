@@ -1,5 +1,5 @@
 /**
- * Skills Exchange API
+ * Skills Exchange API - Enhanced version with smart matching
  * Returns active skill offers and requests from the community
  */
 
@@ -9,7 +9,7 @@ const path = require('path');
 // Read skill exchanges from storage
 function readSkillExchanges() {
   try {
-    const filePath = path.join(process.cwd(), 'data', 'skill-exchanges.jsonl');
+    const filePath = path.join(process.cwd(), 'skill-exchanges.jsonl');
     
     if (!fs.existsSync(filePath)) {
       return [];
@@ -31,77 +31,118 @@ function readSkillExchanges() {
   }
 }
 
-// Get skill categories
-function getSkillCategories() {
-  return {
-    'technical': ['frontend', 'backend', 'mobile', 'ai', 'data', 'devops', 'security'],
-    'design': ['ui', 'ux', 'graphic-design', 'illustration', 'branding', 'figma'],
-    'business': ['product', 'marketing', 'strategy', 'sales', 'fundraising', 'leadership'],
-    'creative': ['writing', 'content', 'video', 'photography', 'music', 'storytelling'],
-    'research': ['user-research', 'market-research', 'data-analysis', 'academic'],
-    'soft-skills': ['communication', 'mentoring', 'project-management', 'team-building']
-  };
-}
-
-// Determine skill category
-function getSkillCategory(skill) {
-  const skillLower = skill.toLowerCase().replace(/\s+/g, '-');
-  const categories = getSkillCategories();
-  
-  for (const [category, skills] of Object.entries(categories)) {
-    if (skills.includes(skillLower)) {
-      return category;
+// Read user profiles
+function readProfiles() {
+  try {
+    const filePath = path.join(process.cwd(), 'profiles.json');
+    
+    if (!fs.existsSync(filePath)) {
+      return {};
     }
+    
+    const content = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('Error reading profiles:', error);
+    return {};
   }
-  return 'other';
 }
 
-// Generate sample data if empty (for demo purposes)
-function generateSampleData() {
-  const sampleOffers = [
-    {
-      id: Date.now() + 1,
-      handle: 'alice',
-      type: 'offer',
-      skill: 'React Development',
-      details: '5+ years building React apps, happy to help with hooks, state management, and performance optimization',
-      category: 'technical',
-      timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
-      status: 'active'
-    },
-    {
-      id: Date.now() + 2,
-      handle: 'bob',
-      type: 'offer',
-      skill: 'UI Design',
-      details: 'Figma expert, can help with design systems, wireframes, and user interfaces',
-      category: 'design',
-      timestamp: Date.now() - 4 * 60 * 60 * 1000, // 4 hours ago
-      status: 'active'
-    },
-    {
-      id: Date.now() + 3,
-      handle: 'charlie',
-      type: 'request',
-      skill: 'Python Backend',
-      details: 'Need help setting up a FastAPI server with database integration',
-      category: 'technical',
-      timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1 hour ago
-      status: 'active'
-    },
-    {
-      id: Date.now() + 4,
-      handle: 'diana',
-      type: 'request',
-      skill: 'Marketing Strategy',
-      details: 'Early stage startup looking for advice on go-to-market strategy',
-      category: 'business',
-      timestamp: Date.now() - 3 * 60 * 60 * 1000, // 3 hours ago
-      status: 'active'
-    }
-  ];
+// Calculate match score between offer and request
+function calculateMatchScore(offer, request, profiles) {
+  let score = 0;
   
-  return sampleOffers;
+  // Skill name matching
+  const offerSkill = offer.skill.toLowerCase();
+  const requestSkill = request.skill.toLowerCase();
+  
+  if (offerSkill === requestSkill) score += 40;
+  else if (offerSkill.includes(requestSkill) || requestSkill.includes(offerSkill)) score += 30;
+  else {
+    // Semantic similarity (basic keyword matching)
+    const offerWords = offerSkill.split(' ');
+    const requestWords = requestSkill.split(' ');
+    const commonWords = offerWords.filter(word => requestWords.includes(word));
+    score += Math.min(20, commonWords.length * 5);
+  }
+  
+  // Category match
+  if (offer.category === request.category) score += 15;
+  
+  // Details quality (shows engagement)
+  if (offer.details && offer.details.length > 50) score += 5;
+  if (request.details && request.details.length > 50) score += 5;
+  
+  // Recent activity
+  const daysSinceOffer = (Date.now() - offer.timestamp) / (1000 * 60 * 60 * 24);
+  const daysSinceRequest = (Date.now() - request.timestamp) / (1000 * 60 * 60 * 24);
+  if (daysSinceOffer < 7) score += 5;
+  if (daysSinceRequest < 7) score += 5;
+  
+  // Profile compatibility
+  const offerProfile = profiles[offer.handle] || {};
+  const requestProfile = profiles[request.handle] || {};
+  
+  if (offerProfile.building && requestProfile.building) {
+    const offerBuilding = offerProfile.building.toLowerCase();
+    const requestBuilding = requestProfile.building.toLowerCase();
+    
+    // Complementary projects
+    if (offerBuilding.includes('frontend') && requestBuilding.includes('backend')) score += 10;
+    if (offerBuilding.includes('backend') && requestBuilding.includes('frontend')) score += 10;
+    if (offerBuilding.includes('ai') && requestBuilding.includes('web')) score += 8;
+    if (offerBuilding.includes('mobile') && requestBuilding.includes('api')) score += 8;
+  }
+  
+  return Math.min(100, score);
+}
+
+// Find potential connections
+function findConnections() {
+  const skills = readSkillExchanges();
+  const profiles = readProfiles();
+  
+  const offers = skills.filter(s => s.type === 'offer' && s.status === 'active');
+  const requests = skills.filter(s => s.type === 'request' && s.status === 'active');
+  
+  const connections = [];
+  
+  offers.forEach(offer => {
+    requests.forEach(request => {
+      if (offer.handle !== request.handle) {
+        const score = calculateMatchScore(offer, request, profiles);
+        if (score >= 50) {
+          connections.push({
+            offerer: offer.handle,
+            requester: request.handle,
+            offerSkill: offer.skill,
+            requestSkill: request.skill,
+            matchScore: score,
+            category: offer.category,
+            offerDetails: offer.details,
+            requestDetails: request.details,
+            reason: `${offer.handle} offers ${offer.skill}, ${request.handle} needs ${request.skill}`
+          });
+        }
+      }
+    });
+  });
+  
+  return connections.sort((a, b) => b.matchScore - a.matchScore);
+}
+
+// Format time ago
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return 'just now';
 }
 
 // Main handler
@@ -122,26 +163,34 @@ module.exports = async (req, res) => {
   }
   
   try {
-    let skills = readSkillExchanges();
-    
-    // If no skills found, generate sample data for demo
-    if (skills.length === 0) {
-      skills = generateSampleData();
-    }
+    const skills = readSkillExchanges();
+    const profiles = readProfiles();
     
     // Filter active skills only
     const activeSkills = skills.filter(skill => 
       skill && skill.status === 'active'
     );
     
+    // Add time formatting and enrich with profile data
+    const enrichedSkills = activeSkills.map(skill => {
+      const userProfile = profiles[skill.handle] || {};
+      return {
+        ...skill,
+        timeAgo: formatTimeAgo(skill.timestamp),
+        building: userProfile.building,
+        tags: userProfile.tags || []
+      };
+    });
+    
     // Sort by timestamp (newest first)
-    activeSkills.sort((a, b) => b.timestamp - a.timestamp);
+    enrichedSkills.sort((a, b) => b.timestamp - a.timestamp);
     
     // Calculate stats
     const stats = {
       total: activeSkills.length,
       offers: activeSkills.filter(s => s.type === 'offer').length,
       requests: activeSkills.filter(s => s.type === 'request').length,
+      users: new Set(activeSkills.map(s => s.handle)).size,
       categories: {}
     };
     
@@ -150,10 +199,14 @@ module.exports = async (req, res) => {
       stats.categories[skill.category] = (stats.categories[skill.category] || 0) + 1;
     });
     
+    // Find potential connections for discovery
+    const connections = findConnections();
+    
     res.status(200).json({
       success: true,
-      skills: activeSkills,
+      skills: enrichedSkills,
       stats,
+      connections: connections.slice(0, 5), // Top 5 connections
       timestamp: Date.now()
     });
     
@@ -163,7 +216,7 @@ module.exports = async (req, res) => {
       success: false,
       error: 'Internal server error',
       skills: [],
-      stats: { total: 0, offers: 0, requests: 0, categories: {} }
+      stats: { total: 0, offers: 0, requests: 0, users: 0, categories: {} }
     });
   }
 };
