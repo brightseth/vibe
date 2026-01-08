@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Workshop Streaks - Stay Motivated!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .user-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .streak-display {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .streak-label {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            transition: width 0.3s ease;
+        }
+        
+        .next-milestone {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .milestones-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 20px;
+        }
+        
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .milestone-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .milestone-text {
+            flex: 1;
+        }
+        
+        .milestone-days {
+            font-weight: bold;
+            color: #ffd93d;
+        }
+        
+        .motivation-quote {
+            text-align: center;
+            font-style: italic;
+            margin: 30px 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .badge-preview {
+            display: inline-block;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulsing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Workshop Streaks</h1>
+            <p>Keep the momentum going! Every day counts.</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="user-card">
+                <div class="user-name">
+                    👤 demo_user
+                </div>
+                <div class="streak-display pulsing">1</div>
+                <div class="streak-label">Day streak 🌱</div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33%"></div>
+                </div>
+                
+                <div class="next-milestone">
+                    <strong>Next milestone:</strong> 3 days<br>
+                    <span style="opacity: 0.8">2 days to go!</span><br>
+                    <div class="badge-preview">Getting Started 🌱</div>
+                </div>
+            </div>
+            
+            <div class="user-card">
+                <div class="user-name">
+                    🏆 vibe_champion
+                </div>
+                <div class="streak-display pulsing">1</div>
+                <div class="streak-label">Day streak 🌱</div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33%"></div>
+                </div>
+                
+                <div class="next-milestone">
+                    <strong>Next milestone:</strong> 3 days<br>
+                    <span style="opacity: 0.8">2 days to go!</span><br>
+                    <div class="badge-preview">Getting Started 🌱</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="motivation-quote">
+            "Consistency beats perfection. Show up daily and watch the magic happen! ✨"
+        </div>
+        
+        <div class="milestones-section">
+            <h2 style="margin-top: 0;">🎯 Milestone Map</h2>
+            <p>Here's what you unlock as you build your streak:</p>
+            
+            <div class="milestone-item">
+                <div class="milestone-icon">🌱</div>
+                <div class="milestone-text">
+                    <strong>Getting Started</strong><br>
+                    <span style="opacity: 0.8">Build the foundation of consistency</span>
+                </div>
+                <div class="milestone-days">3 days</div>
+            </div>
+            
+            <div class="milestone-item">
+                <div class="milestone-icon">💪</div>
+                <div class="milestone-text">
+                    <strong>One Week Strong</strong><br>
+                    <span style="opacity: 0.8">You're in the flow now!</span>
+                </div>
+                <div class="milestone-days">7 days</div>
+            </div>
+            
+            <div class="milestone-item">
+                <div class="milestone-icon">🔥</div>
+                <div class="milestone-text">
+                    <strong>Two Weeks Committed</strong><br>
+                    <span style="opacity: 0.8">This is where habits form</span>
+                </div>
+                <div class="milestone-days">14 days</div>
+            </div>
+            
+            <div class="milestone-item">
+                <div class="milestone-icon">🏆</div>
+                <div class="milestone-text">
+                    <strong>Monthly Legend</strong><br>
+                    <span style="opacity: 0.8">Elite consistency achieved</span>
+                </div>
+                <div class="milestone-days">30 days</div>
+            </div>
+            
+            <div class="milestone-item">
+                <div class="milestone-icon">👑</div>
+                <div class="milestone-text">
+                    <strong>Century Club</strong><br>
+                    <span style="opacity: 0.8">Legendary dedication status</span>
+                </div>
+                <div class="milestone-days">100 days</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; opacity: 0.7;">
+            <p>🤖 Tracked by your friendly streaks-agent</p>
+            <p>Last updated: January 8, 2026</p>
+        </div>
+    </div>
+    
+    <script>
+        // Add some simple interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate progress bars on load
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+            
+            // Update timestamp
+            const now = new Date();
+            const timeElement = document.querySelector('div[style*="opacity: 0.7"] p:last-child');
+            if (timeElement) {
+                timeElement.textContent = `Last updated: ${now.toLocaleDateString()}`;
+            }
+        });
+    </script>
+</body>
+</html>
