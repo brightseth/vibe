@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎖️ Badge Analytics Dashboard - /vibe workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-card {
+            text-align: center;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 2rem;
+        }
+        
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .user-streak {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        
+        .badges-collection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .milestone-progress {
+            margin-top: 15px;
+        }
+        
+        .milestone-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        
+        .milestone-fill {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .milestone-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ecdc4;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .next-milestones {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+        
+        .milestone-list {
+            list-style: none;
+        }
+        
+        .milestone-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #4ecdc4;
+        }
+        
+        .milestone-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .milestone-days {
+            background: rgba(76, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .update-time {
+            text-align: center;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-top: 30px;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎖️ Badge Analytics Dashboard</h1>
+            <div class="subtitle">Real-time achievement tracking for /vibe workshop</div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- User Cards -->
+            <div class="card user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">@demo_user</div>
+                <div class="user-streak pulse">1 day</div>
+                <div class="badges-collection">
+                    <div class="badge">🌱 First Day</div>
+                </div>
+                <div class="milestone-progress">
+                    <div class="milestone-bar">
+                        <div class="milestone-fill" style="width: 14%"></div>
+                    </div>
+                    <div class="milestone-text">2/7 days to Week Warrior 💪</div>
+                </div>
+            </div>
+            
+            <div class="card user-card">
+                <div class="user-avatar">🏆</div>
+                <div class="user-name">@vibe_champion</div>
+                <div class="user-streak pulse">1 day</div>
+                <div class="badges-collection">
+                    <div class="badge">🌱 First Day</div>
+                </div>
+                <div class="milestone-progress">
+                    <div class="milestone-bar">
+                        <div class="milestone-fill" style="width: 14%"></div>
+                    </div>
+                    <div class="milestone-text">1/7 days to Week Warrior 💪</div>
+                </div>
+            </div>
+            
+            <!-- Workshop Stats -->
+            <div class="card">
+                <h3>📊 Workshop Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Total Badges</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1.0</div>
+                        <div class="stat-label">Avg Streak</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Badge Types</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Next Milestones -->
+            <div class="card next-milestones">
+                <h3>🎯 Upcoming Milestones</h3>
+                <ul class="milestone-list">
+                    <li class="milestone-item">
+                        <div class="milestone-info">
+                            <span>🌅 Early Bird</span>
+                            <span>3-day streak</span>
+                        </div>
+                        <div class="milestone-days">2 days to go</div>
+                    </li>
+                    <li class="milestone-item">
+                        <div class="milestone-info">
+                            <span>💪 Week Warrior</span>
+                            <span>7-day streak</span>
+                        </div>
+                        <div class="milestone-days">6 days to go</div>
+                    </li>
+                    <li class="milestone-item">
+                        <div class="milestone-info">
+                            <span>🔥 Consistency King</span>
+                            <span>14-day streak</span>
+                        </div>
+                        <div class="milestone-days">13 days to go</div>
+                    </li>
+                    <li class="milestone-item">
+                        <div class="milestone-info">
+                            <span>🏆 Monthly Legend</span>
+                            <span>30-day streak</span>
+                        </div>
+                        <div class="milestone-days">29 days to go</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Available Badges -->
+            <div class="card">
+                <h3>🏅 All Available Badges</h3>
+                <div class="badges-collection">
+                    <div class="badge">🌱 First Day</div>
+                    <div class="badge">🌅 Early Bird</div>
+                    <div class="badge">💪 Week Warrior</div>
+                    <div class="badge">🔥 Consistency King</div>
+                    <div class="badge">🏆 Monthly Legend</div>
+                    <div class="badge">👑 Century Club</div>
+                    <div class="badge">🚢 First Ship</div>
+                    <div class="badge">🎮 Game Master</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="update-time">
+            Last updated: January 8, 2026 at 2:37 PM PST
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh every 5 minutes
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+        
+        // Add some interactive animations
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+{
+  "stats": {
+    "total_users": 2,
+    "active_streaks": 2,
+    "avg_streak": 1.0,
+    "longest_current": 1,
+    "avg_sustainability": 65,
+    "workshop_health": "BUILDING"
+  },
+  "enhanced_leaderboard": [
+    {
+      "handle": "@demo_user",
+      "current_streak": 1,
+      "best_streak": 1,
+      "badges": "🌱 First Day",
+      "badge_count": 1,
+      "sustainability_score": 0.65,
+      "sustainability_percent": 65,
+      "risk_level": "MEDIUM",
+      "next_milestone": "Getting started! 🌱",
+      "days_to_milestone": 2,
+      "momentum": "BUILDING"
+    },
+    {
+      "handle": "@vibe_champion",
+      "current_streak": 1,
+      "best_streak": 1,
+      "badges": "🌱 First Day",
+      "badge_count": 1,
+      "sustainability_score": 0.65,
+      "sustainability_percent": 65,
+      "risk_level": "MEDIUM",
+      "next_milestone": "Getting started! 🌱",
+      "days_to_milestone": 2,
+      "momentum": "BUILDING"
+    }
+  ],
+  "milestone_predictions": {
+    "3_days": {
+      "name": "Getting started! 🌱",
+      "users_approaching": 2,
+      "avg_days_remaining": 2,
+      "predicted_completion": "2026-01-10"
+    },
+    "7_days": {
+      "name": "Week Warrior 💪",
+      "users_approaching": 2,
+      "avg_days_remaining": 6,
+      "predicted_completion": "2026-01-14"
+    }
+  },
+  "insights": [
+    "🎯 Both users in critical Day 1 phase - 65% sustainability",
+    "📈 Next milestone wave: Getting Started badges in ~2 days",
+    "⚡ Perfect peer support opportunity - matched streak levels",
+    "🚀 Optimal time to introduce engagement challenges",
+    "💪 Current workshop momentum: BUILDING (early stage)"
+  ],
+  "predictions": {
+    "next_milestone_completions": "2026-01-10 (Getting Started badges)",
+    "at_risk_users": 0,
+    "engagement_opportunity": "HIGH - matched levels enable peer challenges"
+  },
+  "generated_at": "2026-01-08T19:35:24.201Z",
+  "analytics_version": "enhanced_v2"
+}

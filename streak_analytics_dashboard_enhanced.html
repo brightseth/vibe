@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/vibe workshop - Enhanced Streak Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .metric-card h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .big-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #333;
+            margin: 10px 0;
+        }
+        .prediction-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-left: 4px solid #f5576c;
+        }
+        .prediction-card h3 {
+            color: white;
+        }
+        .prediction-card .big-number {
+            color: white;
+        }
+        .user-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            grid-column: span 2;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .user-details {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .streak-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        .sustainability-badge {
+            background: #27ae60;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        .sustainability-badge.medium {
+            background: #f39c12;
+        }
+        .sustainability-badge.high {
+            background: #e74c3c;
+        }
+        .achievement-badge {
+            background: #9b59b6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        .momentum-indicator {
+            background: #2ecc71;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            text-transform: uppercase;
+        }
+        .insights-panel {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            grid-column: span 2;
+            border-left: 4px solid #fcb69f;
+        }
+        .insights-panel h3 {
+            margin: 0 0 15px 0;
+            color: #8b4513;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .insight-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #fcb69f;
+        }
+        .prediction-timeline {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            grid-column: span 2;
+        }
+        .prediction-timeline h3 {
+            margin: 0 0 20px 0;
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .milestone-info {
+            flex: 1;
+        }
+        .milestone-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .milestone-eta {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .milestone-users {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .refresh-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 768px) {
+            .user-list, .insights-panel, .prediction-timeline {
+                grid-column: span 1;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔮 Enhanced Streak Analytics</h1>
+            <p>Advanced predictions and insights for /vibe workshop engagement</p>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <h3>👥 Total Active Users</h3>
+                <div class="big-number">2</div>
+                <p>Currently tracked in the workshop</p>
+            </div>
+            
+            <div class="metric-card prediction-card">
+                <h3>🎯 Avg Sustainability</h3>
+                <div class="big-number">65%</div>
+                <p>Predicted streak continuation rate</p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>📈 Current Avg Streak</h3>
+                <div class="big-number">1.0</div>
+                <p>days across all users</p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>💪 Workshop Health</h3>
+                <div class="big-number" style="font-size: 1.8em;">BUILDING</div>
+                <p>Early momentum phase</p>
+            </div>
+            
+            <div class="user-list">
+                <h3>👥 Enhanced Leaderboard</h3>
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-name">@demo_user</div>
+                        <div class="user-details">
+                            <span class="achievement-badge">🌱 First Day</span>
+                            <span class="sustainability-badge medium">65% Sustainable</span>
+                            <span class="momentum-indicator">BUILDING</span>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #666;">
+                            Next: Getting started! 🌱 in 2 days
+                        </div>
+                    </div>
+                    <div class="streak-badge">1 day</div>
+                </div>
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-name">@vibe_champion</div>
+                        <div class="user-details">
+                            <span class="achievement-badge">🌱 First Day</span>
+                            <span class="sustainability-badge medium">65% Sustainable</span>
+                            <span class="momentum-indicator">BUILDING</span>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #666;">
+                            Next: Getting started! 🌱 in 2 days
+                        </div>
+                    </div>
+                    <div class="streak-badge">1 day</div>
+                </div>
+            </div>
+            
+            <div class="prediction-timeline">
+                <h3>🔮 Milestone Predictions</h3>
+                <div class="milestone-item">
+                    <div class="milestone-info">
+                        <div class="milestone-name">🌱 Getting started!</div>
+                        <div class="milestone-eta">Predicted: Jan 10, 2026 (~2 days)</div>
+                    </div>
+                    <div class="milestone-users">2 users</div>
+                </div>
+                <div class="milestone-item">
+                    <div class="milestone-info">
+                        <div class="milestone-name">💪 Week Warrior</div>
+                        <div class="milestone-eta">Predicted: Jan 14, 2026 (~6 days)</div>
+                    </div>
+                    <div class="milestone-users">2 users</div>
+                </div>
+            </div>
+            
+            <div class="insights-panel">
+                <h3>🧠 AI Insights & Predictions</h3>
+                <div class="insight-item">
+                    🎯 Both users in critical Day 1 phase - 65% sustainability
+                </div>
+                <div class="insight-item">
+                    📈 Next milestone wave: Getting Started badges in ~2 days
+                </div>
+                <div class="insight-item">
+                    ⚡ Perfect peer support opportunity - matched streak levels
+                </div>
+                <div class="insight-item">
+                    🚀 Optimal time to introduce engagement challenges
+                </div>
+                <div class="insight-item">
+                    💪 Current workshop momentum: BUILDING (early stage)
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="refreshDashboard()">
+        🔄 Refresh Analytics
+    </button>
+    
+    <script>
+        function refreshDashboard() {
+            // In a real implementation, this would fetch fresh data
+            console.log('Refreshing enhanced analytics...');
+            location.reload();
+        }
+        
+        // Auto-refresh every 5 minutes
+        setInterval(refreshDashboard, 300000);
+        
+        // Add some animation on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.metric-card, .user-list, .prediction-timeline, .insights-panel');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
