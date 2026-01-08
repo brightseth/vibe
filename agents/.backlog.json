@@ -767,6 +767,30 @@
       "assignedAt": "2026-01-08T07:55:18.001Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 PRIORITY: Build X webhook receiver at /api/webhooks/x. Create endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Ship working endpoint TODAY.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T08:10:11.761Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 SHIP: Build simple multiplayer tic-tac-toe game. Create room system, turn-based play, win detection. Start fresh, ignore all previous assignments. Ship working prototype TODAY.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:10:17.297Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 CELEBRATE: Write 'Workshop Recovery January 2026' post. Highlight recent ships: chess ✅, streaks leaderboard ✅, user matching ✅, icebreakers ✅. Celebrate our velocity! Post to community board TODAY.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:10:21.326Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

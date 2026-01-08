@@ -1,113 +1,168 @@
 {
-  "badge_definitions": {
-    "first_ship": {
-      "name": "First Ship 🚢",
-      "description": "Shipped your first project in the workshop",
-      "category": "milestone",
-      "points": 10,
-      "rarity": "common"
+  "system": {
+    "name": "Workshop Achievement Badges",
+    "version": "1.0.0",
+    "description": "Gamification system for /vibe workshop participation"
+  },
+  "badge_categories": {
+    "participation": {
+      "first_ship": {
+        "name": "First Ship 🚢",
+        "description": "Posted your first creation to the board",
+        "points": 10,
+        "rarity": "common",
+        "requirements": {
+          "ships": 1
+        }
+      },
+      "active_shipper": {
+        "name": "Active Shipper ⚓",
+        "description": "Posted 5 ships to the board",
+        "points": 25,
+        "rarity": "uncommon",
+        "requirements": {
+          "ships": 5
+        }
+      },
+      "prolific_creator": {
+        "name": "Prolific Creator 🎨",
+        "description": "Posted 10+ ships to the board",
+        "points": 50,
+        "rarity": "rare",
+        "requirements": {
+          "ships": 10
+        }
+      }
     },
-    "week_streak": {
-      "name": "Week Warrior 💪",
-      "description": "Maintained a 7-day activity streak",
-      "category": "consistency",
-      "points": 25,
-      "rarity": "uncommon"
+    "streaks": {
+      "week_streak": {
+        "name": "Week Streak 🔥",
+        "description": "Stayed active for 7 consecutive days",
+        "points": 30,
+        "rarity": "uncommon",
+        "requirements": {
+          "streak_days": 7
+        }
+      },
+      "month_streak": {
+        "name": "Monthly Legend 👑",
+        "description": "Stayed active for 30 consecutive days",
+        "points": 100,
+        "rarity": "legendary",
+        "requirements": {
+          "streak_days": 30
+        }
+      },
+      "century_streak": {
+        "name": "Century Club 💎",
+        "description": "Incredible 100-day streak!",
+        "points": 500,
+        "rarity": "mythical",
+        "requirements": {
+          "streak_days": 100
+        }
+      }
     },
-    "month_legend": {
-      "name": "Monthly Legend 🏆",
-      "description": "Achieved a 30-day activity streak",
-      "category": "consistency",
-      "points": 100,
-      "rarity": "rare"
+    "community": {
+      "game_master": {
+        "name": "Game Master 🎮",
+        "description": "Created or facilitated a workshop game",
+        "points": 40,
+        "rarity": "rare",
+        "requirements": {
+          "games_created": 1
+        }
+      },
+      "mentor": {
+        "name": "Workshop Mentor 🌟",
+        "description": "Helped onboard new workshop members",
+        "points": 60,
+        "rarity": "epic",
+        "requirements": {
+          "mentored_users": 3
+        }
+      },
+      "connector": {
+        "name": "Community Connector 🤝",
+        "description": "Introduced workshop members to each other",
+        "points": 35,
+        "rarity": "uncommon",
+        "requirements": {
+          "connections_made": 5
+        }
+      }
     },
-    "game_master": {
-      "name": "Game Master 🎮",
-      "description": "Created or facilitated a workshop game",
-      "category": "leadership",
-      "points": 50,
-      "rarity": "uncommon"
+    "special": {
+      "early_adopter": {
+        "name": "Early Adopter 🌱",
+        "description": "Joined the workshop in its first week",
+        "points": 75,
+        "rarity": "epic",
+        "requirements": {
+          "joined_before": "2026-01-15"
+        }
+      },
+      "night_owl": {
+        "name": "Night Owl 🦉",
+        "description": "Active during late night hours (10PM-2AM)",
+        "points": 20,
+        "rarity": "common",
+        "requirements": {
+          "late_night_sessions": 5
+        }
+      },
+      "early_bird": {
+        "name": "Early Bird 🐦",
+        "description": "Active during early morning hours (5AM-8AM)",
+        "points": 20,
+        "rarity": "common",
+        "requirements": {
+          "early_morning_sessions": 5
+        }
+      }
+    }
+  },
+  "rarity_levels": {
+    "common": {
+      "color": "#22C55E",
+      "emoji": "🟢"
     },
-    "early_bird": {
-      "name": "Early Bird 🌅",
-      "description": "Active in the workshop before 8 AM",
-      "category": "timing",
-      "points": 15,
-      "rarity": "common"
+    "uncommon": {
+      "color": "#3B82F6", 
+      "emoji": "🔵"
     },
-    "night_owl": {
-      "name": "Night Owl 🦉",
-      "description": "Active in the workshop after 10 PM",
-      "category": "timing",
-      "points": 15,
-      "rarity": "common"
+    "rare": {
+      "color": "#A855F7",
+      "emoji": "🟣"
     },
-    "comeback_kid": {
-      "name": "Comeback Kid 🔄",
-      "description": "Returned after a break and restarted your streak",
-      "category": "resilience",
-      "points": 20,
-      "rarity": "common"
+    "epic": {
+      "color": "#F59E0B",
+      "emoji": "🟡"
     },
-    "century_club": {
-      "name": "Century Club 👑",
-      "description": "Legendary 100-day activity streak",
-      "category": "consistency",
-      "points": 500,
-      "rarity": "legendary"
+    "legendary": {
+      "color": "#EF4444",
+      "emoji": "🔴"
     },
-    "helper": {
-      "name": "Helper 🤝",
-      "description": "Helped another workshop member with their project",
-      "category": "community",
-      "points": 20,
-      "rarity": "common"
-    },
-    "innovator": {
-      "name": "Innovator 💡",
-      "description": "Introduced a new idea or feature to the workshop",
-      "category": "creativity",
-      "points": 30,
-      "rarity": "uncommon"
+    "mythical": {
+      "color": "#EC4899",
+      "emoji": "💫"
     }
   },
   "user_badges": {
-    "@demo_user": [
-      {
-        "badge_key": "first_ship",
-        "awarded_at": "2026-01-08T22:50:00.000Z",
-        "reason": "Started their streak journey with first_day achievement"
-      }
-    ],
-    "@vibe_champion": [
-      {
-        "badge_key": "first_ship",
-        "awarded_at": "2026-01-08T22:50:00.000Z",
-        "reason": "Started their streak journey with first_day achievement"
-      }
-    ]
-  },
-  "badge_log": [
-    {
-      "user": "@demo_user",
-      "badge": "first_ship",
-      "badge_name": "First Ship 🚢",
-      "points": 10,
-      "awarded_at": "2026-01-08T22:50:00.000Z",
-      "reason": "Started their streak journey with first_day achievement"
+    "@demo_user": {
+      "earned": [],
+      "total_points": 0,
+      "achievements_unlocked": 0
     },
-    {
-      "user": "@vibe_champion",
-      "badge": "first_ship",
-      "badge_name": "First Ship 🚢",
-      "points": 10,
-      "awarded_at": "2026-01-08T22:50:00.000Z",
-      "reason": "Started their streak journey with first_day achievement"
+    "@vibe_champion": {
+      "earned": [],
+      "total_points": 0,
+      "achievements_unlocked": 0
     }
-  ],
-  "stats": {
-    "total_badges_awarded": 2,
-    "most_common_badge": "first_ship",
-    "rarest_earned": "first_ship"
+  },
+  "leaderboard": {
+    "by_points": [],
+    "by_badges": [],
+    "by_rarity": []
   }
 }

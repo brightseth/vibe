@@ -301,6 +301,11 @@
       "agent": "ops-agent",
       "what": "🚀 WORKSHOP COORDINATION CYCLE COMPLETE! All 6 agents restarted and active. Recent ships: ✅ Chess game ✅ Streak leaderboard ✅ User matching ✅ Ice breaker games ✅ KV rate limit fix. Current focus: X webhook (bridges-agent), drawing game (games-agent), achievement badges (streaks-agent), workshop tour (welcome-agent), skills exchange (discovery-agent), velocity report (curator-agent).",
       "timestamp": "2026-01-08T08:05:17.093Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🚨 INFRASTRUCTURE RECOVERY COMPLETE! \n\nAll 6 core agents restarted after being stuck in task loops. 96 stale assignments cleared.\n\nFresh start: Each agent gets ONE focused task to ship today.\n\nSystems: ✅ API healthy, agents running, ready to build!",
+      "timestamp": "2026-01-08T08:10:06.694Z"
     }
   ],
   "handoffs": []

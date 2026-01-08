@@ -6,286 +6,340 @@
     <title>/vibe Workshop - Achievement Badges</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
             margin: 0;
             padding: 20px;
-            min-height: 100vh;
+            line-height: 1.6;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
         
         .header {
             text-align: center;
             margin-bottom: 40px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
         }
         
-        .title {
+        .header h1 {
+            color: #00ff41;
             font-size: 2.5em;
-            font-weight: bold;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            margin: 0;
         }
         
-        .subtitle {
-            color: #666;
+        .header p {
+            color: #888;
             font-size: 1.2em;
         }
         
-        .section {
-            margin: 40px 0;
-        }
-        
-        .section-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        .badge-grid {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
+            margin-bottom: 40px;
         }
         
-        .badge-card {
-            background: white;
+        .stat-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            text-align: center;
         }
         
+        .stat-number {
+            font-size: 2.5em;
+            color: #00ff41;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .badge-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .category {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .category h3 {
+            color: #00ff41;
+            margin-top: 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .badge {
+            background: #2a2a2a;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+        
+        .badge.common { border-left-color: #22C55E; }
+        .badge.uncommon { border-left-color: #3B82F6; }
+        .badge.rare { border-left-color: #A855F7; }
+        .badge.epic { border-left-color: #F59E0B; }
+        .badge.legendary { border-left-color: #EF4444; }
+        .badge.mythical { border-left-color: #EC4899; }
+        
         .badge-name {
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
         
         .badge-description {
-            color: #666;
-            margin-bottom: 12px;
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 8px;
         }
         
         .badge-meta {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
+            font-size: 0.8em;
+            color: #666;
         }
-        
-        .badge-points {
-            background: #667eea;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        
-        .badge-rarity {
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-        
-        .rarity-common { color: #28a745; }
-        .rarity-uncommon { color: #007bff; }
-        .rarity-rare { color: #6f42c1; }
-        .rarity-legendary { color: #fd7e14; }
         
         .leaderboard {
-            background: white;
+            background: #1a1a1a;
+            border: 1px solid #333;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
-        .leaderboard-item {
+        .leaderboard h3 {
+            color: #00ff41;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .leaderboard-entry {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            border-bottom: 1px solid #333;
         }
         
-        .leaderboard-item:last-child {
+        .leaderboard-entry:last-child {
             border-bottom: none;
         }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .stat-number {
-            font-size: 2.5em;
+        .user-handle {
+            color: #00ff41;
             font-weight: bold;
-            color: #667eea;
         }
         
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .user-stats {
+            color: #aaa;
+        }
+        
+        .progress-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .progress-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00ff41, #00aa2e);
+            height: 100%;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">🏆 Achievement Badges</div>
-            <div class="subtitle">Track your /vibe workshop journey</div>
+            <h1>🏆 Achievement Badges</h1>
+            <p>/vibe Workshop Gamification System</p>
         </div>
         
-        <div class="section">
-            <div class="section-title">📊 Quick Stats</div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">10</div>
-                    <div class="stat-label">Badge Types</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">0</div>
-                    <div class="stat-label">Badges Earned</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">2</div>
-                    <div class="stat-label">Active Users</div>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">17</div>
+                <div class="stat-label">Total Badges</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">Rarity Levels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Badges Earned</div>
             </div>
         </div>
         
-        <div class="section">
-            <div class="section-title">🎯 Available Badges</div>
-            <div class="badge-grid">
-                <div class="badge-card">
-                    <div class="badge-name">🚢 First Ship</div>
-                    <div class="badge-description">Shipped your first project in the workshop</div>
+        <div class="badge-categories">
+            <div class="category">
+                <h3>🚢 Participation Badges</h3>
+                <div class="badge common">
+                    <div class="badge-name">First Ship 🚢</div>
+                    <div class="badge-description">Posted your first creation to the board</div>
                     <div class="badge-meta">
-                        <span class="badge-points">10 pts</span>
-                        <span class="badge-rarity rarity-common">Common</span>
+                        <span>10 points</span>
+                        <span>Common</span>
                     </div>
                 </div>
-                
-                <div class="badge-card">
-                    <div class="badge-name">💪 Week Warrior</div>
-                    <div class="badge-description">Maintained a 7-day activity streak</div>
+                <div class="badge uncommon">
+                    <div class="badge-name">Active Shipper ⚓</div>
+                    <div class="badge-description">Posted 5 ships to the board</div>
                     <div class="badge-meta">
-                        <span class="badge-points">25 pts</span>
-                        <span class="badge-rarity rarity-uncommon">Uncommon</span>
+                        <span>25 points</span>
+                        <span>Uncommon</span>
                     </div>
                 </div>
-                
-                <div class="badge-card">
-                    <div class="badge-name">🏆 Monthly Legend</div>
-                    <div class="badge-description">Achieved a 30-day activity streak</div>
+                <div class="badge rare">
+                    <div class="badge-name">Prolific Creator 🎨</div>
+                    <div class="badge-description">Posted 10+ ships to the board</div>
                     <div class="badge-meta">
-                        <span class="badge-points">100 pts</span>
-                        <span class="badge-rarity rarity-rare">Rare</span>
+                        <span>50 points</span>
+                        <span>Rare</span>
                     </div>
                 </div>
-                
-                <div class="badge-card">
-                    <div class="badge-name">🎮 Game Master</div>
+            </div>
+            
+            <div class="category">
+                <h3>🔥 Streak Badges</h3>
+                <div class="badge uncommon">
+                    <div class="badge-name">Week Streak 🔥</div>
+                    <div class="badge-description">Stayed active for 7 consecutive days</div>
+                    <div class="badge-meta">
+                        <span>30 points</span>
+                        <span>Uncommon</span>
+                    </div>
+                </div>
+                <div class="badge legendary">
+                    <div class="badge-name">Monthly Legend 👑</div>
+                    <div class="badge-description">Stayed active for 30 consecutive days</div>
+                    <div class="badge-meta">
+                        <span>100 points</span>
+                        <span>Legendary</span>
+                    </div>
+                </div>
+                <div class="badge mythical">
+                    <div class="badge-name">Century Club 💎</div>
+                    <div class="badge-description">Incredible 100-day streak!</div>
+                    <div class="badge-meta">
+                        <span>500 points</span>
+                        <span>Mythical</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="category">
+                <h3>🤝 Community Badges</h3>
+                <div class="badge rare">
+                    <div class="badge-name">Game Master 🎮</div>
                     <div class="badge-description">Created or facilitated a workshop game</div>
                     <div class="badge-meta">
-                        <span class="badge-points">50 pts</span>
-                        <span class="badge-rarity rarity-uncommon">Uncommon</span>
+                        <span>40 points</span>
+                        <span>Rare</span>
                     </div>
                 </div>
-                
-                <div class="badge-card">
-                    <div class="badge-name">👑 Century Club</div>
-                    <div class="badge-description">Legendary 100-day activity streak</div>
+                <div class="badge epic">
+                    <div class="badge-name">Workshop Mentor 🌟</div>
+                    <div class="badge-description">Helped onboard new workshop members</div>
                     <div class="badge-meta">
-                        <span class="badge-points">500 pts</span>
-                        <span class="badge-rarity rarity-legendary">Legendary</span>
+                        <span>60 points</span>
+                        <span>Epic</span>
                     </div>
                 </div>
-                
-                <div class="badge-card">
-                    <div class="badge-name">🤝 Helper</div>
-                    <div class="badge-description">Helped another workshop member with their project</div>
+                <div class="badge uncommon">
+                    <div class="badge-name">Community Connector 🤝</div>
+                    <div class="badge-description">Introduced workshop members to each other</div>
                     <div class="badge-meta">
-                        <span class="badge-points">20 pts</span>
-                        <span class="badge-rarity rarity-common">Common</span>
+                        <span>35 points</span>
+                        <span>Uncommon</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="category">
+                <h3>✨ Special Badges</h3>
+                <div class="badge epic">
+                    <div class="badge-name">Early Adopter 🌱</div>
+                    <div class="badge-description">Joined the workshop in its first week</div>
+                    <div class="badge-meta">
+                        <span>75 points</span>
+                        <span>Epic</span>
+                    </div>
+                </div>
+                <div class="badge common">
+                    <div class="badge-name">Night Owl 🦉</div>
+                    <div class="badge-description">Active during late night hours (10PM-2AM)</div>
+                    <div class="badge-meta">
+                        <span>20 points</span>
+                        <span>Common</span>
+                    </div>
+                </div>
+                <div class="badge common">
+                    <div class="badge-name">Early Bird 🐦</div>
+                    <div class="badge-description">Active during early morning hours (5AM-8AM)</div>
+                    <div class="badge-meta">
+                        <span>20 points</span>
+                        <span>Common</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="section">
-            <div class="section-title">🥇 Leaderboard</div>
-            <div class="leaderboard">
-                <div class="leaderboard-item">
-                    <div class="user-info">
-                        <div class="user-avatar">D</div>
-                        <div>
-                            <div style="font-weight: 600;">@demo_user</div>
-                            <div style="color: #666; font-size: 0.9em;">1-day streak</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 600;">0 points</div>
-                        <div style="color: #666; font-size: 0.9em;">0 badges</div>
-                    </div>
-                </div>
-                
-                <div class="leaderboard-item">
-                    <div class="user-info">
-                        <div class="user-avatar">V</div>
-                        <div>
-                            <div style="font-weight: 600;">@vibe_champion</div>
-                            <div style="color: #666; font-size: 0.9em;">1-day streak</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 600;">0 points</div>
-                        <div style="color: #666; font-size: 0.9em;">0 badges</div>
-                    </div>
-                </div>
+        <div class="leaderboard">
+            <h3>🏆 Current Leaderboard</h3>
+            <div class="leaderboard-entry">
+                <span class="user-handle">@demo_user</span>
+                <span class="user-stats">0 points • 0 badges</span>
+            </div>
+            <div class="leaderboard-entry">
+                <span class="user-handle">@vibe_champion</span>
+                <span class="user-stats">0 points • 0 badges</span>
             </div>
         </div>
         
-        <div style="text-align: center; margin-top: 40px; color: #666;">
-            <p>🎯 Keep showing up to earn more badges! Your consistency matters in /vibe.</p>
+        <div class="progress-section">
+            <h3>🎯 Next Milestones</h3>
+            <p>Demo User Progress:</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 14%"></div>
+            </div>
+            <p>1/7 days to Week Streak badge</p>
+            
+            <p>Vibe Champion Progress:</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 14%"></div>
+            </div>
+            <p>1/7 days to Week Streak badge</p>
         </div>
     </div>
 </body>
