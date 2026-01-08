@@ -41,8 +41,54 @@
       "description": "Active in the workshop for 3 consecutive days",
       "threshold": 3,
       "type": "streak"
+    },
+    "first_day": {
+      "name": "First Day 🌱",
+      "description": "Started your streak journey",
+      "threshold": 1,
+      "type": "streak"
     }
   },
-  "user_achievements": {},
-  "achievement_history": []
+  "user_achievements": {
+    "demo_user": [
+      {
+        "id": "first_day",
+        "name": "🌱 First Day",
+        "description": "Started your streak journey",
+        "earned_at": "2026-01-08T05:45:00.000Z",
+        "criteria": "streak_days >= 1"
+      }
+    ],
+    "vibe_champion": [
+      {
+        "id": "first_day",
+        "name": "🌱 First Day", 
+        "description": "Started your streak journey",
+        "earned_at": "2026-01-08T05:45:00.000Z",
+        "criteria": "streak_days >= 1"
+      }
+    ]
+  },
+  "achievement_history": [
+    {
+      "handle": "demo_user",
+      "badge": {
+        "id": "first_day",
+        "name": "🌱 First Day",
+        "description": "Started your streak journey",
+        "earned_at": "2026-01-08T05:45:00.000Z"
+      },
+      "timestamp": "2026-01-08T05:45:00.000Z"
+    },
+    {
+      "handle": "vibe_champion",
+      "badge": {
+        "id": "first_day", 
+        "name": "🌱 First Day",
+        "description": "Started your streak journey",
+        "earned_at": "2026-01-08T05:45:00.000Z"
+      },
+      "timestamp": "2026-01-08T05:45:00.000Z"
+    }
+  ]
 }
