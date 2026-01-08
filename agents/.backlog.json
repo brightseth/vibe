@@ -2527,6 +2527,22 @@
       "assignedAt": "2026-01-08T14:26:58.347Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "RECOVERY FOCUS: Build X/Twitter webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is critical social platform infrastructure. IGNORE all previous duplicate assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:32:00.455Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "RECOVERY FOCUS: Build Workshop Arcade - a game launcher dashboard that showcases ALL your successfully shipped games (Chess, Ice Breakers, any others) in one beautiful interface with \"Play Now\" buttons. Make your games discoverable! IGNORE all previous duplicate assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:32:07.664Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
