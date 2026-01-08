@@ -1,140 +1,121 @@
-// Achievement Badges System for /vibe workshop
-// Tracks and awards badges for different milestones and activities
+// Achievement Badges System for /vibe Workshop
+// Track and celebrate workshop participation milestones
 
 class AchievementSystem {
   constructor() {
     this.badges = {
-      // Streak-based badges
-      'getting_started': {
-        name: 'Getting Started 🌱',
-        description: 'Maintain a 3-day streak',
-        threshold: 3,
-        type: 'streak'
-      },
-      'week_warrior': {
-        name: 'Week Warrior 💪',
-        description: 'Maintain a 7-day streak',
-        threshold: 7,
-        type: 'streak'
-      },
-      'commitment_keeper': {
-        name: 'Commitment Keeper 🔥',
-        description: 'Maintain a 14-day streak',
-        threshold: 14,
-        type: 'streak'
-      },
-      'monthly_legend': {
-        name: 'Monthly Legend 🏆',
-        description: 'Maintain a 30-day streak',
-        threshold: 30,
-        type: 'streak'
-      },
-      'century_club': {
-        name: 'Century Club 👑',
-        description: 'Maintain a 100-day streak',
-        threshold: 100,
-        type: 'streak'
-      },
-      
-      // Activity-based badges
       'first_ship': {
-        name: 'First Ship ⛵',
-        description: 'Ship your first project',
-        type: 'activity'
+        name: 'First Ship 🚢',
+        description: 'Posted your first project to the board',
+        criteria: 'ship_count >= 1'
       },
-      'first_game': {
-        name: 'Game Pioneer 🎮',
-        description: 'Create your first game',
-        type: 'activity'
+      'week_streak': {
+        name: 'Week Streak 🔥',
+        description: 'Stayed active for 7 consecutive days',
+        criteria: 'streak_current >= 7'
       },
-      'first_message': {
-        name: 'Voice Heard 📢',
-        description: 'Send your first message',
-        type: 'activity'
+      'game_master': {
+        name: 'Game Master 🎮',
+        description: 'Created or contributed to a game project',
+        criteria: 'game_projects >= 1'
       },
-      'consistency_champion': {
-        name: 'Consistency Champion 🎯',
-        description: 'Visit 10 days in a month',
-        type: 'consistency'
+      'consistent_creator': {
+        name: 'Consistent Creator ⭐',
+        description: 'Shipped 5 projects',
+        criteria: 'ship_count >= 5'
       },
-      'comeback_kid': {
-        name: 'Comeback Kid 🔄',
-        description: 'Return after breaking a streak',
-        type: 'recovery'
+      'community_champion': {
+        name: 'Community Champion 👑',
+        description: 'Reached 30-day streak',
+        criteria: 'streak_current >= 30'
       }
     };
     
-    this.userBadges = new Map(); // user -> Set of badge IDs
+    this.userBadges = new Map(); // user -> Set of badge_ids
+    this.userStats = new Map();  // user -> stats object
   }
-  
-  // Check if user qualifies for any new badges
-  checkEligibility(handle, streakData, activityData = {}) {
-    const earned = [];
-    const userBadgeSet = this.userBadges.get(handle) || new Set();
-    
-    // Check streak-based badges
-    Object.entries(this.badges).forEach(([badgeId, badge]) => {
-      if (badge.type === 'streak' && !userBadgeSet.has(badgeId)) {
-        if (streakData.current >= badge.threshold) {
-          earned.push({ id: badgeId, badge });
-          userBadgeSet.add(badgeId);
-        }
+
+  // Check if user has earned new badges
+  checkAchievements(handle, stats) {
+    const currentBadges = this.userBadges.get(handle) || new Set();
+    const newBadges = [];
+
+    for (const [badgeId, badge] of Object.entries(this.badges)) {
+      if (!currentBadges.has(badgeId) && this.meetsRequirements(stats, badge.criteria)) {
+        currentBadges.add(badgeId);
+        newBadges.push({ id: badgeId, ...badge });
       }
-    });
-    
-    // Check activity-based badges
-    if (activityData.firstShip && !userBadgeSet.has('first_ship')) {
-      earned.push({ id: 'first_ship', badge: this.badges.first_ship });
-      userBadgeSet.add('first_ship');
     }
+
+    this.userBadges.set(handle, currentBadges);
+    this.userStats.set(handle, stats);
     
-    if (activityData.firstGame && !userBadgeSet.has('first_game')) {
-      earned.push({ id: 'first_game', badge: this.badges.first_game });
-      userBadgeSet.add('first_game');
-    }
-    
-    if (activityData.firstMessage && !userBadgeSet.has('first_message')) {
-      earned.push({ id: 'first_message', badge: this.badges.first_message });
-      userBadgeSet.add('first_message');
-    }
-    
-    this.userBadges.set(handle, userBadgeSet);
-    return earned;
+    return newBadges;
   }
-  
-  // Get all badges for a user
+
+  meetsRequirements(stats, criteria) {
+    // Simple criteria parser - can be expanded
+    const conditions = {
+      'ship_count >= 1': stats.ships >= 1,
+      'ship_count >= 5': stats.ships >= 5,
+      'streak_current >= 7': stats.currentStreak >= 7,
+      'streak_current >= 30': stats.currentStreak >= 30,
+      'game_projects >= 1': stats.gameProjects >= 1
+    };
+    
+    return conditions[criteria] || false;
+  }
+
   getUserBadges(handle) {
     const badgeIds = this.userBadges.get(handle) || new Set();
-    return Array.from(badgeIds).map(id => ({
-      id,
-      ...this.badges[id]
-    }));
+    return Array.from(badgeIds).map(id => ({ id, ...this.badges[id] }));
   }
-  
-  // Get leaderboard of most badges
-  getBadgeLeaderboard() {
-    const leaderboard = [];
-    this.userBadges.forEach((badges, handle) => {
-      leaderboard.push({
-        handle,
-        badgeCount: badges.size,
-        badges: Array.from(badges).map(id => this.badges[id].name)
-      });
-    });
-    
-    return leaderboard.sort((a, b) => b.badgeCount - a.badgeCount);
-  }
-  
-  // Format badge display for user
-  formatBadgeDisplay(handle) {
+
+  getBadgeDisplay(handle) {
     const badges = this.getUserBadges(handle);
-    if (badges.length === 0) {
-      return `${handle} - No badges yet! Keep building that streak! 🌟`;
+    if (badges.length === 0) return '';
+    
+    return badges.map(badge => badge.name).join(' ');
+  }
+
+  // Integration with existing streak system
+  updateFromStreakData(streakData) {
+    const updates = [];
+    
+    for (const [handle, streakInfo] of Object.entries(streakData)) {
+      const stats = {
+        currentStreak: streakInfo.current || 0,
+        bestStreak: streakInfo.best || 0,
+        ships: streakInfo.ships || 0,
+        gameProjects: streakInfo.gameProjects || 0
+      };
+      
+      const newBadges = this.checkAchievements(handle, stats);
+      if (newBadges.length > 0) {
+        updates.push({ handle, badges: newBadges });
+      }
     }
     
-    const badgeList = badges.map(b => b.name).join(', ');
-    return `${handle} - ${badges.length} badge${badges.length > 1 ? 's' : ''}: ${badgeList}`;
+    return updates;
   }
 }
 
-module.exports = { AchievementSystem };
+// Export for use by streaks-agent
+module.exports = AchievementSystem;
+
+// Example usage:
+/*
+const achievements = new AchievementSystem();
+
+// When someone ships something:
+const newBadges = achievements.checkAchievements('@user', {
+  ships: 1,
+  currentStreak: 5,
+  gameProjects: 0
+});
+
+// Celebrate new achievements:
+newBadges.forEach(badge => {
+  console.log(`🎉 @user earned: ${badge.name} - ${badge.description}`);
+});
+*/

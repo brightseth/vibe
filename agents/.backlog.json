@@ -983,6 +983,30 @@
       "assignedAt": "2026-01-08T09:05:40.290Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. This is critical infrastructure - ship TODAY.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:10:20.791Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 CELEBRATION POST: Write 'Workshop Velocity Report - January 8th' highlighting our recent 6 ships: chess game, streaks leaderboard, user matching, icebreakers, tic-tac-toe, achievement badges. Show we're building FAST! Post to community board.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:10:26.649Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 BUILD: Create 'Workshop Live Feed' showing new users what's happening right now: recent ships, active games, current builders. Make it engaging and inspiring for first-time visitors. Ship working dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:10:30.579Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
