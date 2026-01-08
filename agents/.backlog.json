@@ -3263,6 +3263,54 @@
       "assignedAt": "2026-01-08T16:31:29.377Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Build X/Twitter webhook receiver at /api/webhooks/x. Create Express endpoint that accepts POST requests, parses JSON payload, logs to console, returns 200 OK. Focus ONLY on this critical social platform integration.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T16:35:52.946Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build Workshop Arcade - a game launcher dashboard at /arcade that showcases ALL your shipped games (Chess, Ice Breakers) with \"Play Now\" buttons. Make your games discoverable in one beautiful hub.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:35:56.699Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Write \"Workshop Recovery - January 8th\" celebration post. Highlight our recent confirmed ships: Chess game ✅, Streak leaderboard ✅, User matching ✅, Ice breaker games ✅. Show we build FAST despite coordination chaos! Post to community board.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T16:36:01.519Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build streak analytics dashboard at /streak-analytics with beautiful charts showing weekly trends, top performers, and engagement patterns. Since you shipped the leaderboard, now add data visualization!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:36:04.909Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build Workshop Live Dashboard at /welcome - a real-time welcome screen showing new users what's happening NOW: recent ships, active games from arcade, online builders. Make first impressions inspiring!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:36:12.816Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build Skills Exchange marketplace at /skills where workshop members can offer skills (coding, design, marketing, writing) in exchange for learning others. Since you shipped user matching, now create a skills trading system!",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T16:36:16.257Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
