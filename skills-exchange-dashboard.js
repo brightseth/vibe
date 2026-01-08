@@ -8,27 +8,30 @@
 const fs = require('fs');
 const path = require('path');
 
-const VIBE_DIR = path.join(__dirname, 'data/vibe');
-const PROFILES_FILE = path.join(VIBE_DIR, 'profiles.json');
-const SKILLS_FILE = path.join(VIBE_DIR, 'skill-exchanges.jsonl');
+const PROFILES_FILE = path.join(__dirname, 'profiles.json');
+const SKILLS_FILE = path.join(__dirname, 'skill-exchanges.jsonl');
 
 // Load data helpers
 function loadProfiles() {
   try {
+    if (!fs.existsSync(PROFILES_FILE)) return {};
     return JSON.parse(fs.readFileSync(PROFILES_FILE, 'utf8'));
   } catch (error) {
+    console.error('Error loading profiles:', error);
     return {};
   }
 }
 
 function loadSkillExchanges() {
   try {
+    if (!fs.existsSync(SKILLS_FILE)) return [];
     const content = fs.readFileSync(SKILLS_FILE, 'utf8');
     return content.trim().split('\n')
       .filter(line => line.length > 0)
       .map(line => JSON.parse(line))
       .filter(post => post.status === 'active');
   } catch (error) {
+    console.error('Error loading skill exchanges:', error);
     return [];
   }
 }
@@ -73,7 +76,7 @@ function generateMarketplaceMetrics() {
   
   return {
     total: {
-      users: Object.keys(profiles).length,
+      users: new Set(posts.map(p => p.handle)).size, // Count unique posters
       posts: posts.length,
       offers: offers.length,
       requests: requests.length,
@@ -130,7 +133,7 @@ function findConnectionOpportunities() {
         offerDetails: offer.details,
         requesterBuilding: requesterProfile.building,
         providerBuilding: offerProfile.building,
-        confidence: calculateMatchConfidence(request, offer)
+        confidence: calculateMatchConfidence(request, offer, requesterProfile, offerProfile)
       });
     });
   });
@@ -138,7 +141,7 @@ function findConnectionOpportunities() {
   return opportunities.sort((a, b) => b.confidence - a.confidence);
 }
 
-function calculateMatchConfidence(request, offer) {
+function calculateMatchConfidence(request, offer, requesterProfile, offerProfile) {
   let confidence = 50; // Base confidence
   
   const requestSkill = request.skill.toLowerCase();
@@ -146,7 +149,7 @@ function calculateMatchConfidence(request, offer) {
   
   // Exact match
   if (requestSkill === offerSkill) confidence += 30;
-  // Partial match
+  // Partial match  
   else if (requestSkill.includes(offerSkill) || offerSkill.includes(requestSkill)) confidence += 20;
   
   // Both have details (more serious)
@@ -157,6 +160,23 @@ function calculateMatchConfidence(request, offer) {
   const dayInMs = 24 * 60 * 60 * 1000;
   if ((now - request.timestamp) < 3 * dayInMs) confidence += 5;
   if ((now - offer.timestamp) < 3 * dayInMs) confidence += 5;
+  
+  // Profile compatibility bonuses
+  if (requesterProfile.building && offerProfile.building) {
+    const reqBuilding = requesterProfile.building.toLowerCase();
+    const offerBuilding = offerProfile.building.toLowerCase();
+    
+    // Complementary skills
+    if (reqBuilding.includes('frontend') && offerBuilding.includes('backend')) confidence += 8;
+    if (reqBuilding.includes('backend') && offerBuilding.includes('frontend')) confidence += 8;
+    if (reqBuilding.includes('ai') && offerBuilding.includes('web')) confidence += 5;
+  }
+  
+  // Interest overlap
+  const reqInterests = requesterProfile.interests || [];
+  const offerInterests = offerProfile.interests || [];
+  const commonInterests = reqInterests.filter(i => offerInterests.includes(i));
+  confidence += Math.min(10, commonInterests.length * 2);
   
   return Math.min(100, confidence);
 }
