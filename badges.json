@@ -1,5 +1,12 @@
 {
   "achievement_badges": {
+    "first_day": {
+      "name": "First Day 🌱",
+      "description": "Started your workshop journey!",
+      "tier": "bronze",
+      "criteria": "1_day_streak",
+      "icon": "🌱"
+    },
     "first_ship": {
       "name": "First Ship 🚢",
       "description": "Shipped your first project to the workshop!",
@@ -43,7 +50,10 @@
       "icon": "🌟"
     }
   },
-  "user_badges": {},
+  "user_badges": {
+    "@demo_user": ["first_day"],
+    "@vibe_champion": ["first_day"]
+  },
   "badge_tiers": {
     "bronze": {"color": "#CD7F32", "value": 10},
     "silver": {"color": "#C0C0C0", "value": 25},
