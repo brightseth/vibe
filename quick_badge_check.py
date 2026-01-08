@@ -1,58 +1,42 @@
 #!/usr/bin/env python3
 """
-Quick badge check for current users
+Quick badge check and award for current users
 """
 
-from integrated_streak_badge_system import IntegratedStreakBadgeSystem
+from achievements import AchievementTracker
 
-def main():
-    system = IntegratedStreakBadgeSystem()
+# Initialize tracker
+tracker = AchievementTracker()
+
+print("🏆 Quick Badge Check for Current Users")
+print("=" * 50)
+
+# Check badge definitions
+print("\n📋 Available Badge Definitions:")
+for badge_id, badge_def in tracker.badge_definitions.items():
+    print(f"  {badge_id}: {badge_def['name']} (threshold: {badge_def['threshold']})")
+
+# Users with 1-day streaks should get first_day badge
+users = [("demo_user", 1), ("vibe_champion", 1)]
+
+for handle, streak_days in users:
+    print(f"\n👤 Checking {handle} (streak: {streak_days} days)")
     
-    print("🎖️ Quick Badge Check")
-    print("=" * 30)
+    # Build user stats
+    user_stats = {'streak_days': streak_days}
     
-    # Get current streaks from the data
-    streaks = {
-        "@demo_user": 1,
-        "@vibe_champion": 1
-    }
+    # Check for new badges
+    new_badges = tracker.check_new_badges(handle, user_stats)
     
-    for user, streak in streaks.items():
-        print(f"\n👤 {user} (streak: {streak})")
-        
-        # Check what badges they could earn
-        new_badges = system.check_new_achievements(user, streak)
-        
-        if new_badges:
-            print(f"  🎉 Can earn {len(new_badges)} badges:")
-            for badge in new_badges:
-                print(f"    {badge.emoji} {badge.name} - {badge.description}")
+    if new_badges:
+        msg = tracker.format_badge_announcement(handle, new_badges)
+        print(f"   🎉 NEW BADGE: {msg}")
+    else:
+        # Check current badges
+        current_badges = tracker.get_user_badges(handle)
+        if current_badges:
+            print(f"   ✅ Has {len(current_badges)} badges: {[b['name'] for b in current_badges]}")
         else:
-            print("  ✅ No new badges (already earned or not ready)")
-    
-    # Process all achievements
-    print(f"\n🔄 Processing achievements...")
-    new_achievements = system.process_streak_updates()
-    
-    if new_achievements:
-        print("🎊 New achievements awarded:")
-        for user, badges in new_achievements.items():
-            for badge in badges:
-                print(f"  {badge.emoji} {user} earned '{badge.name}'!")
-    else:
-        print("✅ No new achievements to award")
-    
-    # Check for celebrations
-    celebrations = system.get_celebration_messages()
-    
-    if celebrations:
-        print(f"\n🎉 Celebrations needed:")
-        for user, message, should_announce in celebrations:
-            print(f"  DM {user}: {message}")
-            if should_announce:
-                print(f"    📢 Also announce publicly!")
-    else:
-        print("\n✅ No pending celebrations")
+            print(f"   ❌ No badges yet")
 
-if __name__ == "__main__":
-    main()
+print("\n" + "=" * 50)
