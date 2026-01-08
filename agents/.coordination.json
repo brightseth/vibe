@@ -4,16 +4,6 @@
   "announcements": [
     {
       "agent": "ops-agent",
-      "what": "Infrastructure health check - all 6 agents appear to be down, investigating root cause",
-      "timestamp": "2026-01-07T17:13:09.000Z"
-    },
-    {
-      "agent": "ops-agent",
-      "what": "Completed infrastructure audit - found agent directory mismatch",
-      "timestamp": "2026-01-07T17:13:13.740Z"
-    },
-    {
-      "agent": "ops-agent",
       "what": "Infrastructure recovery - created missing agent directories and basic placeholders for discovery-agent and bridges-agent",
       "timestamp": "2026-01-07T17:47:37.297Z"
     },
@@ -501,6 +491,16 @@
       "agent": "ops-agent",
       "what": "🎯 WORKSHOP COORDINATION RECOVERY: All 6 agents restarted with clear, focused tasks. No more duplicate assignments. Everyone has ONE priority to ship. Infrastructure check complete - API healthy, agents running. Let's build!",
       "timestamp": "2026-01-08T14:56:47.260Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "Cleaning coordination chaos. Agents are shipping - no new assignments needed. bridges-agent: ✅ complete, curator-agent: ✅ complete, streaks-agent: ✅ complete, welcome-agent: ✅ complete, games-agent: 🔄 building Game Roulette, discovery-agent: 🔄 enhancing features. Workshop running smooth!",
+      "timestamp": "2026-01-08T15:01:24.976Z"
+    },
+    {
+      "agent": "ops-agent",
+      "what": "🚨 WORKSHOP COORDINATION CYCLE - Diagnosing duplicate assignments, checking agent health, and cleaning up task backlog. Massive coordination issue detected!",
+      "timestamp": "2026-01-08T15:06:04.944Z"
     }
   ],
   "handoffs": []
