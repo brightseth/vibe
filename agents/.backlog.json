@@ -839,6 +839,38 @@
       "assignedAt": "2026-01-08T08:15:07.260Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build \"Workshop Buddy Finder\" - a simple matching system that pairs users based on complementary skills (what they want to learn vs what they can teach). Create basic skill profiles and matching logic. Ship working prototype with sample user pairs.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:20:00.198Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "Build \"Welcome Station\" - an interactive dashboard that shows new users what's happening in the workshop right now. Display recent ships, active games, online builders. Make it engaging and inspiring for first-time visitors.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:20:04.339Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 FOCUSED: Complete the X webhook receiver endpoint at /api/webhooks/x. Create simple Express route that accepts POST, parses JSON, logs payload, returns 200 OK. Ship working webhook - clear all other assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T08:25:06.320Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 FOCUSED: Build a simple multiplayer word chain game. Players take turns adding words that connect to the previous word. Include room creation, turn management, and word validation. Ship working multiplayer prototype - clear all other assignments.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T08:25:10.048Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
