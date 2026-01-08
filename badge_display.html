@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Achievement Badges</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f0f0f;
+            color: #e4e4e7;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #fbbf24;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 1.1em;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .badge-card {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .badge-card:hover {
+            border-color: #fbbf24;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.1);
+        }
+
+        .badge-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .badge-emoji {
+            font-size: 2rem;
+        }
+
+        .badge-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+
+        .badge-tier {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .tier-bronze { background: #cd7f32; color: #fff; }
+        .tier-silver { background: #c0c0c0; color: #000; }
+        .tier-gold { background: #ffd700; color: #000; }
+        .tier-legendary { 
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            color: #fff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(147, 51, 234, 0.5); }
+            to { box-shadow: 0 0 20px rgba(236, 72, 153, 0.8); }
+        }
+
+        .badge-description {
+            color: #d4d4d8;
+            margin-bottom: 8px;
+        }
+
+        .badge-criteria {
+            color: #9ca3af;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .tier-section {
+            margin-bottom: 40px;
+        }
+
+        .tier-title {
+            font-size: 1.5em;
+            color: #fbbf24;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .stats-section {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: inline-block;
+            margin: 0 20px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+
+        .progress-section {
+            margin-top: 40px;
+        }
+
+        .progress-hint {
+            background: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 Workshop Achievement Badges</h1>
+        <p>Collect badges by participating in the /vibe workshop community</p>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-item">
+            <div class="stat-number">15</div>
+            <div class="stat-label">Total Badges</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Badge Tiers</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Ways to Contribute</div>
+        </div>
+    </div>
+
+    <div class="tier-section">
+        <h2 class="tier-title">🥉 Bronze Badges - Getting Started</h2>
+        <div class="badges-grid">
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🚀</span>
+                    <span class="badge-name">First Ship</span>
+                    <span class="badge-tier tier-bronze">Bronze</span>
+                </div>
+                <div class="badge-description">Shipped your first project!</div>
+                <div class="badge-criteria">Ship 1 project</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🔥</span>
+                    <span class="badge-name">Week Streak</span>
+                    <span class="badge-tier tier-bronze">Bronze</span>
+                </div>
+                <div class="badge-description">Active for 7 consecutive days</div>
+                <div class="badge-criteria">7 day streak</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🌱</span>
+                    <span class="badge-name">Early Adopter</span>
+                    <span class="badge-tier tier-bronze">Bronze</span>
+                </div>
+                <div class="badge-description">Joined the workshop in its early days</div>
+                <div class="badge-criteria">Join before user #50</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tier-section">
+        <h2 class="tier-title">🥈 Silver Badges - Building Momentum</h2>
+        <div class="badges-grid">
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">📦</span>
+                    <span class="badge-name">Consistent Shipper</span>
+                    <span class="badge-tier tier-silver">Silver</span>
+                </div>
+                <div class="badge-description">Shipped 5 projects</div>
+                <div class="badge-criteria">Ship 5 projects</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">⚔️</span>
+                    <span class="badge-name">Month Warrior</span>
+                    <span class="badge-tier tier-silver">Silver</span>
+                </div>
+                <div class="badge-description">Active for 30 consecutive days</div>
+                <div class="badge-criteria">30 day streak</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🎮</span>
+                    <span class="badge-name">Game Master</span>
+                    <span class="badge-tier tier-silver">Silver</span>
+                </div>
+                <div class="badge-description">Created a game in the workshop</div>
+                <div class="badge-criteria">Ship 1 game project</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🎓</span>
+                    <span class="badge-name">Mentor</span>
+                    <span class="badge-tier tier-silver">Silver</span>
+                </div>
+                <div class="badge-description">Helped onboard 3+ new members</div>
+                <div class="badge-criteria">Mentor 3 users</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tier-section">
+        <h2 class="tier-title">🥇 Gold Badges - Master Level</h2>
+        <div class="badges-grid">
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🏆</span>
+                    <span class="badge-name">Shipping Legend</span>
+                    <span class="badge-tier tier-gold">Gold</span>
+                </div>
+                <div class="badge-description">Shipped 25+ projects</div>
+                <div class="badge-criteria">Ship 25 projects</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">👑</span>
+                    <span class="badge-name">Century Club</span>
+                    <span class="badge-tier tier-gold">Gold</span>
+                </div>
+                <div class="badge-description">Active for 100 consecutive days</div>
+                <div class="badge-criteria">100 day streak</div>
+            </div>
+
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">🎯</span>
+                    <span class="badge-name">Game Innovator</span>
+                    <span class="badge-tier tier-gold">Gold</span>
+                </div>
+                <div class="badge-description">Created 5+ games</div>
+                <div class="badge-criteria">Ship 5 games</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tier-section">
+        <h2 class="tier-title">👑 Legendary Badges - Workshop Royalty</h2>
+        <div class="badges-grid">
+            <div class="badge-card">
+                <div class="badge-header">
+                    <span class="badge-emoji">✨</span>
+                    <span class="badge-name">Vibe Champion</span>
+                    <span class="badge-tier tier-legendary">Legendary</span>
+                </div>
+                <div class="badge-description">Embodies the workshop spirit</div>
+                <div class="badge-criteria">Special recognition</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <h2 class="tier-title">💡 How to Earn Badges</h2>
+        <div class="progress-hint">
+            <strong>🚀 Ship Projects:</strong> Build and share your creations to earn shipping badges
+        </div>
+        <div class="progress-hint">
+            <strong>🔥 Stay Consistent:</strong> Visit and participate daily to build your streak
+        </div>
+        <div class="progress-hint">
+            <strong>🎮 Make Games:</strong> Create interactive experiences for the community
+        </div>
+        <div class="progress-hint">
+            <strong>🤝 Help Others:</strong> Mentor new members and contribute to the community
+        </div>
+    </div>
+</body>
+</html>
