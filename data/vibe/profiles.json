@@ -1,0 +1,101 @@
+{
+  "alex-dev": {
+    "handle": "alex-dev",
+    "building": "A developer productivity tool for code reviews",
+    "interests": ["developer-tools", "productivity", "open-source"],
+    "tags": ["react", "typescript", "node.js", "graphql"],
+    "lastSeen": 1704744120000,
+    "firstSeen": 1704744120000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "sam-backend": {
+    "handle": "sam-backend",
+    "building": "API monitoring service for microservices",
+    "interests": ["distributed-systems", "monitoring", "saas"],
+    "tags": ["python", "kubernetes", "postgresql", "redis"],
+    "lastSeen": 1704744121000,
+    "firstSeen": 1704744121000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "morgan-ai": {
+    "handle": "morgan-ai",
+    "building": "Computer vision model for medical imaging",
+    "interests": ["healthcare", "ai-ethics", "research"],
+    "tags": ["pytorch", "python", "computer-vision", "healthcare"],
+    "lastSeen": 1704744122000,
+    "firstSeen": 1704744122000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "jordan-design": {
+    "handle": "jordan-design",
+    "building": "Design system for fintech startups",
+    "interests": ["fintech", "design-systems", "accessibility"],
+    "tags": ["figma", "design-systems", "user-research", "prototyping"],
+    "lastSeen": 1704744123000,
+    "firstSeen": 1704744123000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "taylor-brand": {
+    "handle": "taylor-brand",
+    "building": "Brand identity studio for B2B SaaS",
+    "interests": ["branding", "b2b-marketing", "startups"],
+    "tags": ["brand-design", "illustration", "adobe-creative", "copywriting"],
+    "lastSeen": 1704744124000,
+    "firstSeen": 1704744124000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "casey-product": {
+    "handle": "casey-product",
+    "building": "Project management tool for remote teams",
+    "interests": ["remote-work", "productivity", "team-collaboration"],
+    "tags": ["product-management", "user-research", "data-analysis", "roadmapping"],
+    "lastSeen": 1704744125000,
+    "firstSeen": 1704744125000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "riley-marketing": {
+    "handle": "riley-marketing",
+    "building": "Marketing automation platform",
+    "interests": ["marketing-automation", "growth-hacking", "analytics"],
+    "tags": ["seo", "content-marketing", "performance-marketing", "analytics"],
+    "lastSeen": 1704744126000,
+    "firstSeen": 1704744126000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "startup-founder": {
+    "handle": "startup-founder",
+    "building": "Sustainable packaging marketplace",
+    "interests": ["sustainability", "marketplace", "climate-tech"],
+    "tags": ["business-development", "fundraising", "strategy", "operations"],
+    "lastSeen": 1704744127000,
+    "firstSeen": 1704744127000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  },
+  "indie-maker": {
+    "handle": "indie-maker",
+    "building": "Personal finance app for freelancers",
+    "interests": ["fintech", "indie-hacking", "personal-finance"],
+    "tags": ["flutter", "firebase", "mobile-development", "solo-development"],
+    "lastSeen": 1704744128000,
+    "firstSeen": 1704744128000,
+    "connections": [],
+    "ships": [],
+    "source": "bootstrap"
+  }
+}
