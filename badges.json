@@ -1,0 +1,69 @@
+{
+  "badge_definitions": {
+    "first_ship": {
+      "name": "First Ship",
+      "description": "Shipped your first project to the board",
+      "emoji": "🚢",
+      "category": "shipping"
+    },
+    "week_streak": {
+      "name": "Week Streak",
+      "description": "Maintained a 7-day activity streak",
+      "emoji": "💪",
+      "category": "consistency"
+    },
+    "two_week_streak": {
+      "name": "Two Week Warrior",
+      "description": "Maintained a 14-day activity streak",
+      "emoji": "🔥",
+      "category": "consistency"
+    },
+    "monthly_legend": {
+      "name": "Monthly Legend",
+      "description": "Maintained a 30-day activity streak",
+      "emoji": "🏆",
+      "category": "consistency"
+    },
+    "century_club": {
+      "name": "Century Club",
+      "description": "Maintained a 100-day activity streak",
+      "emoji": "👑",
+      "category": "consistency"
+    },
+    "game_master": {
+      "name": "Game Master",
+      "description": "Built or shipped a game",
+      "emoji": "🎮",
+      "category": "gaming"
+    },
+    "early_bird": {
+      "name": "Early Bird",
+      "description": "First to be active in the workshop today",
+      "emoji": "🌅",
+      "category": "timing"
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "description": "Last to be active in the workshop",
+      "emoji": "🦉",
+      "category": "timing"
+    },
+    "vibe_keeper": {
+      "name": "Vibe Keeper",
+      "description": "Helped maintain positive workshop energy",
+      "emoji": "✨",
+      "category": "community"
+    },
+    "comeback_kid": {
+      "name": "Comeback Kid",
+      "description": "Returned after a break and restarted your streak",
+      "emoji": "💫",
+      "category": "resilience"
+    }
+  },
+  "user_badges": {
+    "@demo_user": [],
+    "@vibe_champion": []
+  },
+  "badge_log": []
+}
