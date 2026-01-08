@@ -1,73 +1,56 @@
 {
-  "badges": {
-    "@demo_user": [],
-    "@vibe_champion": []
-  },
-  "badge_definitions": {
+  "badge_types": {
     "first_ship": {
-      "name": "First Ship 🚀",
-      "description": "Posted your first creation to the board",
-      "category": "shipping"
+      "name": "First Ship 🚢",
+      "description": "Shipped your first project in the workshop",
+      "criteria": "First announcement to the board",
+      "rarity": "common"
     },
-    "regular_shipper": {
-      "name": "Regular Shipper 📦", 
-      "description": "Posted 5 creations",
-      "category": "shipping"
-    },
-    "ship_master": {
-      "name": "Ship Master ⚓",
-      "description": "Posted 25 creations", 
-      "category": "shipping"
-    },
-    "getting_started": {
-      "name": "Getting Started 🌱",
-      "description": "Maintained a 3-day streak",
-      "category": "streaks"
-    },
-    "week_warrior": {
-      "name": "Week Warrior 💪",
-      "description": "Maintained a 7-day streak",
-      "category": "streaks"
-    },
-    "two_week_legend": {
-      "name": "Two Week Legend 🔥", 
-      "description": "Maintained a 14-day streak",
-      "category": "streaks"
-    },
-    "monthly_master": {
-      "name": "Monthly Master 🏆",
-      "description": "Maintained a 30-day streak",
-      "category": "streaks"
-    },
-    "century_club": {
-      "name": "Century Club 👑",
-      "description": "Maintained a 100-day streak",
-      "category": "streaks"
+    "week_streak": {
+      "name": "Week Warrior ⚔️",
+      "description": "Maintained a 7-day activity streak",
+      "criteria": "7 consecutive days active",
+      "rarity": "uncommon"
     },
     "game_master": {
       "name": "Game Master 🎮",
-      "description": "Created or hosted a workshop game",
-      "category": "participation"
+      "description": "Created or ran a workshop game/activity",
+      "criteria": "Led an interactive session",
+      "rarity": "rare"
     },
-    "helper": {
-      "name": "Helper 🤝",
-      "description": "Assisted someone else with their project",
-      "category": "participation"
+    "two_week_legend": {
+      "name": "Two Week Legend 🏆",
+      "description": "Maintained a 14-day activity streak",
+      "criteria": "14 consecutive days active",
+      "rarity": "rare"
+    },
+    "monthly_champion": {
+      "name": "Monthly Champion 👑",
+      "description": "Maintained a 30-day activity streak",
+      "criteria": "30 consecutive days active",
+      "rarity": "legendary"
+    },
+    "century_club": {
+      "name": "Century Club 💎",
+      "description": "Maintained a 100-day activity streak",
+      "criteria": "100 consecutive days active",
+      "rarity": "mythic"
     },
     "early_bird": {
       "name": "Early Bird 🌅",
-      "description": "Active in first hour of workshop",
-      "category": "special"
+      "description": "Active during early morning hours (6-9 AM)",
+      "criteria": "Activity logged before 9 AM",
+      "rarity": "uncommon"
     },
-    "comeback_champion": {
-      "name": "Comeback Champion 💫",
-      "description": "Returned after a 30+ day break",
-      "category": "special"
+    "night_owl": {
+      "name": "Night Owl 🦉",
+      "description": "Active during late night hours (10 PM - 2 AM)",
+      "criteria": "Activity logged after 10 PM",
+      "rarity": "uncommon"
     }
   },
-  "stats": {
-    "total_badges_awarded": 0,
-    "most_badges": "@demo_user",
-    "recent_awards": []
+  "user_badges": {
+    "@demo_user": [],
+    "@vibe_champion": []
   }
 }
