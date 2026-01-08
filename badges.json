@@ -35,6 +35,15 @@
       }
     },
     "streaks": {
+      "first_day": {
+        "name": "First Day 🌱",
+        "description": "Started your streak journey",
+        "points": 5,
+        "rarity": "common",
+        "requirements": {
+          "streak_days": 1
+        }
+      },
       "week_streak": {
         "name": "Week Streak 🔥",
         "description": "Stayed active for 7 consecutive days",
@@ -150,19 +159,106 @@
   },
   "user_badges": {
     "@demo_user": {
-      "earned": [],
-      "total_points": 0,
-      "achievements_unlocked": 0
+      "earned": [
+        {
+          "badge_key": "first_day",
+          "awarded_at": "2026-01-08T22:45:00.000Z",
+          "reason": "Started streak journey"
+        },
+        {
+          "badge_key": "early_adopter", 
+          "awarded_at": "2026-01-08T22:45:00.000Z",
+          "reason": "Joined workshop in first week"
+        }
+      ],
+      "total_points": 80,
+      "achievements_unlocked": 2
     },
     "@vibe_champion": {
-      "earned": [],
-      "total_points": 0,
-      "achievements_unlocked": 0
+      "earned": [
+        {
+          "badge_key": "first_day",
+          "awarded_at": "2026-01-08T22:45:00.000Z", 
+          "reason": "Started streak journey"
+        },
+        {
+          "badge_key": "early_adopter",
+          "awarded_at": "2026-01-08T22:45:00.000Z",
+          "reason": "Joined workshop in first week"
+        }
+      ],
+      "total_points": 80,
+      "achievements_unlocked": 2
     }
   },
   "leaderboard": {
-    "by_points": [],
-    "by_badges": [],
-    "by_rarity": []
-  }
+    "by_points": [
+      {
+        "user": "@demo_user",
+        "points": 80,
+        "badges": 2
+      },
+      {
+        "user": "@vibe_champion", 
+        "points": 80,
+        "badges": 2
+      }
+    ],
+    "by_badges": [
+      {
+        "user": "@demo_user",
+        "badges": 2,
+        "points": 80
+      },
+      {
+        "user": "@vibe_champion",
+        "badges": 2, 
+        "points": 80
+      }
+    ],
+    "by_rarity": [
+      {
+        "user": "@demo_user",
+        "common": 1,
+        "epic": 1,
+        "total": 2
+      },
+      {
+        "user": "@vibe_champion",
+        "common": 1,
+        "epic": 1,
+        "total": 2
+      }
+    ]
+  },
+  "award_history": [
+    {
+      "user": "@demo_user",
+      "badge": "first_day",
+      "badge_name": "First Day 🌱",
+      "points": 5,
+      "awarded_at": "2026-01-08T22:45:00.000Z"
+    },
+    {
+      "user": "@demo_user", 
+      "badge": "early_adopter",
+      "badge_name": "Early Adopter 🌱",
+      "points": 75,
+      "awarded_at": "2026-01-08T22:45:00.000Z"
+    },
+    {
+      "user": "@vibe_champion",
+      "badge": "first_day", 
+      "badge_name": "First Day 🌱",
+      "points": 5,
+      "awarded_at": "2026-01-08T22:45:00.000Z"
+    },
+    {
+      "user": "@vibe_champion",
+      "badge": "early_adopter",
+      "badge_name": "Early Adopter 🌱", 
+      "points": 75,
+      "awarded_at": "2026-01-08T22:45:00.000Z"
+    }
+  ]
 }
