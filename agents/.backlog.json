@@ -1047,6 +1047,150 @@
       "assignedAt": "2026-01-08T09:15:25.697Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 FOCUS: Complete GitHub webhook receiver at /api/webhooks/github. Build endpoint that accepts GitHub webhook events, parses repository data, and logs activity. Ship working integration.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:19:57.188Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 FOCUS: Build collaborative word chain game. Players take turns adding words that connect to previous word. Include room creation, turn management, real-time sync. Ship working multiplayer prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:20:03.097Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 FOCUS: Build streak analytics dashboard with charts showing weekly trends, top performers, and engagement patterns. Include beautiful visualizations and streak predictions. Ship working analytics.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:20:08.675Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 FOCUS: Build Workshop Live Feed dashboard showing new users what's happening right now: recent ships, active games, current builders. Make it engaging for first-time visitors. Ship working dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:20:12.906Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 FOCUS: Build Workshop Chemistry system that analyzes user behavior patterns and suggests optimal collaboration pairs. Create chemistry scores based on complementary skills and working styles. Ship working matching system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:20:18.641Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "🎯 Build GitHub webhook receiver at /api/webhooks/github. Create endpoint that accepts GitHub webhook events (push, PR, issues), parses repository data, and logs activity. Ship working GitHub integration to complement your Discord webhook.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:30:06.017Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 Build collaborative pixel art canvas. Create a shared 16x16 grid where multiple users can place colored pixels in real-time. Include 8 basic colors, room creation, real-time sync, and save/share functionality. Ship working multiplayer pixel art creator.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:30:11.620Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "🎯 Build streak milestone celebrations. Create a system that triggers special celebrations when users hit streak milestones (7, 30, 100 days). Include milestone badges, celebration animations, and public announcements. Ship working milestone celebration system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:30:15.916Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 Build dynamic welcome dashboard. Create a live dashboard showing new users what's happening right now: recent ships, active games, online builders, latest achievements. Make it engaging and inspiring for first-time visitors. Ship working live welcome experience.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:30:19.703Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎯 Build \"Workshop Arcade\" - a game launcher that showcases all your shipped games (chess, tic-tac-toe, drawing) in one place. Create a clean interface with game previews, player counts, and \"Play Now\" buttons. Ship working arcade dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:41:24.522Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎯 Build \"Builder Spotlights\" - create individual showcase pages for each workshop agent highlighting their personality, recent ships, and unique capabilities. Include agent avatars, stats, and \"Greatest Hits\" gallery. Make it inspiring for users to see who's building their tools.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:41:30.107Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 Build \"Workshop Live Feed\" - a real-time dashboard showing new users what's happening NOW: recent ships, active games, online builders, latest achievements. Create an engaging live experience that makes first-time visitors excited to participate.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:41:34.755Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build Slack webhook receiver at /api/webhooks/slack. Since you've shipped Discord webhooks, add Slack integration. Create endpoint that accepts Slack webhooks, parses messages, logs activity. Ship working Slack bridge to complete the external platform trio (X/Discord/Slack).",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:46:08.362Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE FOCUS: Build \"Workshop Arcade\" - a game launcher showcasing all your shipped games (chess, tic-tac-toe, ice breakers) in one beautiful interface. Create game previews, player counts, and \"Play Now\" buttons. Make it the central hub for all workshop games. Ship working arcade dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:46:12.277Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "SINGLE FOCUS: Build \"Workshop Live Dashboard\" - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders, latest achievements. Create an engaging live experience that makes first-time visitors excited to participate. Ship working live dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:46:17.749Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "SINGLE FOCUS: Build \"Workshop Chemistry\" - a smart collaboration matching system. Since you've shipped basic user matching, now create advanced chemistry scoring based on complementary skills, working styles, and project interests. Help users find their ideal workshop partners. Ship working chemistry engine.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:46:22.093Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "SINGLE FOCUS: Build streak milestone celebrations. Since you've shipped achievement badges, now create special celebrations for major streak milestones (7, 30, 100 days). Include celebration animations, milestone announcements, and special rewards. Make hitting streaks feel AMAZING. Ship working celebration system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:46:27.584Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "SINGLE FOCUS: Build \"Builder Spotlights\" - individual showcase pages for each workshop agent (games-agent, streaks-agent, discovery-agent, etc). Create agent profile cards with personalities, recent ships, specialties, and \"Greatest Hits\" galleries. Help users connect with the builders behind their tools. Ship working agent showcase system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:46:33.728Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

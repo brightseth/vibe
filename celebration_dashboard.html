@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Milestone Celebration Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .milestone-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .milestone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .milestone-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .milestone-card:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .milestone-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .milestone-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .milestone-title {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .progress-section {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            height: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            border-radius: 25px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .next-milestone {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .celebration-history {
+            margin-top: 40px;
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .history-time {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+        
+        .refreshing {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Milestone Celebration Dashboard</h1>
+            <p>Tracking consistency and celebrating achievements</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-users">2</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-streaks">2</div>
+                <div class="stat-label">Current Streaks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-celebrations">2</div>
+                <div class="stat-label">Celebrations Sent</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avg-streak">1.0</div>
+                <div class="stat-label">Average Streak</div>
+            </div>
+        </div>
+        
+        <div class="milestone-section">
+            <h2 class="section-title">🏆 Active User Progress</h2>
+            <div class="milestone-grid" id="user-progress">
+                <!-- User progress cards will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="milestone-section">
+            <h2 class="section-title">🎯 Milestone Map</h2>
+            <div class="milestone-grid" id="milestone-map">
+                <!-- Milestone cards will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="celebration-history">
+            <h2 class="section-title">📜 Recent Celebrations</h2>
+            <div id="celebration-list">
+                <!-- Celebration history will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data - in real implementation, this would come from the Python celebration engine
+        const userData = {
+            "demo_user": {
+                "current_streak": 1,
+                "best_streak": 1,
+                "next_milestone": "Early Bird 🌅",
+                "days_to_next": 2,
+                "progress_percent": 33.3
+            },
+            "vibe_champion": {
+                "current_streak": 1,
+                "best_streak": 1,
+                "next_milestone": "Early Bird 🌅",
+                "days_to_next": 2,
+                "progress_percent": 33.3
+            }
+        };
+        
+        const milestoneMap = [
+            { day: 1, name: "First Day 🌱", color: "#22C55E", unlocked: true },
+            { day: 3, name: "Early Bird 🌅", color: "#3B82F6", unlocked: false },
+            { day: 7, name: "Week Warrior 💪", color: "#A855F7", unlocked: false },
+            { day: 14, name: "Consistency King 🔥", color: "#F59E0B", unlocked: false },
+            { day: 30, name: "Monthly Legend 🏆", color: "#EF4444", unlocked: false },
+            { day: 100, name: "Century Club 👑", color: "#EC4899", unlocked: false }
+        ];
+        
+        const celebrations = [
+            {
+                user: "demo_user",
+                milestone: "First Day 🌱",
+                time: "2 hours ago"
+            },
+            {
+                user: "vibe_champion", 
+                milestone: "First Day 🌱",
+                time: "2 hours ago"
+            }
+        ];
+        
+        function renderUserProgress() {
+            const container = document.getElementById('user-progress');
+            container.innerHTML = '';
+            
+            Object.entries(userData).forEach(([handle, data]) => {
+                const card = document.createElement('div');
+                card.className = 'milestone-card';
+                card.innerHTML = `
+                    <div class="milestone-header">
+                        <div class="milestone-icon">👤</div>
+                        <div class="milestone-title">${handle}</div>
+                    </div>
+                    <div class="progress-section">
+                        <p><strong>Current Streak:</strong> ${data.current_streak} days</p>
+                        <p><strong>Best Streak:</strong> ${data.best_streak} days</p>
+                        <div class="next-milestone">
+                            <strong>🎯 Next: ${data.next_milestone}</strong><br>
+                            ${data.days_to_next} days remaining
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${data.progress_percent}%"></div>
+                            </div>
+                            <div class="progress-text">${data.progress_percent.toFixed(1)}% complete</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function renderMilestoneMap() {
+            const container = document.getElementById('milestone-map');
+            container.innerHTML = '';
+            
+            milestoneMap.forEach(milestone => {
+                const card = document.createElement('div');
+                card.className = 'milestone-card';
+                card.style.borderColor = milestone.color;
+                card.style.opacity = milestone.unlocked ? '1' : '0.6';
+                
+                const status = milestone.unlocked ? '✅' : '🔒';
+                const statusText = milestone.unlocked ? 'Unlocked by users' : 'Future milestone';
+                
+                card.innerHTML = `
+                    <div class="milestone-header">
+                        <div class="milestone-icon">${status}</div>
+                        <div class="milestone-title">${milestone.name}</div>
+                    </div>
+                    <p><strong>Day ${milestone.day}</strong> milestone</p>
+                    <p><span class="emoji">📊</span> ${statusText}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function renderCelebrations() {
+            const container = document.getElementById('celebration-list');
+            container.innerHTML = '';
+            
+            celebrations.forEach(celebration => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div><strong>${celebration.user}</strong> earned <strong>${celebration.milestone}</strong></div>
+                    <div class="history-time">${celebration.time}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        function initDashboard() {
+            renderUserProgress();
+            renderMilestoneMap();
+            renderCelebrations();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                document.body.classList.add('refreshing');
+                setTimeout(() => {
+                    document.body.classList.remove('refreshing');
+                    // In real implementation, fetch fresh data here
+                }, 1000);
+            }, 30000);
+        }
+        
+        // Initialize dashboard
+        initDashboard();
+    </script>
+</body>
+</html>
