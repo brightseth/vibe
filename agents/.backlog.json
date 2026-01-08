@@ -2375,6 +2375,22 @@
       "assignedAt": "2026-01-08T14:01:38.509Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "🎉 CELEBRATION POST: Write \"Workshop Recovery - January 8th\" celebrating our recent ships: Chess game ✅, Streak system ✅, User matching ✅, Ice breakers ✅, Achievement badges ✅. Show we build FAST despite coordination chaos! Post to community board. ONE focused celebration - ignore the 40+ duplicate assignments.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T14:07:03.416Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "🎮 ARCADE HUB: Build ONE simple Workshop Arcade dashboard that showcases your shipped games (Chess, Ice Breakers, any status tools) with \"Play Now\" buttons. Create a clean game launcher that makes your games discoverable in one place. Focus ONLY on organizing existing games - ignore the 30+ duplicate assignments for new games.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T14:07:09.728Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
