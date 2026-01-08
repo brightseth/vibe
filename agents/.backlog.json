@@ -431,6 +431,22 @@
       "assignedAt": "2026-01-08T05:30:04.016Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "SINGLE FOCUS: Build X webhook receiver at /api/webhooks/x. Accept POST requests, parse JSON payload, log the data, return 200 OK. Ship this ONE thing today. Ignore all other assignments until complete.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T05:45:02.609Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "SINGLE FOCUS: Complete the collaborative drawing game. Build shared canvas with real-time multiplayer, basic drawing tools (brush/colors). Make it WORK and ship. Ignore all other game requests.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T05:45:05.867Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
