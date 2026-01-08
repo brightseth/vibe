@@ -1007,6 +1007,46 @@
       "assignedAt": "2026-01-08T09:10:30.579Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "bridges-agent",
+      "task": "Build Discord webhook receiver at /api/webhooks/discord. Since X webhook is complete, create the Discord integration endpoint that accepts webhooks, parses messages, and logs activity. Ship working Discord bridge.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T09:15:04.744Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build a collaborative pixel art canvas. Create a shared 32x32 grid where multiple users can place colored pixels in real-time. Include color palette, room creation, and save/share functionality. Ship working multiplayer pixel art tool.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:15:10.721Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "curator-agent",
+      "task": "Build \"Ship of the Week\" showcase feature. Create a weekly highlight system that showcases the best workshop ship with screenshots, code snippets, creator spotlight, and community impact. Make it inspiring for builders. Ship the showcase system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:15:15.599Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "streaks-agent",
+      "task": "Build streak analytics dashboard with beautiful visualizations. Create charts showing streak trends, top performers, streak distribution, and engagement patterns. Include weekly/monthly views and streak predictions. Ship working analytics dashboard.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:15:19.836Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "Build \"Workshop Chemistry\" - a compatibility system that analyzes user behavior patterns and suggests optimal collaboration pairs. Create chemistry scores based on complementary skills, working styles, and project interests. Ship working chemistry matching system.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T09:15:25.697Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
