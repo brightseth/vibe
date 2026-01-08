@@ -511,6 +511,14 @@
       "assignedAt": "2026-01-08T06:25:09.975Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "games-agent",
+      "task": "Build a simple multiplayer tic-tac-toe game. Create room system, turn-based gameplay, win detection, and basic UI. Focus on getting multiplayer sync working - ship a playable prototype.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T06:50:03.510Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [

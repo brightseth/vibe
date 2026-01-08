@@ -1,99 +1,125 @@
 /**
- * vibe draw — Collaborative drawing game for /vibe
+ * vibe draw — Start or join collaborative drawing sessions
  *
- * Create art together on a shared canvas! Draw pixels, make shapes,
- * play Pictionary, or just doodle with friends.
+ * Create shared canvases where multiple users can draw together in real-time!
  */
 
 const config = require('../config');
 const store = require('../store');
 const { createGamePayload } = require('../protocol');
 const { requireInit, normalizeHandle } = require('./_shared');
+
+// Drawing game implementation
 const drawing = require('../games/drawing');
 
 const definition = {
   name: 'vibe_draw',
-  description: 'Collaborative drawing game - create art together on a shared canvas',
+  description: 'Start or join collaborative drawing sessions. Create art together!',
   inputSchema: {
     type: 'object',
     properties: {
-      action: {
-        type: 'string',
-        description: 'Drawing action to take',
-        enum: ['start', 'join', 'draw', 'line', 'clear', 'theme', 'show', 'stats', 'help']
-      },
       room: {
         type: 'string',
-        description: 'Drawing room name (optional, defaults to "main")'
+        description: 'Drawing room name (e.g., "canvas1", "art-studio")'
+      },
+      action: {
+        type: 'string',
+        description: 'What to do',
+        enum: ['join', 'draw', 'line', 'clear', 'theme', 'stats', 'help']
       },
       x: {
         type: 'number',
-        description: 'X coordinate (0-19 for draw action)'
+        description: 'X coordinate (0-19)'
       },
       y: {
         type: 'number',
-        description: 'Y coordinate (0-11 for draw action)'
+        description: 'Y coordinate (0-11)'
       },
-      x2: {
+      x1: {
         type: 'number',
-        description: 'End X coordinate (for line action)'
+        description: 'End X coordinate for lines/clearing'
       },
-      y2: {
+      y1: {
         type: 'number',
-        description: 'End Y coordinate (for line action)'
+        description: 'End Y coordinate for lines/clearing'
       },
       char: {
         type: 'string',
-        description: 'Character to draw (e.g., dot, circle, square, star, heart, tree, etc.)'
+        description: 'Character to draw (empty, dot, circle, square, star, heart, etc.)'
       },
       theme: {
         type: 'string',
         description: 'Drawing theme/prompt to set'
       }
     },
-    required: ['action']
+    required: ['room']
   }
 };
 
-// Global drawing rooms storage (in memory for now)
-let drawingRooms = {};
-
-function getRoom(roomName = 'main') {
-  if (!drawingRooms[roomName]) {
-    drawingRooms[roomName] = drawing.createInitialDrawingState();
-  }
-  return drawingRooms[roomName];
-}
-
-function saveRoom(roomName, gameState) {
-  drawingRooms[roomName] = gameState;
-}
-
-// Post drawing activity to board
-async function postDrawingActivity(action, playerHandle, roomName) {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
-  
+/**
+ * Get drawing state from global store
+ */
+async function getDrawingState(room) {
   try {
-    let content = '';
-    switch (action) {
-      case 'start':
-        content = `🎨 @${playerHandle} started a drawing session${roomName !== 'main' ? ` in "${roomName}"` : ''}`;
-        break;
-      case 'join':
-        content = `🎨 @${playerHandle} joined the drawing session${roomName !== 'main' ? ` in "${roomName}"` : ''}`;
-        break;
-      case 'theme':
-        content = `🎯 @${playerHandle} set a drawing theme${roomName !== 'main' ? ` in "${roomName}"` : ''}`;
-        break;
-      default:
-        return; // Don't post for individual drawing actions
+    // Use a special "global" thread for drawing rooms
+    const globalThread = await store.getThread('drawing-rooms', room);
+    
+    // Find the most recent drawing payload
+    for (let i = globalThread.length - 1; i >= 0; i--) {
+      const msg = globalThread[i];
+      if (msg.payload?.type === 'game' && msg.payload?.game === 'drawing') {
+        return msg.payload.state;
+      }
     }
+    return null;
+  } catch (e) {
+    // Room doesn't exist yet
+    return null;
+  }
+}
+
+/**
+ * Save drawing state to global store
+ */
+async function saveDrawingState(room, gameState) {
+  const payload = createGamePayload('drawing', gameState);
+  await store.sendMessage('drawing-rooms', room, `Canvas updated by @${config.getHandle()}`, 'dm', payload);
+  return payload;
+}
+
+/**
+ * Format drawing display
+ */
+function formatDrawingDisplay(gameState, room) {
+  let display = drawing.formatDrawingDisplay(gameState);
+  display = `## 🎨 Drawing Room: ${room}\n\n` + display;
+  
+  // Add usage instructions
+  display += '\n**Commands:**\n';
+  display += '• `vibe draw ${room} --action join` - Join this drawing room\n';
+  display += '• `vibe draw ${room} --action draw --x 5 --y 3 --char dot` - Draw at position\n';
+  display += '• `vibe draw ${room} --action line --x 0 --y 0 --x1 5 --y1 5 --char square` - Draw line\n';
+  display += '• `vibe draw ${room} --action clear --x 0 --y 0 --x1 5 --y1 5` - Clear region\n';
+  display += '• `vibe draw ${room} --action theme --theme "sunset landscape"` - Set theme\n';
+  display += '• `vibe draw ${room} --action stats` - Show canvas statistics\n';
+  
+  return display;
+}
+
+/**
+ * Post drawing activity to board
+ */
+async function postDrawingActivity(room, player, action, details = '') {
+  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+
+  try {
+    const content = `🎨 @${player} ${action} in drawing room "${room}" ${details}`;
 
     await fetch(`${API_URL}/api/board`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        author: 'games-agent',
+        author: 'echo',
         content,
         category: 'general'
       })
@@ -107,233 +133,198 @@ async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const { action, room = 'main', x, y, x2, y2, char, theme } = args;
+  const { room, action = 'join', x, y, x1, y1, char, theme } = args;
   const myHandle = config.getHandle();
 
-  switch (action) {
-    case 'help': {
-      return {
-        display: `## 🎨 Collaborative Drawing Help
-
-**Basic Actions:**
-\`vibe draw --action start\` - Start/show drawing canvas
-\`vibe draw --action join\` - Join the drawing session
-\`vibe draw --action draw --x 10 --y 5 --char star\` - Draw a character at position
-
-**Advanced Drawing:**
-\`vibe draw --action line --x 0 --y 0 --x2 5 --y2 5 --char dot\` - Draw line
-\`vibe draw --action clear --x 0 --y 0 --x2 5 --y2 5\` - Clear region
-\`vibe draw --action theme --theme "house"\` - Set drawing theme
-
-**Info:**
-\`vibe draw --action show\` - Show current canvas
-\`vibe draw --action stats\` - Show canvas statistics
-
-**Characters:** dot, circle, square, star, heart, tree, house, sun, moon, water, mountain, person, cat, dog, car, plane, flower, umbrella, rainbow
-
-**Canvas:** 20x12 grid (x: 0-19, y: 0-11)
-**Rooms:** Use \`--room "roomname"\` for separate canvases`
-      };
-    }
-
-    case 'start': {
-      const gameState = getRoom(room);
-      
-      // Add player if not already in
-      const joinResult = drawing.addPlayer(gameState, myHandle);
-      if (joinResult.success) {
-        saveRoom(room, joinResult.gameState);
-        if (!gameState.players.includes(myHandle)) {
-          postDrawingActivity('start', myHandle, room);
-        }
-      }
-
-      const currentState = getRoom(room);
-      const display = drawing.formatDrawingDisplay(currentState);
-      
-      return {
-        display: `## ${room !== 'main' ? `Drawing Room "${room}"` : 'Main Drawing Canvas'}\n\n${display}\n**Tip:** Use \`vibe draw --action help\` for drawing commands`
-      };
-    }
-
-    case 'join': {
-      const gameState = getRoom(room);
-      const result = drawing.addPlayer(gameState, myHandle);
-      
-      if (result.error) {
-        return { display: result.error };
-      }
-
-      saveRoom(room, result.gameState);
-      postDrawingActivity('join', myHandle, room);
-
-      const display = drawing.formatDrawingDisplay(result.gameState);
-      return {
-        display: `## Joined Drawing Session!\n\n${display}\n**You can now draw!** Use \`vibe draw --action draw --x X --y Y --char CHARACTER\``
-      };
-    }
-
-    case 'show': {
-      const gameState = getRoom(room);
-      const display = drawing.formatDrawingDisplay(gameState);
-      
-      return {
-        display: `## ${room !== 'main' ? `Drawing Room "${room}"` : 'Current Canvas'}\n\n${display}`
-      };
-    }
-
-    case 'draw': {
-      if (x === undefined || y === undefined || !char) {
-        return { display: 'Draw action requires --x, --y, and --char parameters' };
-      }
-
-      const gameState = getRoom(room);
-      
-      // Auto-join if not in session
-      if (!gameState.players.includes(myHandle)) {
-        const joinResult = drawing.addPlayer(gameState, myHandle);
-        if (joinResult.error) {
-          return { display: joinResult.error };
-        }
-        saveRoom(room, joinResult.gameState);
-      }
-
-      const currentState = getRoom(room);
-      const charValue = drawing.DRAWING_CHARS[char] || char;
-      const result = drawing.makeMove(currentState, x, y, charValue, myHandle);
-
-      if (result.error) {
-        return { display: result.error };
-      }
-
-      saveRoom(room, result.gameState);
-      const display = drawing.formatDrawingDisplay(result.gameState);
-
-      return {
-        display: `## Drew ${charValue} at (${x},${y})\n\n${display}`
-      };
-    }
-
-    case 'line': {
-      if (x === undefined || y === undefined || x2 === undefined || y2 === undefined || !char) {
-        return { display: 'Line action requires --x, --y, --x2, --y2, and --char parameters' };
-      }
-
-      const gameState = getRoom(room);
-      
-      // Auto-join if not in session
-      if (!gameState.players.includes(myHandle)) {
-        const joinResult = drawing.addPlayer(gameState, myHandle);
-        if (joinResult.error) {
-          return { display: joinResult.error };
-        }
-        saveRoom(room, joinResult.gameState);
-      }
-
-      const currentState = getRoom(room);
-      const charValue = drawing.DRAWING_CHARS[char] || char;
-      const result = drawing.drawLine(currentState, x, y, x2, y2, charValue, myHandle);
-
-      if (result.error) {
-        return { display: result.error };
-      }
-
-      saveRoom(room, result.gameState);
-      const display = drawing.formatDrawingDisplay(result.gameState);
-
-      return {
-        display: `## Drew line from (${x},${y}) to (${x2},${y2})\n\n${display}`
-      };
-    }
-
-    case 'clear': {
-      if (x === undefined || y === undefined) {
-        return { display: 'Clear action requires --x, --y (and optionally --x2, --y2 for region)' };
-      }
-
-      const gameState = getRoom(room);
-      
-      if (!gameState.players.includes(myHandle)) {
-        return { display: 'You need to join the drawing session first!' };
-      }
-
-      const x1 = x2 !== undefined ? x2 : x;
-      const y1 = y2 !== undefined ? y2 : y;
-      const result = drawing.clearRegion(gameState, x, y, x1, y1, myHandle);
-
-      if (result.error) {
-        return { display: result.error };
-      }
-
-      saveRoom(room, result.gameState);
-      const display = drawing.formatDrawingDisplay(result.gameState);
-
-      const regionText = (x === x1 && y === y1) ? `(${x},${y})` : `(${x},${y}) to (${x1},${y1})`;
-      return {
-        display: `## Cleared region ${regionText}\n\n${display}`
-      };
-    }
-
-    case 'theme': {
-      if (!theme) {
-        return { display: 'Theme action requires --theme parameter' };
-      }
-
-      const gameState = getRoom(room);
-      
-      if (!gameState.players.includes(myHandle)) {
-        return { display: 'You need to join the drawing session first!' };
-      }
-
-      const result = drawing.setTheme(gameState, theme, myHandle);
-
-      if (result.error) {
-        return { display: result.error };
-      }
-
-      saveRoom(room, result.gameState);
-      postDrawingActivity('theme', myHandle, room);
-
-      const tips = drawing.getDrawingTips(theme);
-      const display = drawing.formatDrawingDisplay(result.gameState);
-
-      return {
-        display: `## Set Drawing Theme: "${theme}"\n\n${display}\n**Drawing Tips:**\n${tips.map(tip => `• ${tip}`).join('\n')}`
-      };
-    }
-
-    case 'stats': {
-      const gameState = getRoom(room);
-      const stats = drawing.getCanvasStats(gameState);
-      const display = drawing.formatDrawingDisplay(gameState);
-
-      let statsText = `**Canvas Statistics:**\n`;
-      statsText += `• Total moves: ${stats.totalMoves}\n`;
-      statsText += `• Canvas filled: ${stats.fillPercentage}% (${stats.totalDrawnCells}/${drawing.CANVAS_WIDTH * drawing.CANVAS_HEIGHT} cells)\n`;
-      statsText += `• Unique characters used: ${stats.uniqueCharsUsed}\n`;
-      
-      if (stats.mostUsedChar) {
-        statsText += `• Most used character: ${stats.mostUsedChar[0]} (${stats.mostUsedChar[1]} times)\n`;
-      }
-      
-      if (Object.keys(stats.playerMoves).length > 0) {
-        statsText += `\n**Player Activity:**\n`;
-        Object.entries(stats.playerMoves)
-          .sort(([,a], [,b]) => b - a)
-          .forEach(([player, moves]) => {
-            statsText += `• @${player}: ${moves} moves\n`;
-          });
-      }
-
-      return {
-        display: `## ${room !== 'main' ? `Drawing Room "${room}" Stats` : 'Canvas Statistics'}\n\n${display}\n${statsText}`
-      };
-    }
-
-    default: {
-      return { display: `Unknown action "${action}". Use --action help for available commands.` };
-    }
+  if (!room || room.length < 1) {
+    return { display: 'Please provide a room name (e.g., `vibe draw canvas1`)' };
   }
+
+  // Normalize room name (lowercase, no special chars)
+  const normalizedRoom = room.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+  // Get current drawing state
+  let gameState = await getDrawingState(normalizedRoom);
+
+  // Handle different actions
+  if (action === 'help') {
+    return {
+      display: `## 🎨 Collaborative Drawing Help\n\n` +
+        `**Available characters:**\n` +
+        Object.entries(drawing.DRAWING_CHARS)
+          .map(([name, char]) => `• ${char} (${name})`)
+          .join('\n') + '\n\n' +
+        `**Example commands:**\n` +
+        `• \`vibe draw ${normalizedRoom} --action join\` - Join room\n` +
+        `• \`vibe draw ${normalizedRoom} --action draw --x 10 --y 6 --char heart\` - Draw heart at center\n` +
+        `• \`vibe draw ${normalizedRoom} --action line --x 0 --y 0 --x1 19 --y1 0 --char square\` - Draw top border\n` +
+        `• \`vibe draw ${normalizedRoom} --action clear --x 0 --y 0 --x1 5 --y1 5\` - Clear corner\n` +
+        `• \`vibe draw ${normalizedRoom} --action theme --theme "space scene"\` - Set theme\n`
+    };
+  }
+
+  if (action === 'join') {
+    // Create new canvas if doesn't exist
+    if (!gameState) {
+      gameState = drawing.createInitialDrawingState();
+    }
+
+    // Add player
+    const result = drawing.addPlayer(gameState, myHandle);
+    if (result.error) {
+      return { display: result.error };
+    }
+
+    // Save state
+    await saveDrawingState(normalizedRoom, result.gameState);
+    
+    // Post to board
+    await postDrawingActivity(normalizedRoom, myHandle, 'joined');
+
+    return {
+      display: formatDrawingDisplay(result.gameState, normalizedRoom)
+    };
+  }
+
+  // All other actions require existing canvas and player membership
+  if (!gameState) {
+    return { 
+      display: `Drawing room "${normalizedRoom}" doesn't exist. Use \`vibe draw ${normalizedRoom} --action join\` to create it!` 
+    };
+  }
+
+  if (!gameState.players.includes(myHandle)) {
+    return { 
+      display: `You need to join the drawing room first! Use \`vibe draw ${normalizedRoom} --action join\`` 
+    };
+  }
+
+  if (action === 'stats') {
+    const stats = drawing.getCanvasStats(gameState);
+    let statsDisplay = `## 📊 Canvas Statistics for "${normalizedRoom}"\n\n`;
+    statsDisplay += `**Overall:**\n`;
+    statsDisplay += `• Total moves: ${stats.totalMoves}\n`;
+    statsDisplay += `• Canvas filled: ${stats.fillPercentage}% (${stats.totalDrawnCells}/${drawing.CANVAS_WIDTH * drawing.CANVAS_HEIGHT} cells)\n`;
+    statsDisplay += `• Unique characters used: ${stats.uniqueCharsUsed}\n`;
+    
+    if (stats.mostUsedChar) {
+      statsDisplay += `• Most used: ${stats.mostUsedChar[0]} (${stats.mostUsedChar[1]} times)\n`;
+    }
+    
+    statsDisplay += `\n**Player activity:**\n`;
+    Object.entries(stats.playerMoves)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([player, moves]) => {
+        statsDisplay += `• @${player}: ${moves} moves\n`;
+      });
+
+    if (Object.keys(stats.charCount).length > 0) {
+      statsDisplay += `\n**Characters used:**\n`;
+      Object.entries(stats.charCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10) // Top 10
+        .forEach(([char, count]) => {
+          statsDisplay += `• ${char}: ${count}\n`;
+        });
+    }
+
+    return { display: statsDisplay };
+  }
+
+  if (action === 'theme') {
+    if (!theme) {
+      return { display: 'Please provide a theme with --theme "your theme here"' };
+    }
+
+    const result = drawing.setTheme(gameState, theme, myHandle);
+    if (result.error) {
+      return { display: result.error };
+    }
+
+    await saveDrawingState(normalizedRoom, result.gameState);
+    await postDrawingActivity(normalizedRoom, myHandle, 'set theme', `"${theme}"`);
+
+    const tips = drawing.getDrawingTips(theme);
+    let display = formatDrawingDisplay(result.gameState, normalizedRoom);
+    display += `\n**💡 Tips for "${theme}":**\n`;
+    display += tips.map(tip => `• ${tip}`).join('\n') + '\n';
+
+    return { display };
+  }
+
+  if (action === 'draw') {
+    if (x === undefined || y === undefined || !char) {
+      return { display: 'For drawing: provide --x, --y, and --char (e.g., --x 5 --y 3 --char heart)' };
+    }
+
+    // Validate character name
+    const charKey = char.toLowerCase();
+    const actualChar = drawing.DRAWING_CHARS[charKey];
+    if (!actualChar) {
+      const available = Object.keys(drawing.DRAWING_CHARS).join(', ');
+      return { display: `Unknown character "${char}". Available: ${available}` };
+    }
+
+    const result = drawing.makeMove(gameState, x, y, actualChar, myHandle);
+    if (result.error) {
+      return { display: result.error };
+    }
+
+    await saveDrawingState(normalizedRoom, result.gameState);
+    await postDrawingActivity(normalizedRoom, myHandle, 'drew', `${actualChar} at (${x},${y})`);
+
+    return {
+      display: formatDrawingDisplay(result.gameState, normalizedRoom)
+    };
+  }
+
+  if (action === 'line') {
+    if (x === undefined || y === undefined || x1 === undefined || y1 === undefined || !char) {
+      return { display: 'For lines: provide --x, --y, --x1, --y1, and --char' };
+    }
+
+    const charKey = char.toLowerCase();
+    const actualChar = drawing.DRAWING_CHARS[charKey];
+    if (!actualChar) {
+      const available = Object.keys(drawing.DRAWING_CHARS).join(', ');
+      return { display: `Unknown character "${char}". Available: ${available}` };
+    }
+
+    const result = drawing.drawLine(gameState, x, y, x1, y1, actualChar, myHandle);
+    if (result.error) {
+      return { display: result.error };
+    }
+
+    await saveDrawingState(normalizedRoom, result.gameState);
+    await postDrawingActivity(normalizedRoom, myHandle, 'drew line', `from (${x},${y}) to (${x1},${y1})`);
+
+    return {
+      display: formatDrawingDisplay(result.gameState, normalizedRoom)
+    };
+  }
+
+  if (action === 'clear') {
+    if (x === undefined || y === undefined || x1 === undefined || y1 === undefined) {
+      return { display: 'For clearing: provide --x, --y, --x1, --y1 to define the region' };
+    }
+
+    const result = drawing.clearRegion(gameState, x, y, x1, y1, myHandle);
+    if (result.error) {
+      return { display: result.error };
+    }
+
+    await saveDrawingState(normalizedRoom, result.gameState);
+    await postDrawingActivity(normalizedRoom, myHandle, 'cleared region', `(${x},${y}) to (${x1},${y1})`);
+
+    return {
+      display: formatDrawingDisplay(result.gameState, normalizedRoom)
+    };
+  }
+
+  // Default: show current canvas
+  return {
+    display: formatDrawingDisplay(gameState, normalizedRoom)
+  };
 }
 
 module.exports = { definition, handler };
