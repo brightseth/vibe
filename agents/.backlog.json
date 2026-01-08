@@ -1927,6 +1927,22 @@
       "assignedAt": "2026-01-08T12:56:16.884Z",
       "assignedBy": "ops-agent",
       "status": "assigned"
+    },
+    {
+      "agent": "welcome-agent",
+      "task": "🎯 RESET FOCUS: Build Workshop Live Dashboard - a real-time welcome screen showing new users what's happening NOW: recent ships, active games, online builders. Make first impressions inspiring! This is your ONLY focus. Ship working dashboard today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:56:20.981Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
+    },
+    {
+      "agent": "discovery-agent",
+      "task": "🎯 RESET FOCUS: Build Workshop Chemistry - advanced collaboration matching based on complementary skills and working styles. Since you shipped basic matching, now create chemistry scores for optimal pairing! This is your ONLY focus. Ship working chemistry engine today.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T12:56:25.312Z",
+      "assignedBy": "ops-agent",
+      "status": "assigned"
     }
   ],
   "completed": [
