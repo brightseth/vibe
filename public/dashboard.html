@@ -314,6 +314,31 @@
                 </div>
             </div>
 
+            <!-- Funnel -->
+            <div class="card">
+                <h2>Today's Funnel</h2>
+                <div class="metric">
+                    <span class="label">Sessions Started</span>
+                    <span id="funnel-sessions" class="value highlight">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Handles Claimed</span>
+                    <span id="funnel-handles" class="value success">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">First Message</span>
+                    <span id="funnel-messages" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Games Played</span>
+                    <span id="funnel-games" class="value small">—</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Invites Generated</span>
+                    <span id="funnel-invites" class="value small">—</span>
+                </div>
+            </div>
+
             <!-- Top Inviters -->
             <div class="card">
                 <h2>Top Inviters</h2>
@@ -438,6 +463,23 @@
                 document.getElementById('waitlist-total').textContent = stats.waitlist.total;
                 document.getElementById('waitlist-today').textContent = '+' + stats.waitlist.today;
                 document.getElementById('waitlist-invited').textContent = stats.waitlist.invited;
+
+                // Fetch funnel events
+                try {
+                    const funnelRes = await fetch('/api/events');
+                    if (funnelRes.ok) {
+                        const funnel = await funnelRes.json();
+                        if (funnel.today) {
+                            document.getElementById('funnel-sessions').textContent = funnel.today.session_started || '0';
+                            document.getElementById('funnel-handles').textContent = funnel.today.handle_claimed || '0';
+                            document.getElementById('funnel-messages').textContent = funnel.today.first_message_sent || '0';
+                            document.getElementById('funnel-games').textContent = funnel.today.first_game_played || '0';
+                            document.getElementById('funnel-invites').textContent = funnel.today.invite_generated || '0';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Funnel fetch failed:', e);
+                }
 
                 // Update top inviters
                 const invitersList = document.getElementById('top-inviters');
