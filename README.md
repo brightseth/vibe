@@ -1,6 +1,8 @@
-# Vibe - The Social CLI
+# VIBE
 
-**Terminal with presence, sessions, and agents.**
+**The Social CLI**
+
+Terminal with presence, sessions, and agents.
 
 ## Week 1 Foundation ✅ COMPLETE
 
