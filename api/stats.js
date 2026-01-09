@@ -89,13 +89,22 @@ export default async function handler(req, res) {
       }
     }
 
+    // Use presence as another fallback for user count
+    let presenceTotal = 0;
+    try {
+      const presenceUsers = await kv.zrange('presence:index', 0, -1);
+      presenceTotal = presenceUsers?.length || 0;
+    } catch (e) {}
+
+    const finalCount = Math.max(totalRegistered, presenceTotal);
+
     return res.status(200).json({
       success: true,
-      total_registered: totalRegistered,  // THE REAL NUMBER
+      total_registered: finalCount,
       active_now: activeNow,
       messages,
       genesis,
-      users: totalRegistered,  // Legacy field
+      users: finalCount,
       storage: KV_CONFIGURED ? 'kv' : 'memory',
       cachedAt: new Date().toISOString()
     });
