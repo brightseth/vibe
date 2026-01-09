@@ -24,6 +24,7 @@ import {
   getClientIP
 } from './lib/ratelimit.js';
 import { incrementMessageCount } from './lib/handles.js';
+import { cachedKV } from './lib/kv-cache.js';
 
 // ============ AIRC SIGNATURE VERIFICATION ============
 
@@ -143,13 +144,13 @@ const memory = {
 // System accounts that bypass consent and can use simplified auth
 const SYSTEM_ACCOUNTS = ['vibe', 'system', 'solienne', 'scout'];
 
-// KV wrapper
+// KV wrapper - use cached version for reduced API calls
 async function getKV() {
   if (!KV_CONFIGURED) return null;
   try {
-    const { kv } = await import('@vercel/kv');
-    return kv;
+    return await cachedKV();
   } catch (e) {
+    console.error('[messages] KV init failed:', e.message);
     return null;
   }
 }
