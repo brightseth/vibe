@@ -5,8 +5,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   var statusItem: NSStatusItem?
   var installManager: InstallManager?
   var outputWindow: OutputWindow?
+  var splashWindow: SplashWindow?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // Show welcome splash screen
+    showSplashScreen()
+
     // Hide from dock - we're a menu bar app only
     NSApp.setActivationPolicy(.accessory)
 
@@ -28,6 +32,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Check for first run
     checkFirstRun()
+  }
+
+  func showSplashScreen() {
+    splashWindow = SplashWindow()
+    splashWindow?.orderFrontRegardless()
+
+    // Dismiss after delay
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+      self?.splashWindow?.dismiss()
+      self?.splashWindow = nil
+    }
   }
 
   @objc func toggleMenu() {
