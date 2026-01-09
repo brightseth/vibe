@@ -80,6 +80,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     menu.addItem(
       NSMenuItem(title: "Open ~/.vibe", action: #selector(openVibeDirectory), keyEquivalent: ""))
 
+    // Open homepage
+    menu.addItem(
+      NSMenuItem(title: "Open slashvibe.dev", action: #selector(openHomepage), keyEquivalent: ""))
+
     menu.addItem(NSMenuItem.separator())
 
     // Quit
@@ -96,12 +100,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let fileManager = FileManager.default
 
     if !fileManager.fileExists(atPath: repoDir) {
-      return "Not Installed"
+      return "❌ Not Installed"
     }
 
     // Check if git repo exists and is up to date
     if fileManager.fileExists(atPath: repoDir + "/.git") {
-      return "Installed"
+      return "✅ Installed"
     }
 
     return "Unknown"
@@ -160,6 +164,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   @objc func openVibeDirectory() {
     let vibeDir = NSHomeDirectory() + "/.vibe"
     NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: vibeDir)
+  }
+
+  @objc func openHomepage() {
+    if let url = URL(string: "https://www.slashvibe.dev/") {
+      NSWorkspace.shared.open(url)
+    }
   }
 
   func showOutputWindow(title: String) {
@@ -280,7 +290,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       echo "Press any key to launch Claude Code..."
       read -n 1 -s
       # Update title before launching Claude
-      echo -ne "\\033]0;𝑳𝒂𝒖𝒏𝒄𝒉𝒊𝒏𝒈 𝑪𝒍𝒂𝒖𝒅𝒆 𝑪𝒐𝒅𝒆\\007"
+      echo -ne "\\033]0;𝑪𝒍𝒂𝒖𝒅𝒆 𝑪𝒐𝒅𝒆\\007"
       claude
       """
 

@@ -46,7 +46,7 @@ mkdir -p "$VIBE_DIR/memory"
 if [ -d "$REPO_DIR/.git" ]; then
   echo "Updating existing installation..."
   cd "$REPO_DIR"
-  git pull --quiet
+  git pull --quiet --ff-only
   echo "Updated from git"
 else
   # Remove old non-git install if exists
