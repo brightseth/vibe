@@ -1,6 +1,31 @@
 {
   "assignments": [
     {
+      "agent": "community",
+      "task": "[MEDIUM] Build crossword game: Daily puzzle inspired by early internet nostalgia (AOL, BBS era). Collab + competitive modes, async play. See docs/nostalgia-research.md for full spec and design principles.",
+      "priority": "medium",
+      "assignedAt": "2026-01-08T22:30:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned",
+      "context": "Handoff from nostalgia research session. Key insight: 'The early internet was a place you went. Modern social media is a feed that comes to you. /vibe should be a place.'",
+      "files": [
+        "docs/nostalgia-research.md",
+        "ROADMAP.md (M6 Nostalgia Stack)"
+      ]
+    },
+    {
+      "agent": "voice",
+      "task": "[HIGH] Integrate /explore page into main site: Add to top nav, announce in Discord. Live at vibe-weld.vercel.app/explore.html. Track 'Say Hi' → response rate.",
+      "priority": "high",
+      "assignedAt": "2026-01-08T22:30:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned",
+      "context": "Approved for integration. Discovery is core to social - without it /vibe is just messaging friends who happen to have it installed.",
+      "files": [
+        "PRODUCT_REQUEST_EXPLORE.md"
+      ]
+    },
+    {
       "agent": "growth",
       "task": "[CRITICAL] Fix FTUE based on @seanbonner feedback: (1) Clear handle selection with prefill options (X handle, git, custom), (2) Explicit 'Your handle is @X' confirmation, (3) Show what /vibe does before asking permissions, (4) Default notifications to OFF, ask permission first, (5) Less aggressive guided mode - don't auto-suggest collabs",
       "priority": "critical",

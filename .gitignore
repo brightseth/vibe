@@ -129,3 +129,4 @@ test-streaks.js
 
 # Vercel
 .vercel
+.env*.local
