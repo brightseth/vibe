@@ -36,25 +36,38 @@ export default async function handler(req, res) {
   try {
     const kv = await getKV();
 
-    let users = 12;    // Default fallback
-    let messages = 47; // Default fallback
+    let totalRegistered = 0;  // Total handles claimed (the real number)
+    let activeNow = 0;        // Online in last 5 min
+    let messages = 0;
 
     if (kv) {
-      // Count active users (last 5 minutes)
-      const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+      // Count TOTAL registered handles (the namespace)
       try {
-        const activeHandles = await kv.zrangebyscore('presence:active', fiveMinAgo, '+inf');
-        users = activeHandles?.length || users;
+        totalRegistered = await kv.hlen('vibe:handles') || 0;
       } catch (e) {
-        // Keep default
+        console.error('[stats] Failed to count handles:', e.message);
       }
 
-      // Count threads (rough message estimate)
+      // Count active users (last 5 minutes)
       try {
-        const threadKeys = await kv.keys('thread:*');
-        messages = (threadKeys?.length || 0) * 3 || messages;
+        const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+        const activeHandles = await kv.zrangebyscore('presence:index', fiveMinAgo, '+inf');
+        activeNow = activeHandles?.length || 0;
       } catch (e) {
-        // Keep default
+        // Keep 0
+      }
+
+      // Count messages (inbox entries)
+      try {
+        const inboxKeys = await kv.keys('inbox:*');
+        let totalMsgs = 0;
+        for (const key of (inboxKeys || []).slice(0, 50)) {
+          const len = await kv.llen(key);
+          totalMsgs += len || 0;
+        }
+        messages = totalMsgs;
+      } catch (e) {
+        // Keep 0
       }
     }
 
@@ -64,15 +77,17 @@ export default async function handler(req, res) {
       try {
         genesis = await getHandleStats(kv);
       } catch (e) {
-        // Keep null
+        console.error('[stats] Failed to get genesis stats:', e.message);
       }
     }
 
     return res.status(200).json({
       success: true,
-      users,
+      total_registered: totalRegistered,  // THE REAL NUMBER
+      active_now: activeNow,
       messages,
       genesis,
+      users: totalRegistered,  // Legacy field
       storage: KV_CONFIGURED ? 'kv' : 'memory',
       cachedAt: new Date().toISOString()
     });
