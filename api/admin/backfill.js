@@ -28,10 +28,71 @@ module.exports = async function handler(req, res) {
   }
 
   const stats = {
+    users: { found: 0, inserted: 0, skipped: 0, errors: [] },
     board: { found: 0, inserted: 0, skipped: 0, errors: [] },
     streaks: { found: 0, inserted: 0, skipped: 0, errors: [] },
     messages: { found: 0, inserted: 0, skipped: 0, errors: [] },
   };
+
+  // ═══════════════════════════════════════════
+  // USERS
+  // ═══════════════════════════════════════════
+  try {
+    const keys = await kv.keys('user:*');
+    stats.users.found = keys.length;
+
+    for (const key of keys) {
+      try {
+        const data = await kv.hgetall(key);
+        if (!data) {
+          stats.users.skipped++;
+          continue;
+        }
+
+        const username = (data.username || key.replace('user:', '') || '').toLowerCase().replace('@', '');
+        if (!username) {
+          stats.users.skipped++;
+          continue;
+        }
+
+        const createdAt = data.createdAt ? new Date(data.createdAt) : null;
+        const updatedAt = data.updatedAt ? new Date(data.updatedAt) : null;
+
+        await sql`
+          INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+          VALUES (
+            ${username},
+            ${data.building || null},
+            ${data.invitedBy || null},
+            ${data.inviteCode || null},
+            ${data.publicKey || null},
+            ${createdAt},
+            ${updatedAt}
+          )
+          ON CONFLICT (username) DO UPDATE SET
+            building = COALESCE(EXCLUDED.building, users.building),
+            invited_by = COALESCE(EXCLUDED.invited_by, users.invited_by),
+            invite_code = COALESCE(EXCLUDED.invite_code, users.invite_code),
+            public_key = COALESCE(EXCLUDED.public_key, users.public_key),
+            created_at = CASE
+              WHEN users.created_at IS NULL THEN EXCLUDED.created_at
+              WHEN EXCLUDED.created_at IS NULL THEN users.created_at
+              ELSE LEAST(users.created_at, EXCLUDED.created_at)
+            END,
+            updated_at = CASE
+              WHEN users.updated_at IS NULL THEN EXCLUDED.updated_at
+              WHEN EXCLUDED.updated_at IS NULL THEN users.updated_at
+              ELSE GREATEST(users.updated_at, EXCLUDED.updated_at)
+            END
+        `;
+        stats.users.inserted++;
+      } catch (e) {
+        stats.users.errors.push(`${key}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    stats.users.errors.push(`Keys read failed: ${e.message}`);
+  }
 
   // ═══════════════════════════════════════════
   // BOARD ENTRIES
@@ -155,12 +216,18 @@ module.exports = async function handler(req, res) {
   }
 
   // Return results
-  const total = stats.board.inserted + stats.streaks.inserted + stats.messages.inserted;
+  const total = stats.users.inserted + stats.board.inserted + stats.streaks.inserted + stats.messages.inserted;
 
   return res.status(200).json({
     success: true,
     migrated: total,
     stats: {
+      users: {
+        found: stats.users.found,
+        inserted: stats.users.inserted,
+        skipped: stats.users.skipped,
+        errors: stats.users.errors.length
+      },
       board: {
         found: stats.board.found,
         inserted: stats.board.inserted,
@@ -181,6 +248,7 @@ module.exports = async function handler(req, res) {
       }
     },
     errorDetails: {
+      users: stats.users.errors.slice(0, 5),
       board: stats.board.errors.slice(0, 5),
       streaks: stats.streaks.errors.slice(0, 5),
       messages: stats.messages.errors.slice(0, 5)

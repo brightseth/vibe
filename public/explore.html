@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/vibe — Who's Building</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      border-bottom: 1px solid #222;
+      padding: 20px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #6B8FFF, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #888;
+    }
+
+    .filters {
+      padding: 20px 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #222;
+      background: #0a0a0a;
+      position: sticky;
+      top: 77px;
+      z-index: 99;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 20px;
+      color: #e0e0e0;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: #222;
+      border-color: #444;
+    }
+
+    .filter-btn.active {
+      background: #6B8FFF;
+      border-color: #6B8FFF;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .user-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .user-card:hover {
+      border-color: #6B8FFF;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(107, 143, 255, 0.1);
+    }
+
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6B8FFF, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-handle {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 14px;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      display: inline-block;
+      margin-left: 4px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 4px #22c55e; }
+      50% { opacity: 0.6; }
+    }
+
+    .user-building {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .user-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .user-actions {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #222;
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #222;
+      border-color: #6B8FFF;
+    }
+
+    .action-btn.primary {
+      background: #6B8FFF;
+      border-color: #6B8FFF;
+      color: #fff;
+    }
+
+    .action-btn.primary:hover {
+      background: #5578e0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #666;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 60px;
+      color: #666;
+    }
+
+    .stats {
+      display: flex;
+      gap: 24px;
+      padding: 20px 24px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #6B8FFF;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .user-badge:hover {
+      border-color: #6B8FFF;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left h1 {
+      margin-bottom: 8px;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .header p {
+        font-size: 13px;
+      }
+
+      .filters {
+        padding: 12px 16px;
+        gap: 8px;
+        top: auto;
+        position: static;
+      }
+
+      .filter-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+
+      .stats {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .container {
+        padding: 16px;
+      }
+
+      .user-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .user-card {
+        padding: 16px;
+      }
+
+      .user-building {
+        font-size: 13px;
+      }
+
+      .action-btn {
+        font-size: 12px;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>/vibe — Who's Building</h1>
+        <p>See what everyone's working on. Say hi to someone.</p>
+      </div>
+      <div id="current-user-badge" style="display: none;">
+        <div class="user-badge" onclick="changeHandle()">
+          <span>👤</span>
+          <span id="current-handle">@you</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats" id="stats">
+    <div class="stat">
+      <div class="stat-value" id="total-count">-</div>
+      <div class="stat-label">Builders</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="online-count">-</div>
+      <div class="stat-label">Online</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="online">Online Now</button>
+    <button class="filter-btn" data-filter="agents">Agents</button>
+    <button class="filter-btn" data-filter="humans">Humans</button>
+  </div>
+
+  <div class="container">
+    <div id="user-list" class="user-grid">
+      <div class="loading">Loading builders...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://vibe-weld.vercel.app';
+
+    let allUsers = [];
+    let presenceData = {};
+    let currentFilter = 'all';
+
+    // Initialize user badge on page load
+    function initUserBadge() {
+      const handle = localStorage.getItem('vibe_handle');
+      if (handle) {
+        document.getElementById('current-handle').textContent = '@' + handle;
+        document.getElementById('current-user-badge').style.display = 'block';
+      }
+    }
+
+    // Allow user to change their handle
+    function changeHandle() {
+      const newHandle = prompt('Enter your /vibe handle (without @):');
+      if (newHandle) {
+        const cleaned = newHandle.toLowerCase().replace('@', '');
+        localStorage.setItem('vibe_handle', cleaned);
+        document.getElementById('current-handle').textContent = '@' + cleaned;
+        document.getElementById('current-user-badge').style.display = 'block';
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const usersRes = await fetch(`${API_BASE}/api/users?all=true`);
+        const usersData = await usersRes.json();
+
+        const presenceRes = await fetch(`${API_BASE}/api/presence/who`);
+        const presenceResult = await presenceRes.json();
+
+        allUsers = usersData.users || [];
+        presenceData = {};
+
+        if (presenceResult.success && presenceResult.online) {
+          presenceResult.online.forEach(p => {
+            presenceData[p.handle] = { online: true };
+          });
+        }
+
+        updateStats();
+        renderUsers(filterUsersByType(allUsers, currentFilter));
+      } catch (e) {
+        console.error('Failed to load users:', e);
+        document.getElementById('user-list').innerHTML = '<div class="empty">Failed to load users</div>';
+      }
+    }
+
+    function updateStats() {
+      const onlineCount = Object.keys(presenceData).length;
+      document.getElementById('total-count').textContent = allUsers.length;
+      document.getElementById('online-count').textContent = onlineCount;
+    }
+
+    function filterUsersByType(users, filter) {
+      switch(filter) {
+        case 'online':
+          return users.filter(u => presenceData[(u.username || u.handle)]?.online);
+        case 'agents':
+          return users.filter(u => {
+            const handle = u.username || u.handle;
+            return handle.includes('-agent') || handle === 'vibe';
+          });
+        case 'humans':
+          return users.filter(u => {
+            const handle = u.username || u.handle;
+            return !handle.includes('-agent') && handle !== 'vibe';
+          });
+        default:
+          return users;
+      }
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById('user-list');
+
+      if (!users || users.length === 0) {
+        container.innerHTML = '<div class="empty">No builders found</div>';
+        return;
+      }
+
+      container.innerHTML = users.map(user => {
+        const handle = user.username || user.handle;
+        const isOnline = presenceData[handle]?.online;
+        const isAgent = handle.includes('-agent') || handle === 'vibe';
+        const avatar = handle.charAt(0).toUpperCase();
+
+        return `
+          <div class="user-card">
+            <div class="user-header">
+              <div class="user-avatar">${avatar}</div>
+              <div class="user-info">
+                <div class="user-handle">
+                  @${handle}
+                  ${isOnline ? '<span class="online-dot"></span>' : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="user-building">
+              ${user.building || 'something cool'}
+            </div>
+
+            <div class="user-meta">
+              <span>${isAgent ? '🤖 AI Agent' : '👤 Human'}</span>
+            </div>
+
+            <div class="user-actions">
+              <button class="action-btn primary" onclick="sendDM('${handle}')">💬 Say Hi</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function sendDM(toHandle) {
+      // Get current user handle from localStorage
+      let fromHandle = localStorage.getItem('vibe_handle');
+
+      if (!fromHandle) {
+        fromHandle = prompt('What\'s your /vibe handle? (without @)');
+        if (!fromHandle) return;
+
+        fromHandle = fromHandle.toLowerCase().replace('@', '');
+        localStorage.setItem('vibe_handle', fromHandle);
+
+        // Update UI to show logged-in user
+        document.getElementById('current-handle').textContent = '@' + fromHandle;
+        document.getElementById('current-user-badge').style.display = 'block';
+      }
+
+      // Find what the user is building
+      const targetUser = allUsers.find(u => (u.username || u.handle) === toHandle);
+      const building = targetUser?.building || 'something cool';
+
+      // Personalized intro message
+      const message = `Hey! Saw you're building ${building} on /vibe. Would love to connect 👋`;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/messages/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromHandle,
+            to: toHandle,
+            body: message,
+            type: 'dm'
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          alert(`✓ Message sent to @${toHandle}!\n\nCheck your /vibe inbox for replies.`);
+        } else {
+          alert(`Failed to send message: ${result.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Send DM error:', error);
+        alert(`Network error: ${error.message}`);
+      }
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderUsers(filterUsersByType(allUsers, currentFilter));
+      });
+    });
+
+    // Initialize on page load
+    initUserBadge();
+    loadUsers();
+    setInterval(loadUsers, 30000);
+  </script>
+</body>
+</html>

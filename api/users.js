@@ -3,7 +3,11 @@
  *
  * POST /api/users - Register or update a user
  * GET /api/users?user=X - Get user profile
+ *
+ * Migration: Postgres primary, KV fallback
  */
+
+import { sql, isPostgresEnabled } from './lib/db.js';
 
 // Check if KV is configured
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -53,22 +57,136 @@ async function getKV() {
 }
 
 async function getUser(username) {
+  // 1. Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      const result = await sql`
+        SELECT username, building, invited_by, invite_code, public_key, created_at, updated_at
+        FROM users
+        WHERE username = ${username}
+        LIMIT 1
+      `;
+      if (result && result.length > 0) {
+        const row = result[0];
+        return {
+          username: row.username,
+          building: row.building,
+          invitedBy: row.invited_by,
+          inviteCode: row.invite_code,
+          publicKey: row.public_key,
+          createdAt: row.created_at?.toISOString(),
+          updatedAt: row.updated_at?.toISOString()
+        };
+      }
+    } catch (e) {
+      console.error('[users] Postgres read error:', e.message);
+    }
+  }
+
+  // 2. Fallback to KV (with lazy backfill)
   const kv = await getKV();
   if (kv) {
-    return await kv.hgetall(`user:${username}`);
+    const kvData = await kv.hgetall(`user:${username}`);
+    if (kvData) {
+      // Backfill to Postgres if found in KV
+      if (isPostgresEnabled() && sql) {
+        try {
+          await sql`
+            INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+            VALUES (
+              ${kvData.username || username},
+              ${kvData.building},
+              ${kvData.invitedBy || null},
+              ${kvData.inviteCode || null},
+              ${kvData.publicKey || null},
+              ${kvData.createdAt ? new Date(kvData.createdAt) : new Date()},
+              ${kvData.updatedAt ? new Date(kvData.updatedAt) : new Date()}
+            )
+            ON CONFLICT (username) DO NOTHING
+          `;
+        } catch (e) {
+          console.error('[users] Backfill error:', e.message);
+        }
+      }
+      return kvData;
+    }
   }
+
+  // 3. Memory fallback (dev only)
   return memoryUsers[username] || null;
 }
 
 async function setUser(username, data) {
+  // Dual-write: Postgres first (fail-fast), then KV
+
+  // 1. Write to Postgres
+  if (isPostgresEnabled() && sql) {
+    try {
+      await sql`
+        INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+        VALUES (
+          ${username},
+          ${data.building || null},
+          ${data.invitedBy || null},
+          ${data.inviteCode || null},
+          ${data.publicKey || null},
+          ${data.createdAt ? new Date(data.createdAt) : new Date()},
+          ${data.updatedAt ? new Date(data.updatedAt) : new Date()}
+        )
+        ON CONFLICT (username) DO UPDATE SET
+          building = COALESCE(EXCLUDED.building, users.building),
+          invited_by = COALESCE(EXCLUDED.invited_by, users.invited_by),
+          invite_code = COALESCE(EXCLUDED.invite_code, users.invite_code),
+          public_key = COALESCE(EXCLUDED.public_key, users.public_key),
+          updated_at = EXCLUDED.updated_at
+      `;
+    } catch (e) {
+      console.error('[users] Postgres write error:', e.message);
+      // Continue to KV write
+    }
+  }
+
+  // 2. Write to KV (safety net during migration)
   const kv = await getKV();
   if (kv) {
-    await kv.hset(`user:${username}`, data);
+    try {
+      await kv.hset(`user:${username}`, data);
+    } catch (e) {
+      console.error('[users] KV write error:', e.message);
+    }
   }
+
+  // 3. Memory fallback (dev only)
   memoryUsers[username] = { ...memoryUsers[username], ...data };
 }
 
 async function getAllUsers() {
+  // 1. Try Postgres first
+  if (isPostgresEnabled() && sql) {
+    try {
+      const result = await sql`
+        SELECT username, building, invited_by, invite_code, public_key, created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 1000
+      `;
+      if (result && result.length > 0) {
+        return result.map(row => ({
+          username: row.username,
+          building: row.building,
+          invitedBy: row.invited_by,
+          inviteCode: row.invite_code,
+          publicKey: row.public_key,
+          createdAt: row.created_at?.toISOString(),
+          updatedAt: row.updated_at?.toISOString()
+        }));
+      }
+    } catch (e) {
+      console.error('[users] Postgres list error:', e.message);
+    }
+  }
+
+  // 2. Fallback to KV
   const kv = await getKV();
   if (kv) {
     const keys = await kv.keys('user:*');
@@ -80,6 +198,8 @@ async function getAllUsers() {
     }
     return users;
   }
+
+  // 3. Memory fallback (dev only)
   return Object.values(memoryUsers);
 }
 
@@ -165,12 +285,14 @@ export default async function handler(req, res) {
       }
     }
 
+    const storage = isPostgresEnabled() ? 'postgres' : (KV_CONFIGURED ? 'kv' : 'memory');
+
     return res.status(200).json({
       success: true,
       user: userData,
       isNew: !existing,
       welcomeSent,
-      storage: KV_CONFIGURED ? 'kv' : 'memory'
+      storage
     });
   }
 
@@ -182,11 +304,12 @@ export default async function handler(req, res) {
     // Get all users
     if (all === 'true') {
       const users = await getAllUsers();
+      const storage = isPostgresEnabled() ? 'postgres' : (KV_CONFIGURED ? 'kv' : 'memory');
       return res.status(200).json({
         success: true,
         users,
         count: users.length,
-        storage: KV_CONFIGURED ? 'kv' : 'memory'
+        storage
       });
     }
 
@@ -207,10 +330,12 @@ export default async function handler(req, res) {
       });
     }
 
+    const storage = isPostgresEnabled() ? 'postgres' : (KV_CONFIGURED ? 'kv' : 'memory');
+
     return res.status(200).json({
       success: true,
       user: userData,
-      storage: KV_CONFIGURED ? 'kv' : 'memory'
+      storage
     });
   }
 
