@@ -2,10 +2,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod db;
-mod pty;
 mod osc;
+mod pty;
+mod zdotdir;
 
 use db::Database;
+use osc::OscEvent;
 use pty::PtySession;
 use std::sync::Mutex;
 use tauri::State;
@@ -13,6 +15,7 @@ use tauri::State;
 struct AppState {
     db: Mutex<Database>,
     pty: Mutex<Option<PtySession>>,
+    current_command_id: Mutex<Option<String>>,
 }
 
 #[tauri::command]
@@ -85,6 +88,47 @@ fn read_output(state: State<AppState>) -> Result<Option<Vec<u8>>, String> {
 }
 
 #[tauri::command]
+fn process_osc_events(state: State<AppState>) -> Result<(), String> {
+    let pty = state.pty.lock().unwrap();
+    if let Some(ref session) = *pty {
+        let events = session.read_osc_events();
+        let session_id = session.session_id.clone();
+        drop(pty); // Release lock before database operations
+
+        for event in events {
+            match event {
+                OscEvent::CommandText(cmd_text) => {
+                    // Command starting - create new command record
+                    let db = state.db.lock().unwrap();
+                    match db.create_command(&session_id, &cmd_text) {
+                        Ok(cmd_id) => {
+                            println!("🎵 Command started: {}", cmd_text);
+                            let mut current = state.current_command_id.lock().unwrap();
+                            *current = Some(cmd_id);
+                        }
+                        Err(e) => eprintln!("Failed to create command: {}", e),
+                    }
+                }
+                OscEvent::CommandEnd(exit_code) => {
+                    // Command ended - update with exit code
+                    let db = state.db.lock().unwrap();
+                    if let Err(e) = db.end_command(&session_id, exit_code) {
+                        eprintln!("Failed to end command: {}", e);
+                    } else {
+                        let emoji = if exit_code == 0 { "✅" } else { "❌" };
+                        println!("{} Command completed with exit code: {}", emoji, exit_code);
+                    }
+                    let mut current = state.current_command_id.lock().unwrap();
+                    *current = None;
+                }
+                _ => {} // Ignore other OSC events for now
+            }
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn resize_pty(state: State<AppState>, cols: u16, rows: u16) -> Result<(), String> {
     let mut pty = state.pty.lock().unwrap();
     if let Some(ref mut session) = *pty {
@@ -128,11 +172,13 @@ fn main() {
         .manage(AppState {
             db: Mutex::new(db),
             pty: Mutex::new(None),
+            current_command_id: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             start_session,
             send_input,
             read_output,
+            process_osc_events,
             resize_pty,
             end_session,
             get_recent_sessions,
