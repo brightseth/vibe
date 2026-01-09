@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { vibeClient, type VibeUser } from "../lib/vibeClient";
+import GamesPanel from "./GamesPanel";
+import PatternsPanel from "./PatternsPanel";
+import { track } from "../lib/tracking";
 
 interface SocialSidebarProps {
   onUserClick: (handle: string) => void;
@@ -11,6 +14,7 @@ export default function SocialSidebar({ onUserClick }: SocialSidebarProps) {
   const [handle, setHandle] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [showSetup, setShowSetup] = useState(false);
+  const [activeTab, setActiveTab] = useState<"people" | "games" | "patterns">("people");
 
   useEffect(() => {
     // Try to load saved /vibe identity
@@ -135,65 +139,146 @@ export default function SocialSidebar({ onUserClick }: SocialSidebarProps) {
         width: "300px",
         background: "#0a0a0a",
         borderLeft: "1px solid #222",
-        padding: "16px",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <div style={{ marginBottom: "16px" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px" }}>
-          Online ({onlineUsers.length})
-        </h3>
-        {isConnected ? (
-          <div style={{ fontSize: "11px", color: "#50fa7b" }}>
-            ● Connected to /vibe
-          </div>
-        ) : (
-          <div style={{ fontSize: "11px", color: "#666" }}>
-            ○ Connecting...
-          </div>
-        )}
+      {/* Tab switcher */}
+      <div
+        style={{
+          display: "flex",
+          borderBottom: "1px solid #222",
+          padding: "8px 16px 0",
+        }}
+      >
+        <button
+          onClick={() => {
+            const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+            track.tabSwitched(sessionId, activeTab, "people");
+            setActiveTab("people");
+          }}
+          style={{
+            flex: 1,
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "people" ? "2px solid #6B8FFF" : "2px solid transparent",
+            color: activeTab === "people" ? "#fff" : "#888",
+            padding: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          People
+        </button>
+        <button
+          onClick={() => {
+            const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+            track.tabSwitched(sessionId, activeTab, "games");
+            setActiveTab("games");
+          }}
+          style={{
+            flex: 1,
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "games" ? "2px solid #6B8FFF" : "2px solid transparent",
+            color: activeTab === "games" ? "#fff" : "#888",
+            padding: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Games
+        </button>
+        <button
+          onClick={() => {
+            const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+            track.tabSwitched(sessionId, activeTab, "patterns");
+            setActiveTab("patterns");
+          }}
+          style={{
+            flex: 1,
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "patterns" ? "2px solid #6B8FFF" : "2px solid transparent",
+            color: activeTab === "patterns" ? "#fff" : "#888",
+            padding: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Patterns
+        </button>
       </div>
 
-      {/* Online users list */}
-      <div style={{ flex: 1, overflow: "auto" }}>
-        {onlineUsers.length === 0 ? (
-          <div style={{ fontSize: "12px", color: "#666" }}>
-            No one else online right now
+      {activeTab === "people" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px" }}>
+              Online ({onlineUsers.length})
+            </h3>
+            {isConnected ? (
+              <div style={{ fontSize: "11px", color: "#50fa7b" }}>
+                ● Connected to /vibe
+              </div>
+            ) : (
+              <div style={{ fontSize: "11px", color: "#666" }}>
+                ○ Connecting...
+              </div>
+            )}
           </div>
-        ) : (
-          onlineUsers.map((user) => (
-            <div
-              key={user.handle}
-              onClick={() => onUserClick(user.handle)}
-              style={{
-                padding: "8px",
-                marginBottom: "4px",
-                background: "#1a1a1a",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#252525";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#1a1a1a";
-              }}
-            >
-              <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>
-                @{user.handle}
-              </div>
-              <div style={{ fontSize: "11px", color: "#888" }}>
-                {user.oneLiner}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
 
-      <div style={{ fontSize: "11px", color: "#444", marginTop: "16px" }}>
-        <div>Cmd+Shift+S - Sessions</div>
-      </div>
+          {/* Online users list */}
+          <div style={{ flex: 1, overflow: "auto" }}>
+            {onlineUsers.length === 0 ? (
+              <div style={{ fontSize: "12px", color: "#666" }}>
+                No one else online right now
+              </div>
+            ) : (
+              onlineUsers.map((user) => (
+                <div
+                  key={user.handle}
+                  onClick={() => {
+                    const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+                    track.userClicked(sessionId, user.handle);
+                    onUserClick(user.handle);
+                  }}
+                  style={{
+                    padding: "8px",
+                    marginBottom: "4px",
+                    background: "#1a1a1a",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#252525";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#1a1a1a";
+                  }}
+                >
+                  <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>
+                    @{user.handle}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#888" }}>
+                    {user.oneLiner}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div style={{ fontSize: "11px", color: "#444", marginTop: "16px" }}>
+            <div>Cmd+Shift+S - Sessions</div>
+          </div>
+        </div>
+      ) : activeTab === "games" ? (
+        <GamesPanel />
+      ) : (
+        <PatternsPanel />
+      )}
     </div>
   );
 }

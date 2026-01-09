@@ -44,6 +44,19 @@ pub struct SessionSummary {
     pub commands: Vec<Command>,
 }
 
+// Interaction tracking - captures the latent space of behavior
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Interaction {
+    pub id: String,
+    pub session_id: String,
+    pub timestamp: String,
+    pub interaction_type: String, // "message_sent", "game_started", "session_shared", "command_run", etc.
+    pub context: String, // Natural language or JSON context
+    pub target: Option<String>, // @user, game_id, session_id, etc.
+    pub outcome: String, // "success", "friction", "abandoned", "error"
+    pub metadata: Option<String>, // JSON blob for rich context
+}
+
 pub struct Database {
     conn: Connection,
 }
@@ -99,6 +112,34 @@ impl Database {
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_commands_session
              ON commands(session_id)",
+            [],
+        )?;
+
+        // Interactions table - captures behavioral patterns for UI evolution
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS interactions (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                interaction_type TEXT NOT NULL,
+                context TEXT NOT NULL,
+                target TEXT,
+                outcome TEXT NOT NULL,
+                metadata TEXT,
+                FOREIGN KEY(session_id) REFERENCES sessions(id)
+            )",
+            [],
+        )?;
+
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_interactions_type
+             ON interactions(interaction_type, timestamp)",
+            [],
+        )?;
+
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_interactions_session
+             ON interactions(session_id)",
             [],
         )?;
 
@@ -328,5 +369,107 @@ impl Database {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(commands)
+    }
+
+    // Interaction tracking - capture behavioral patterns
+    pub fn track_interaction(
+        &self,
+        session_id: &str,
+        interaction_type: &str,
+        context: &str,
+        target: Option<&str>,
+        outcome: &str,
+        metadata: Option<&str>,
+    ) -> Result<String> {
+        let id = Uuid::new_v4().to_string();
+        let timestamp = Utc::now().to_rfc3339();
+
+        self.conn.execute(
+            "INSERT INTO interactions (id, session_id, timestamp, interaction_type, context, target, outcome, metadata)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![&id, session_id, &timestamp, interaction_type, context, target, outcome, metadata],
+        )?;
+
+        Ok(id)
+    }
+
+    // Get interaction patterns for analysis
+    pub fn get_interaction_patterns(&self, limit: usize) -> Result<Vec<Interaction>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, session_id, timestamp, interaction_type, context, target, outcome, metadata
+             FROM interactions
+             ORDER BY timestamp DESC
+             LIMIT ?1",
+        )?;
+
+        let interactions = stmt
+            .query_map(params![limit], |row| {
+                Ok(Interaction {
+                    id: row.get(0)?,
+                    session_id: row.get(1)?,
+                    timestamp: row.get(2)?,
+                    interaction_type: row.get(3)?,
+                    context: row.get(4)?,
+                    target: row.get(5)?,
+                    outcome: row.get(6)?,
+                    metadata: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(interactions)
+    }
+
+    // Get common patterns by type (for surfacing desire paths)
+    pub fn get_common_patterns(&self, hours: i64, min_occurrences: i32) -> Result<Vec<(String, i64)>> {
+        let cutoff = Utc::now() - chrono::Duration::hours(hours);
+        let cutoff_str = cutoff.to_rfc3339();
+
+        let mut stmt = self.conn.prepare(
+            "SELECT interaction_type, COUNT(*) as count
+             FROM interactions
+             WHERE timestamp > ?1
+             GROUP BY interaction_type
+             HAVING count >= ?2
+             ORDER BY count DESC",
+        )?;
+
+        let patterns = stmt
+            .query_map(params![cutoff_str, min_occurrences], |row| {
+                Ok((row.get(0)?, row.get(1)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(patterns)
+    }
+
+    // Get friction points (where people abandoned/errored)
+    pub fn get_friction_points(&self, hours: i64) -> Result<Vec<Interaction>> {
+        let cutoff = Utc::now() - chrono::Duration::hours(hours);
+        let cutoff_str = cutoff.to_rfc3339();
+
+        let mut stmt = self.conn.prepare(
+            "SELECT id, session_id, timestamp, interaction_type, context, target, outcome, metadata
+             FROM interactions
+             WHERE timestamp > ?1 AND (outcome = 'friction' OR outcome = 'abandoned' OR outcome = 'error')
+             ORDER BY timestamp DESC",
+        )?;
+
+        let friction = stmt
+            .query_map(params![cutoff_str], |row| {
+                Ok(Interaction {
+                    id: row.get(0)?,
+                    session_id: row.get(1)?,
+                    timestamp: row.get(2)?,
+                    interaction_type: row.get(3)?,
+                    context: row.get(4)?,
+                    target: row.get(5)?,
+                    outcome: row.get(6)?,
+                    metadata: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(friction)
     }
 }

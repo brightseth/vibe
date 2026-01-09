@@ -169,6 +169,7 @@ const Terminal = forwardRef((props, ref) => {
       .then((id) => {
         setSessionId(id);
         sessionIdRef.current = id; // Update ref for input handler
+        localStorage.setItem("vibe_current_session", id); // Make available globally
         setIsReady(true);
         // Focus terminal again after session starts
         setTimeout(() => term.focus(), 100);

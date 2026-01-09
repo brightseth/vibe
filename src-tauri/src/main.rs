@@ -208,6 +208,60 @@ fn export_session_json(state: State<AppState>, session_id: String) -> Result<Str
         .map_err(|e| format!("Failed to serialize: {}", e))
 }
 
+// Interaction tracking commands
+#[tauri::command]
+fn track_interaction(
+    state: State<AppState>,
+    session_id: String,
+    interaction_type: String,
+    context: String,
+    target: Option<String>,
+    outcome: String,
+    metadata: Option<String>,
+) -> Result<String, String> {
+    let db = state.db.lock().unwrap();
+    db.track_interaction(
+        &session_id,
+        &interaction_type,
+        &context,
+        target.as_deref(),
+        &outcome,
+        metadata.as_deref(),
+    )
+    .map_err(|e| format!("Failed to track interaction: {}", e))
+}
+
+#[tauri::command]
+fn get_interaction_patterns(
+    state: State<AppState>,
+    limit: usize,
+) -> Result<Vec<db::Interaction>, String> {
+    let db = state.db.lock().unwrap();
+    db.get_interaction_patterns(limit)
+        .map_err(|e| format!("Failed to get patterns: {}", e))
+}
+
+#[tauri::command]
+fn get_common_patterns(
+    state: State<AppState>,
+    hours: i64,
+    min_occurrences: i32,
+) -> Result<Vec<(String, i64)>, String> {
+    let db = state.db.lock().unwrap();
+    db.get_common_patterns(hours, min_occurrences)
+        .map_err(|e| format!("Failed to get common patterns: {}", e))
+}
+
+#[tauri::command]
+fn get_friction_points(
+    state: State<AppState>,
+    hours: i64,
+) -> Result<Vec<db::Interaction>, String> {
+    let db = state.db.lock().unwrap();
+    db.get_friction_points(hours)
+        .map_err(|e| format!("Failed to get friction points: {}", e))
+}
+
 fn main() {
     // Initialize database
     let db = Database::new().expect("Failed to initialize database");
@@ -230,6 +284,10 @@ fn main() {
             get_sessions_with_commands,
             get_commands,
             export_session_json,
+            track_interaction,
+            get_interaction_patterns,
+            get_common_patterns,
+            get_friction_points,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

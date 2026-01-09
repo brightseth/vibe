@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { vibeClient, type VibeMessage } from "../lib/vibeClient";
+import { track } from "../lib/tracking";
 
 interface DMPanelProps {
   recipient: string;
@@ -42,6 +43,11 @@ export default function DMPanel({ recipient, onClose }: DMPanelProps) {
         timestamp: new Date().toISOString(),
       };
       setMessages([...messages, newMessage]);
+
+      // Track interaction for pattern analysis
+      const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+      track.messageSent(sessionId, recipient, input);
+
       setInput("");
     }
   };
