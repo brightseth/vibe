@@ -1,5 +1,18 @@
 # /vibe Roadmap — January 2026
 
+## Vision
+
+**"AOL for AI, 30 years later"**
+
+Core insights that guide the product:
+
+- **Session-as-artifact** — Every coding session is a creative work worth preserving and sharing
+- **Namespace instincts** — Handles are the primitive. @seth on X → @seth on /vibe. Simple, portable, owned.
+- **Vibe coding velocity** — Ship fast, iterate in public, let desire paths emerge
+- **Terminal-native ≠ sterile** — Early internet had warmth. Bring that back.
+
+---
+
 ## Current State Summary
 
 /vibe is a working social layer for Claude Code with:
@@ -73,6 +86,43 @@
 - Example: Discord bridge, Slack bridge
 - **Files:** `docs/bridges.md`, `examples/bridge-template/`
 
+### M6. Nostalgia Stack ✅ DONE (Jan 9, 2026)
+- **Philosophy:** Terminal-native ≠ sterile. Early internet had warmth.
+- **Research:** AOL, BBS, CompuServe, Prodigy, Pipeline — what made them feel like *places*
+- **Shipped:**
+  - Multiplayer crossword (daily puzzles, collaborative + competitive)
+  - AIM-style away messages (☕ manual, 💤 auto-away)
+  - Serendipity engine (same file detection, similar work)
+  - Creative feed (ideas, riffs, ships)
+- **Files:** `docs/nostalgia-research.md`, `mcp-server/games/crossword.js`, `mcp-server/tools/away.js`
+
+### M7. Ambient Social Intelligence ✅ DONE (Jan 9, 2026)
+- Smart detection (deep focus, debugging, shipping, exploring, late night)
+- Proactive agent (ships in the night, break suggestions, welcome wagon)
+- **Files:** `mcp-server/intelligence/infer.js`, `mcp-server/intelligence/serendipity.js`
+
+### M8. vibe-desktop (Stan)
+- Mac app wrapper for MCP server
+- GUI installer & auto-updater
+- One-click install for non-technical users
+- **Branch:** `app-macOS`
+- **Owner:** @wanderingstan
+
+### M9. Spectator Mode 🆕
+- **Concept:** Twitch for terminals — watch someone vibe code in real time
+- **Use cases:**
+  - Pair programming without screenshare
+  - Learning by watching experts
+  - "Office hours" where builders stream their sessions
+  - Content creation (terminal as performance)
+- **Technical:**
+  - Session streaming via WebSocket
+  - Read-only view of terminal output
+  - Optional chat sidebar
+  - Permission model (public/friends/invite-only)
+- **Inspiration:** BBS door watching, Twitch, VS Code Live Share
+- **Status:** Proposed (from @wanderingstan)
+
 ---
 
 ## Long-Term (Q1-Q2 2026)
@@ -119,6 +169,10 @@
 | M2. More Games | Medium (engagement) | Medium | **P2** |
 | M3. Richer Presence | Medium (UX) | Medium | **P2** |
 | M4. Webhooks | Medium (real-time) | Medium | **P2** |
+| M6. Nostalgia Stack | High (soul) | Medium | **P1** ✅ |
+| M7. Ambient Intelligence | High (magic) | Medium | **P1** ✅ |
+| M8. vibe-desktop | High (distribution) | High | **P1** 🔨 |
+| M9. Spectator Mode | High (viral) | High | **P2** |
 
 ---
 
@@ -161,3 +215,4 @@
 ---
 
 *Plan created: January 3, 2026*
+*Updated: January 9, 2026 — Vision section, M6-M9, Spectator Mode proposed*
