@@ -28,10 +28,76 @@ const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
 
 // Stats
 const stats = {
+  users: { found: 0, inserted: 0, skipped: 0, errors: 0 },
   board: { found: 0, inserted: 0, skipped: 0, errors: 0 },
   streaks: { found: 0, inserted: 0, skipped: 0, errors: 0 },
   messages: { found: 0, inserted: 0, skipped: 0, errors: 0 },
 };
+
+async function backfillUsers() {
+  console.log('\n👤 Backfilling users...');
+
+  try {
+    const keys = await kv.keys('user:*');
+    console.log(`   Found ${keys.length} user records in KV`);
+    stats.users.found = keys.length;
+
+    for (const key of keys) {
+      try {
+        const data = await kv.hgetall(key);
+        if (!data) {
+          stats.users.skipped++;
+          continue;
+        }
+
+        const username = (data.username || key.replace('user:', '') || '').toLowerCase().replace('@', '');
+        if (!username) {
+          stats.users.skipped++;
+          continue;
+        }
+
+        const createdAt = data.createdAt ? new Date(data.createdAt) : null;
+        const updatedAt = data.updatedAt ? new Date(data.updatedAt) : null;
+
+        await sql`
+          INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+          VALUES (
+            ${username},
+            ${data.building || null},
+            ${data.invitedBy || null},
+            ${data.inviteCode || null},
+            ${data.publicKey || null},
+            ${createdAt},
+            ${updatedAt}
+          )
+          ON CONFLICT (username) DO UPDATE SET
+            building = COALESCE(EXCLUDED.building, users.building),
+            invited_by = COALESCE(EXCLUDED.invited_by, users.invited_by),
+            invite_code = COALESCE(EXCLUDED.invite_code, users.invite_code),
+            public_key = COALESCE(EXCLUDED.public_key, users.public_key),
+            created_at = CASE
+              WHEN users.created_at IS NULL THEN EXCLUDED.created_at
+              WHEN EXCLUDED.created_at IS NULL THEN users.created_at
+              ELSE LEAST(users.created_at, EXCLUDED.created_at)
+            END,
+            updated_at = CASE
+              WHEN users.updated_at IS NULL THEN EXCLUDED.updated_at
+              WHEN EXCLUDED.updated_at IS NULL THEN users.updated_at
+              ELSE GREATEST(users.updated_at, EXCLUDED.updated_at)
+            END
+        `;
+        stats.users.inserted++;
+        process.stdout.write('.');
+      } catch (e) {
+        stats.users.errors++;
+        console.error(`\n   Error inserting ${key}: ${e.message}`);
+      }
+    }
+    console.log(`\n   ✓ Users: ${stats.users.inserted} inserted, ${stats.users.skipped} skipped, ${stats.users.errors} errors`);
+  } catch (e) {
+    console.error('   Users backfill failed:', e.message);
+  }
+}
 
 async function backfillBoard() {
   console.log('\n📋 Backfilling board entries...');
@@ -206,6 +272,7 @@ async function main() {
   }
 
   // Run backfills
+  await backfillUsers();
   await backfillBoard();
   await backfillStreaks();
   await backfillMessages();
@@ -214,12 +281,13 @@ async function main() {
   console.log('\n═══════════════════════════════════════════');
   console.log('  Summary');
   console.log('═══════════════════════════════════════════');
+  console.log(`  Users:    ${stats.users.inserted}/${stats.users.found} migrated`);
   console.log(`  Board:    ${stats.board.inserted}/${stats.board.found} migrated`);
   console.log(`  Streaks:  ${stats.streaks.inserted}/${stats.streaks.found} migrated`);
   console.log(`  Messages: ${stats.messages.inserted}/${stats.messages.found} migrated`);
   console.log('═══════════════════════════════════════════');
 
-  const total = stats.board.inserted + stats.streaks.inserted + stats.messages.inserted;
+  const total = stats.users.inserted + stats.board.inserted + stats.streaks.inserted + stats.messages.inserted;
   if (total > 0) {
     console.log(`\n✅ Backfill complete! ${total} records migrated to Postgres.`);
   } else {
