@@ -91,10 +91,14 @@ export default async function handler(req, res) {
 
     // Use presence as another fallback for user count
     let presenceTotal = 0;
-    try {
-      const presenceUsers = await kv.zrange('presence:index', 0, -1);
-      presenceTotal = presenceUsers?.length || 0;
-    } catch (e) {}
+    if (kv) {
+      try {
+        const presenceUsers = await kv.zrange('presence:index', 0, -1);
+        presenceTotal = presenceUsers?.length || 0;
+      } catch (e) {
+        console.error('[stats] Presence fallback failed:', e.message);
+      }
+    }
 
     const finalCount = Math.max(totalRegistered, presenceTotal);
 
