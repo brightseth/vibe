@@ -5,14 +5,16 @@
  * GET /api/events - Get funnel stats
  */
 
+import { cachedKV } from './lib/kv-cache.js';
+
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
 async function getKV() {
   if (!KV_CONFIGURED) return null;
   try {
-    const { kv } = await import('@vercel/kv');
-    return kv;
+    return await cachedKV();
   } catch (e) {
+    console.error('[events] KV init failed:', e.message);
     return null;
   }
 }
@@ -72,14 +74,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, funnel: {}, message: 'KV not configured' });
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const todayStats = await kv.hgetall(`events:daily:${today}`) || {};
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const todayStats = await kv.hgetall(`events:daily:${today}`) || {};
 
-    return res.status(200).json({
-      success: true,
-      today: todayStats,
-      storage: 'kv'
-    });
+      return res.status(200).json({
+        success: true,
+        today: todayStats,
+        storage: 'kv'
+      });
+    } catch (e) {
+      console.error('[events] GET error:', e.message);
+      return res.status(200).json({
+        success: true,
+        today: {},
+        error: e.message,
+        storage: 'kv-error'
+      });
+    }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
