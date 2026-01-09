@@ -6,6 +6,7 @@
 
 const config = require('../config');
 const store = require('../store');
+const patterns = require('../intelligence/patterns');
 
 const REACTIONS = {
   'fire': '🔥',
@@ -102,6 +103,9 @@ async function handler(args) {
   // Send as a reaction-type message
   const body = note ? `${emoji} ${note}` : emoji;
   await store.sendMessage(myHandle, them, body, 'reaction');
+
+  // Log social pattern
+  patterns.logReaction(them, emoji);
 
   return {
     display: `${emoji} → **@${them}**${note ? `\n\n"${note}"` : ''}`

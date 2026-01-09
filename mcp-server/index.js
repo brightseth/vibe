@@ -52,6 +52,9 @@ function inferPromptFromArgs(toolName, args) {
     case 'wordassociation': return args.word ? `word association: ${args.word}` : 'play word association';
     case 'multiplayer_game': return `multiplayer ${args.game || 'game'}`;
     case 'drawing': return args.action ? `drawing ${args.action}` : 'collaborative drawing';
+    case 'crossword': return `crossword ${args.action || 'daily'}`;
+    case 'away': return args.message ? `set away: "${args.message}"` : 'go away';
+    case 'back': return 'come back';
     case 'discover': return `discover ${args.command || 'suggest'}`;
     case 'suggest_tags': return `suggest tags ${args.command || 'suggest'}`;
     case 'skills_exchange': return `skills exchange ${args.command || 'browse'}`;
@@ -180,6 +183,10 @@ const tools = {
   vibe_wordassociation: require('./tools/wordassociation'),
   vibe_multiplayer_game: require('./tools/multiplayer-game'),
   vibe_drawing: require('./tools/drawing'),
+  // Nostalgia Stack
+  vibe_crossword: require('./tools/crossword'),
+  vibe_away: require('./tools/away'),
+  vibe_back: require('./tools/back'),
   // AIRC Handoff (v1) — context portability
   vibe_handoff: require('./tools/handoff'),
   // File reservations (advisory locks)
@@ -201,6 +208,12 @@ const tools = {
   vibe_invite: require('./tools/invite'),
   vibe_board: require('./tools/board'),
   vibe_submit: require('./tools/submit'),
+  // Creative Layer — Ideas, Requests, Ships
+  vibe_idea: require('./tools/idea'),
+  vibe_request: require('./tools/request'),
+  vibe_ship: require('./tools/ship'),
+  vibe_feed: require('./tools/feed'),
+  vibe_insights: require('./tools/insights'),
   // Discovery & Matchmaking
   vibe_discover: require('./tools/discover'),
   vibe_suggest_tags: require('./tools/suggest-tags'),

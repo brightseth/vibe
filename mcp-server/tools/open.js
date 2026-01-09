@@ -5,6 +5,7 @@
 const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
+const patterns = require('../intelligence/patterns');
 const { formatPayload } = require('../protocol');
 const { requireInit, normalizeHandle } = require('./_shared');
 
@@ -38,6 +39,12 @@ async function handler(args) {
   // Get thread and mark as read
   const thread = await store.getThread(myHandle, them);
   await store.markThreadRead(myHandle, them);
+
+  // Log received messages (from them) for social patterns
+  const theirMessages = thread.filter(m => m.from === them);
+  if (theirMessages.length > 0) {
+    patterns.logMessageReceived(them);
+  }
 
   // Check if they're typing
   let typingNotice = '';

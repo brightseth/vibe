@@ -12,6 +12,7 @@
 
 const config = require('../config');
 const userProfiles = require('../store/profiles');
+const patterns = require('../intelligence/patterns');
 const { requireInit, formatTimeAgo } = require('./_shared');
 
 const definition = {
@@ -23,6 +24,23 @@ const definition = {
       what: {
         type: 'string',
         description: 'What you shipped (brief description)'
+      },
+      url: {
+        type: 'string',
+        description: 'URL to your ship (deployed site, repo, demo)'
+      },
+      inspired_by: {
+        type: 'string',
+        description: 'Handle of person who inspired this (@alice)'
+      },
+      for_request: {
+        type: 'string',
+        description: 'Request ID this fulfills (if building for someone)'
+      },
+      tags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Tags for discovery (e.g., ["ai", "mcp", "tools"])'
       }
     },
     required: ['what']
@@ -43,15 +61,44 @@ async function handler(args) {
   try {
     // Record in profile
     await userProfiles.recordShip(myHandle, args.what);
-    
+
+    // Build rich content with metadata
+    let content = args.what;
+    const metaParts = [];
+
+    if (args.url) {
+      metaParts.push(`🔗 ${args.url}`);
+    }
+    if (args.inspired_by) {
+      const inspiree = args.inspired_by.replace('@', '').toLowerCase();
+      metaParts.push(`✨ inspired by @${inspiree}`);
+    }
+    if (args.for_request) {
+      metaParts.push(`📋 fulfills ${args.for_request}`);
+    }
+
+    if (metaParts.length > 0) {
+      content += '\n' + metaParts.join(' | ');
+    }
+
+    // Build tags with attribution
+    const tags = args.tags || [];
+    if (args.inspired_by) {
+      tags.push(`inspired:${args.inspired_by.replace('@', '')}`);
+    }
+    if (args.for_request) {
+      tags.push(`fulfills:${args.for_request}`);
+    }
+
     // Post to board
     const response = await fetch(`${apiUrl}/api/board`, {
-      method: 'POST', 
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         author: myHandle,
-        content: args.what,
-        category: 'shipped'
+        content,
+        category: 'shipped',
+        tags
       })
     });
 
@@ -61,25 +108,28 @@ async function handler(args) {
       return { display: `⚠️ Failed to announce ship: ${data.error}` };
     }
 
-    let display = `## 🚀 Shipped!\n\n`;
-    display += `**You:** "${args.what}"\n\n`;
-    display += `✅ Added to community board\n`;
-    display += `✅ Updated your profile\n\n`;
+    // Log creative patterns
+    patterns.logShip(args.what, args.url, tags);
+    if (args.inspired_by) {
+      patterns.logInspiredBy(args.inspired_by);
+    }
+
+    let display = `🚀 shipped\n\n${args.what}`;
+
+    if (args.url) {
+      display += `\n${args.url}`;
+    }
+    if (args.inspired_by) {
+      display += `\n_via @${args.inspired_by.replace('@', '')}_`;
+    }
+
+    display += '\n';
     
-    // Suggest connections based on similar ships
+    // Quiet awareness of similar builders
     const suggestions = await findSimilarShippers(myHandle, args.what);
     if (suggestions.length > 0) {
-      display += `**People who shipped similar things:**\n`;
-      suggestions.slice(0, 3).forEach(suggestion => {
-        display += `• @${suggestion.handle}: "${suggestion.ship}" _(${formatTimeAgo(suggestion.timestamp)})_\n`;
-      });
-      display += `\n💡 Try \`message @${suggestions[0].handle}\` to connect!\n\n`;
+      display += `\n_similar: @${suggestions.slice(0, 2).map(s => s.handle).join(', @')}_`;
     }
-    
-    display += `---\n`;
-    display += `**Keep building!** 🔥\n`;
-    display += `• \`discover suggest\` to find similar builders\n`;
-    display += `• \`profile building "next project"\` to update what you're working on`;
 
     return { display };
 

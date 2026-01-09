@@ -7,7 +7,19 @@
  * 3. Return tx hash + token ID
  */
 
-const { ethers } = require('ethers');
+// Lazy-load ethers to avoid startup crash if not installed
+let ethers = null;
+function getEthers() {
+  if (!ethers) {
+    try {
+      ethers = require('ethers');
+    } catch (e) {
+      throw new Error('ethers package not installed. Run: npm install ethers');
+    }
+  }
+  return ethers;
+}
+
 const config = require('../config');
 
 // Contract ABI (minimal, just what we need)
@@ -90,6 +102,7 @@ async function mintOnchain(uri) {
     throw new Error('VIBE_MINTER_PRIVATE_KEY not configured');
   }
 
+  const ethers = getEthers();
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallet = new ethers.Wallet(MINTER_PRIVATE_KEY, provider);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, VIBE_ARTIFACTS_ABI, wallet);

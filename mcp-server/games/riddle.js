@@ -176,17 +176,17 @@ function makeGuess(gameState, guess) {
   const newGuesses = [...guesses, guess];
   const newMoves = moves + 1;
   const won = normalizedGuess === normalizedAnswer;
-  const gameOver = won;
-  
+  const isGameOver = won;
+
   // Calculate final time if won
   const endTime = won ? Date.now() : null;
   const timeToSolve = won ? Math.round((endTime - gameState.startTime) / 1000) : null;
-  
+
   const newGameState = {
     ...gameState,
     guesses: newGuesses,
     moves: newMoves,
-    gameOver: gameOver,
+    gameOver: isGameOver,
     won: won,
     lastGuess: guess,
     endTime: endTime,

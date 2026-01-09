@@ -12,6 +12,7 @@ const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
 const notify = require('../notify');
+const patterns = require('../intelligence/patterns');
 const { actions, formatActions } = require('./_actions');
 
 function formatTimeAgo(timestamp) {
@@ -80,11 +81,17 @@ Example: "I'm @davemorin, working on social apps"`
 
     myHandle = h;
     display += `**You're @${h}** — ${oneLiner}\n\n`;
+
+    // Log session start for patterns
+    patterns.logSessionStart(h);
   } else {
     // ═══ RETURNING USER — Session Rehydration ═══
     const oneLiner = config.getOneLiner() || 'building something';
     display += `## Welcome back, @${myHandle}\n\n`;
     display += `_${oneLiner}_\n\n`;
+
+    // Log session start for patterns
+    patterns.logSessionStart(myHandle);
 
     // Show who remembers you (threads with memories)
     try {

@@ -224,7 +224,7 @@ async function checkWebhookStatus(endpoint) {
   const kvConfigured = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
   display += '**Storage System**\n';
   display += `KV Store: ${kvConfigured ? '✅ Available' : '❌ Not configured'}\n`;
-  display += `Social Inbox: ${kvConfigured ? '✅ Active' : '❌ Disabled'}\n';
+  display += `Social Inbox: ${kvConfigured ? '✅ Active' : '❌ Disabled'}\n`;
   
   if (!kvConfigured) {
     display += warning('Set KV_REST_API_URL and KV_REST_API_TOKEN for event storage\n');

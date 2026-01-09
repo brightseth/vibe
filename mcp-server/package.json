@@ -47,5 +47,8 @@
     "store/",
     "protocol/",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "crossword-layout-generator": "^0.1.1"
+  }
 }

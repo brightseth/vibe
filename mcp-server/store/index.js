@@ -1,16 +1,16 @@
 /**
  * Store — Chooses local or API based on environment
  *
- * If VIBE_API_URL is set, uses remote API
- * Otherwise uses local JSONL files
+ * Default: uses remote API (production behavior)
+ * Set VIBE_LOCAL=true to use local JSONL files
  */
 
-const useApi = !!process.env.VIBE_API_URL;
+const useLocal = process.env.VIBE_LOCAL === 'true';
 
-if (useApi) {
-  module.exports = require('./api');
-  module.exports.storage = 'api';
-} else {
+if (useLocal) {
   module.exports = require('./local');
   module.exports.storage = 'local';
+} else {
+  module.exports = require('./api');
+  module.exports.storage = 'api';
 }

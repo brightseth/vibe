@@ -7,6 +7,7 @@
  */
 
 const config = require('../config');
+const store = require('../store');
 const { requireInit } = require('./_shared');
 
 const definition = {
@@ -37,7 +38,7 @@ const definition = {
   }
 };
 
-async function handler(args, { store }) {
+async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 

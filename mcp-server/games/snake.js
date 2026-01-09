@@ -279,5 +279,128 @@ function formatSnakeDisplay(gameState) {
   if (food.x >= 0 && food.x < BOARD_WIDTH && food.y >= 0 && food.y < BOARD_HEIGHT) {
     board[food.y][food.x] = SYMBOLS.food;
   }
-  
-  // Add border for clarity\n  display += '┌' + '─'.repeat(BOARD_WIDTH * 2) + '┐\n';\n  \n  // Draw board rows\n  for (let y = 0; y < BOARD_HEIGHT; y++) {\n    display += '│';\n    for (let x = 0; x < BOARD_WIDTH; x++) {\n      display += board[y][x];\n      if (x < BOARD_WIDTH - 1) display += '';\n    }\n    display += '│\\n';\n  }\n  \n  display += '└' + '─'.repeat(BOARD_WIDTH * 2) + '┘\\n';\n  display += '```\\n\\n';\n  \n  if (!gameOver) {\n    display += '**Controls:**\\n';\n    display += '• `w` or `up` - Move up\\n';\n    display += '• `s` or `down` - Move down\\n';\n    display += '• `a` or `left` - Move left\\n';\n    display += '• `d` or `right` - Move right\\n\\n';\n    \n    display += '💡 **Tip:** Eat the 🍎 to grow and score points!\\n';\n    \n    // Show game stats\n    const totalCells = BOARD_WIDTH * BOARD_HEIGHT;\n    const coverage = Math.round((snake.length / totalCells) * 100);\n    display += `**Board Coverage:** ${coverage}%\\n`;\n  } else {\n    display += 'Start a new game to play again! 🎮\\n';\n  }\n  \n  return display;\n}\n\n// Get game statistics\nfunction getSnakeStats(gameState) {\n  const { snake, score, moves, speed } = gameState;\n  \n  const totalCells = BOARD_WIDTH * BOARD_HEIGHT;\n  const coverage = (snake.length / totalCells) * 100;\n  \n  return {\n    score,\n    snakeLength: snake.length,\n    moves,\n    speed,\n    boardCoverage: Math.round(coverage * 100) / 100,\n    efficiency: moves > 0 ? Math.round((score / moves) * 100) / 100 : 0\n  };\n}\n\n// Check if game is won (snake fills entire board - nearly impossible!)\nfunction checkWin(gameState) {\n  const totalCells = BOARD_WIDTH * BOARD_HEIGHT;\n  return gameState.snake.length >= totalCells - 1; // -1 for food\n}\n\n// Get direction from various input formats\nfunction parseDirection(input) {\n  const normalized = input.toLowerCase().trim();\n  \n  const directionMap = {\n    'w': 'UP',\n    'up': 'UP',\n    'u': 'UP',\n    's': 'DOWN', \n    'down': 'DOWN',\n    'd': 'RIGHT',\n    'a': 'LEFT',\n    'left': 'LEFT',\n    'right': 'RIGHT',\n    'l': 'LEFT',\n    'r': 'RIGHT'\n  };\n  \n  return directionMap[normalized] || null;\n}\n\n// Generate tips based on game state\nfunction getGameTips(gameState) {\n  const { snake, score, moves, speed } = gameState;\n  \n  const tips = [];\n  \n  if (snake.length < 5) {\n    tips.push('🎯 Focus on eating food to grow your snake!');\n  }\n  \n  if (score > 0 && moves > score * 2) {\n    tips.push('⚡ Try to be more efficient - plan your path to the food!');\n  }\n  \n  if (speed >= 3) {\n    tips.push('🏃 You\\'re getting fast! Be careful with turns.');\n  }\n  \n  if (snake.length > 10) {\n    tips.push('🐍 Getting long! Watch out for your own tail.');\n  }\n  \n  const coverage = (snake.length / (BOARD_WIDTH * BOARD_HEIGHT)) * 100;\n  if (coverage > 30) {\n    tips.push('📈 Great coverage! Space is getting tight.');\n  }\n  \n  return tips;\n}\n\nmodule.exports = {\n  createInitialSnakeState,\n  changeDirection,\n  moveSnake,\n  autoMove,\n  formatSnakeDisplay,\n  getSnakeStats,\n  checkWin,\n  parseDirection,\n  getGameTips,\n  DIRECTIONS,\n  BOARD_WIDTH,\n  BOARD_HEIGHT\n};"
+
+  // Add border for clarity
+  display += '┌' + '─'.repeat(BOARD_WIDTH * 2) + '┐\n';
+
+  // Draw board rows
+  for (let y = 0; y < BOARD_HEIGHT; y++) {
+    display += '│';
+    for (let x = 0; x < BOARD_WIDTH; x++) {
+      display += board[y][x];
+      if (x < BOARD_WIDTH - 1) display += '';
+    }
+    display += '│\n';
+  }
+
+  display += '└' + '─'.repeat(BOARD_WIDTH * 2) + '┘\n';
+  display += '```\n\n';
+
+  if (!gameOver) {
+    display += '**Controls:**\n';
+    display += '• `w` or `up` - Move up\n';
+    display += '• `s` or `down` - Move down\n';
+    display += '• `a` or `left` - Move left\n';
+    display += '• `d` or `right` - Move right\n\n';
+
+    display += '💡 **Tip:** Eat the 🍎 to grow and score points!\n';
+
+    // Show game stats
+    const totalCells = BOARD_WIDTH * BOARD_HEIGHT;
+    const coverage = Math.round((snake.length / totalCells) * 100);
+    display += `**Board Coverage:** ${coverage}%\n`;
+  } else {
+    display += 'Start a new game to play again! 🎮\n';
+  }
+
+  return display;
+}
+
+// Get game statistics
+function getSnakeStats(gameState) {
+  const { snake, score, moves, speed } = gameState;
+
+  const totalCells = BOARD_WIDTH * BOARD_HEIGHT;
+  const coverage = (snake.length / totalCells) * 100;
+
+  return {
+    score,
+    snakeLength: snake.length,
+    moves,
+    speed,
+    boardCoverage: Math.round(coverage * 100) / 100,
+    efficiency: moves > 0 ? Math.round((score / moves) * 100) / 100 : 0
+  };
+}
+
+// Check if game is won (snake fills entire board - nearly impossible!)
+function checkWin(gameState) {
+  const totalCells = BOARD_WIDTH * BOARD_HEIGHT;
+  return gameState.snake.length >= totalCells - 1; // -1 for food
+}
+
+// Get direction from various input formats
+function parseDirection(input) {
+  const normalized = input.toLowerCase().trim();
+
+  const directionMap = {
+    'w': 'UP',
+    'up': 'UP',
+    'u': 'UP',
+    's': 'DOWN',
+    'down': 'DOWN',
+    'd': 'RIGHT',
+    'a': 'LEFT',
+    'left': 'LEFT',
+    'right': 'RIGHT',
+    'l': 'LEFT',
+    'r': 'RIGHT'
+  };
+
+  return directionMap[normalized] || null;
+}
+
+// Generate tips based on game state
+function getGameTips(gameState) {
+  const { snake, score, moves, speed } = gameState;
+
+  const tips = [];
+
+  if (snake.length < 5) {
+    tips.push('🎯 Focus on eating food to grow your snake!');
+  }
+
+  if (score > 0 && moves > score * 2) {
+    tips.push('⚡ Try to be more efficient - plan your path to the food!');
+  }
+
+  if (speed >= 3) {
+    tips.push('🏃 You\'re getting fast! Be careful with turns.');
+  }
+
+  if (snake.length > 10) {
+    tips.push('🐍 Getting long! Watch out for your own tail.');
+  }
+
+  const coverage = (snake.length / (BOARD_WIDTH * BOARD_HEIGHT)) * 100;
+  if (coverage > 30) {
+    tips.push('📈 Great coverage! Space is getting tight.');
+  }
+
+  return tips;
+}
+
+module.exports = {
+  createInitialSnakeState,
+  changeDirection,
+  moveSnake,
+  autoMove,
+  formatSnakeDisplay,
+  getSnakeStats,
+  checkWin,
+  parseDirection,
+  getGameTips,
+  DIRECTIONS,
+  BOARD_WIDTH,
+  BOARD_HEIGHT
+};

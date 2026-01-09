@@ -248,6 +248,11 @@ function setNotifications(level) {
   save(config);
 }
 
+// API URL — central endpoint for all API calls
+function getApiUrl() {
+  return process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
+}
+
 module.exports = {
   VIBE_DIR,
   CONFIG_FILE,
@@ -270,5 +275,6 @@ module.exports = {
   getGuidedMode,
   setGuidedMode,
   getNotifications,
-  setNotifications
+  setNotifications,
+  getApiUrl
 };

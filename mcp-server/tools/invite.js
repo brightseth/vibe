@@ -8,6 +8,7 @@
  */
 
 const config = require('../config');
+const store = require('../store');
 const { requireInit } = require('./_shared');
 
 const definition = {
@@ -39,7 +40,7 @@ const INVITE_MESSAGES = [
   "There's a thing called /vibe for Claude Code — we can message while coding"
 ];
 
-async function handler(args, { store }) {
+async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 

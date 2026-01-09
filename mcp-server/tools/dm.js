@@ -6,6 +6,7 @@ const config = require('../config');
 const store = require('../store');
 const memory = require('../memory');
 const userProfiles = require('../store/profiles');
+const patterns = require('../intelligence/patterns');
 const { trackMessage, checkBurst } = require('./summarize');
 const { requireInit, normalizeHandle, truncate, warning } = require('./_shared');
 const { actions, formatActions } = require('./_actions');
@@ -62,6 +63,9 @@ async function handler(args) {
   const finalMessage = wasTruncated ? trimmed.substring(0, MAX_LENGTH) : trimmed;
 
   await store.sendMessage(myHandle, them, finalMessage || null, 'dm', payload);
+
+  // Log social pattern (quietly, in background)
+  patterns.logMessageSent(them);
 
   // Record connection in profiles (if first time messaging)
   try {

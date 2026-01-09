@@ -298,4 +298,4 @@ module.exports = {
   identifyEmergingClusters,
   suggestOptimalTiming,
   calculateSimpleMatchScore
-};"
+};

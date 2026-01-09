@@ -214,7 +214,10 @@ async function getActiveUsers() {
       branch: u.context?.branch || null,
       repo: u.context?.repo || null,
       error: u.context?.error || null,
-      note: u.context?.note || null
+      note: u.context?.note || null,
+      // Away status
+      awayMessage: u.context?.awayMessage || null,
+      awayAt: u.context?.awayAt || null
     }));
   } catch (e) {
     console.error('Who failed:', e.message);
@@ -474,6 +477,65 @@ function formatTimeAgo(timestamp) {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
+// ============ AWAY STATUS ============
+
+// Local cache for away status (also sent to server via heartbeat)
+let awayStatusCache = null;
+
+/**
+ * Set away status with optional message
+ * @param {string} handle - User handle
+ * @param {string} status - 'away' or 'online'
+ * @param {string|null} message - Custom away message
+ */
+async function setAwayStatus(handle, status, message = null) {
+  const awayAt = new Date().toISOString();
+
+  // Cache locally
+  awayStatusCache = {
+    status,
+    message,
+    awayAt
+  };
+
+  // Send via heartbeat to server
+  const one_liner = config.getBuildingMessage?.() || 'Building something';
+  await heartbeat(handle, one_liner, {
+    mood: '☕', // AFK emoji
+    awayMessage: message,
+    awayAt: awayAt
+  });
+
+  return { success: true };
+}
+
+/**
+ * Get current away status
+ * @param {string} handle - User handle
+ */
+async function getAwayStatus(handle) {
+  return awayStatusCache;
+}
+
+/**
+ * Clear away status (user is back)
+ * @param {string} handle - User handle
+ */
+async function clearAwayStatus(handle) {
+  const wasAway = awayStatusCache;
+  awayStatusCache = null;
+
+  // Send heartbeat with cleared away status
+  const one_liner = config.getBuildingMessage?.() || 'Building something';
+  await heartbeat(handle, one_liner, {
+    mood: null, // Clear mood
+    awayMessage: null,
+    awayAt: null
+  });
+
+  return wasAway;
+}
+
 module.exports = {
   // Session
   registerSession,
@@ -513,5 +575,10 @@ module.exports = {
   submitReport,
 
   // Helpers
-  formatTimeAgo
+  formatTimeAgo,
+
+  // Away Status
+  setAwayStatus,
+  getAwayStatus,
+  clearAwayStatus
 };

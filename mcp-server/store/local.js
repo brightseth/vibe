@@ -192,6 +192,29 @@ function getSkillExchanges() {
   return loadSkillExchanges();
 }
 
+// ============ AWAY STATUS ============
+
+let awayStatusCache = null;
+
+async function setAwayStatus(handle, status, message = null) {
+  awayStatusCache = {
+    status,
+    message,
+    awayAt: new Date().toISOString()
+  };
+  return { success: true };
+}
+
+async function getAwayStatus(handle) {
+  return awayStatusCache;
+}
+
+async function clearAwayStatus(handle) {
+  const wasAway = awayStatusCache;
+  awayStatusCache = null;
+  return wasAway;
+}
+
 // ============ HELPERS ============
 
 function formatTimeAgo(timestamp) {
@@ -229,6 +252,11 @@ module.exports = {
   // Skill Exchanges
   appendSkillExchange,
   getSkillExchanges,
+
+  // Away Status
+  setAwayStatus,
+  getAwayStatus,
+  clearAwayStatus,
 
   // Helpers
   formatTimeAgo

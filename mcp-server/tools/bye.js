@@ -8,6 +8,7 @@
 const config = require('../config');
 const store = require('../store');
 const summarize = require('./summarize');
+const patterns = require('../intelligence/patterns');
 
 const definition = {
   name: 'vibe_bye',
@@ -33,6 +34,9 @@ async function handler(args) {
 
   // Clear activity tracking
   summarize.clearActivity();
+
+  // Log session end for patterns
+  patterns.logSessionEnd();
 
   // Clear session identity (but keep shared config)
   config.clearSession();

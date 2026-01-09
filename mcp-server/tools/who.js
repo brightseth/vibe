@@ -12,6 +12,8 @@ const store = require('../store');
 const notify = require('../notify');
 const { formatTimeAgo, requireInit } = require('./_shared');
 const { actions, formatActions } = require('./_actions');
+const { enhanceUsersWithInference } = require('../intelligence/infer');
+const { getTopSerendipity, getAllSerendipity } = require('../intelligence/serendipity');
 
 const definition = {
   name: 'vibe_who',
@@ -32,40 +34,53 @@ function getHeat(user) {
   if (user.firstSeen) {
     const sessionDuration = (lastSeenMs - new Date(user.firstSeen).getTime()) / 60000;
     if (sessionDuration < 5 && minutesAgo < 2) {
-      return { icon: '✨', label: 'just joined' };
+      return { icon: '✨', label: 'just joined', inferred: false };
     }
+  }
+
+  // Check for inferred state from smart detection
+  if (user.mood_inferred && user.mood) {
+    const inferredLabel = user.inferred_state
+      ? `${user.inferred_state.replace('-', ' ')}`
+      : 'active';
+    return {
+      icon: user.mood,
+      label: inferredLabel,
+      inferred: true,
+      reason: user.mood_reason
+    };
   }
 
   // Explicit mood takes priority
   if (user.mood === '🔥' || user.mood === '🚀') {
-    return { icon: '🔥', label: 'shipping' };
+    return { icon: '🔥', label: 'shipping', inferred: false };
   }
   if (user.mood === '🐛') {
-    return { icon: '🐛', label: 'debugging' };
+    return { icon: '🐛', label: 'debugging', inferred: false };
   }
   if (user.mood === '🌙') {
-    return { icon: '🌙', label: 'late night' };
+    return { icon: '🌙', label: 'late night', inferred: false };
   }
   if (user.mood === '🧠') {
-    return { icon: '🧠', label: 'deep work' };
+    return { icon: '🧠', label: 'deep work', inferred: false };
   }
 
   // Infer from builderMode
   if (user.builderMode === 'deep-focus') {
-    return { icon: '🧠', label: 'deep focus' };
+    return { icon: '🧠', label: 'deep focus', inferred: false };
   }
   if (user.builderMode === 'shipping') {
-    return { icon: '🔥', label: 'shipping' };
+    return { icon: '🔥', label: 'shipping', inferred: false };
   }
 
   // Default based on recency
   if (minutesAgo < 2) {
-    return { icon: '⚡', label: 'active' };
+    return { icon: '⚡', label: 'active', inferred: false };
   }
   if (minutesAgo < 10) {
-    return { icon: '●', label: null };
+    return { icon: '●', label: null, inferred: false };
   }
-  return { icon: '○', label: 'idle' };
+  return { icon: '○', label: 'idle', inferred: false };
 }
 
 // Format user's current activity
@@ -109,7 +124,9 @@ async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
-  const users = await store.getActiveUsers();
+  const rawUsers = await store.getActiveUsers();
+  // Apply smart detection — infer states from context signals
+  const users = enhanceUsersWithInference(rawUsers);
   const myHandle = config.getHandle();
 
   // Check for notifications (presence + messages)
@@ -146,6 +163,7 @@ _Check back in a bit — builders come and go._`
       const agentBadge = u.is_agent ? ' 🤖' : '';
       const operatorTag = u.is_agent && u.operator ? ` _(op: @${u.operator})_` : '';
       const heat = getHeat(u);
+      // Keep it clean — state speaks for itself
       const heatLabel = heat.label ? ` ${heat.label}` : '';
       const activity = formatActivity(u);
       const timeAgo = formatTimeAgo(u.lastSeen);
@@ -159,15 +177,36 @@ _Check back in a bit — builders come and go._`
     });
   }
 
-  // Away section (collapsed)
+  // Away section (expanded with messages if present)
   if (away.length > 0) {
-    display += `---\n`;
-    display += `**Away** (${away.length}): `;
-    display += away.map(u => {
+    display += `---\n\n`;
+    display += `**Away:**\n`;
+
+    // Split into users with away messages and without
+    const withMessage = away.filter(u => u.awayMessage);
+    const withoutMessage = away.filter(u => !u.awayMessage);
+
+    // Show users with custom away messages (expanded)
+    withMessage.forEach(u => {
       const isMe = u.handle === myHandle;
-      return `@${u.handle}${isMe ? ' (you)' : ''}`;
-    }).join(', ');
-    display += '\n\n';
+      const tag = isMe ? ' _(you)_' : '';
+      const timeAgo = formatTimeAgo(u.lastSeen);
+
+      display += `☕ **@${u.handle}**${tag} — _"${u.awayMessage}"_\n`;
+      display += `   _${timeAgo}_\n\n`;
+    });
+
+    // Show auto-away users (collapsed) with 💤
+    if (withoutMessage.length > 0) {
+      withoutMessage.forEach(u => {
+        const isMe = u.handle === myHandle;
+        const tag = isMe ? ' _(you)_' : '';
+        const timeAgo = formatTimeAgo(u.lastSeen);
+
+        display += `💤 **@${u.handle}**${tag} _(auto-away)_\n`;
+        display += `   _${timeAgo}_\n\n`;
+      });
+    }
   }
 
   // Fun quick actions - randomize suggestions
@@ -253,6 +292,16 @@ _Check back in a bit — builders come and go._`
     topSuggestion = suggestions[0];
     response.hint = 'surprise_suggestion';
     response.suggestion = topSuggestion;
+  }
+
+  // Serendipity detection — quiet awareness, not loud callouts
+  const myUser = users.find(u => u.handle === myHandle);
+  if (myUser && active.length > 1) {
+    const serendipity = getTopSerendipity(myUser, active);
+    if (serendipity && serendipity.relevance > 0.75) {
+      // Only surface high-confidence matches, and quietly
+      response.serendipity = serendipity;
+    }
   }
 
   // Add guided mode actions
