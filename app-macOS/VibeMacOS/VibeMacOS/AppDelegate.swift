@@ -39,23 +39,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.isEnabled = false
         menu.addItem(statusItem)
 
+        // Version item
+        let versionItem = NSMenuItem(title: "App Version: \(getAppVersion())", action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // Install
-        menu.addItem(NSMenuItem(title: "Install /vibe", action: #selector(runInstall), keyEquivalent: "i"))
+        menu.addItem(NSMenuItem(title: "Install /vibe", action: #selector(runInstall), keyEquivalent: ""))
 
         // Update
-        menu.addItem(NSMenuItem(title: "Check for Updates", action: #selector(checkUpdates), keyEquivalent: "u"))
+        menu.addItem(NSMenuItem(title: "Check for Updates", action: #selector(checkUpdates), keyEquivalent: ""))
 
         menu.addItem(NSMenuItem.separator())
 
         // Open vibe directory
-        menu.addItem(NSMenuItem(title: "Open ~/.vibe", action: #selector(openVibeDirectory), keyEquivalent: "o"))
+        menu.addItem(NSMenuItem(title: "Open ~/.vibe", action: #selector(openVibeDirectory), keyEquivalent: ""))
 
         menu.addItem(NSMenuItem.separator())
 
         // Quit
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
 
         self.statusItem?.menu = menu
     }
@@ -76,6 +81,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         return "Unknown"
+    }
+
+    func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "\(version) (\(build))"
     }
 
     @objc func runInstall() {
