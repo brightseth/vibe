@@ -57,7 +57,7 @@ const KNOWN_AGENTS = {
   }
 };
 
-async function handler(args, { store }) {
+async function handler(args) {
   const initCheck = requireInit();
   if (initCheck) return initCheck;
 
