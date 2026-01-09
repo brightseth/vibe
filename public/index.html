@@ -259,9 +259,9 @@ PROTOCOL: https://airc.chat
         <div style="background: linear-gradient(90deg, #6B8FFF22 0%, transparent 100%); border: 1px solid #6B8FFF33; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 24px;">🔥</div>
             <div style="flex: 1;">
-                <div style="font-size: 15px; color: #fff; font-weight: 500;"><span id="remaining-top">57</span>/100 genesis handles left</div>
+                <div style="font-size: 15px; color: #fff; font-weight: 500;"><span id="remaining-top">75</span>/100 genesis handles left</div>
                 <div style="background: #222; border-radius: 4px; height: 6px; margin-top: 6px; overflow: hidden;">
-                    <div id="progress-bar" style="background: #6B8FFF; height: 100%; width: 43%; transition: width 0.5s;"></div>
+                    <div id="progress-bar" style="background: #6B8FFF; height: 100%; width: 25%; transition: width 0.5s;"></div>
                 </div>
             </div>
         </div>
@@ -363,15 +363,15 @@ PROTOCOL: https://airc.chat
 
         <div class="stats">
             <div>
-                <span class="stat-value" id="builders">43</span>
+                <span class="stat-value" id="builders">25</span>
                 <span class="stat-label">Genesis Users</span>
             </div>
             <div>
-                <span class="stat-value" id="messages">324</span>
+                <span class="stat-value" id="messages">—</span>
                 <span class="stat-label">Messages</span>
             </div>
             <div>
-                <span class="stat-value" id="remaining">57</span>
+                <span class="stat-value" id="remaining">75</span>
                 <span class="stat-label">Spots Left</span>
             </div>
         </div>
@@ -397,15 +397,26 @@ PROTOCOL: https://airc.chat
         fetch('/api/stats')
             .then(r => r.json())
             .then(data => {
-                if (data.genesis?.total) document.getElementById('builders').textContent = data.genesis.total;
-                if (data.messages) document.getElementById('messages').textContent = data.messages;
-                if (data.genesis?.genesis_remaining) {
-                    document.getElementById('remaining').textContent = data.genesis.genesis_remaining;
-                    document.getElementById('remaining-top').textContent = data.genesis.genesis_remaining;
-                    // Update progress bar (100 - remaining = claimed)
-                    const claimed = 100 - parseInt(data.genesis.genesis_remaining);
-                    document.getElementById('progress-bar').style.width = claimed + '%';
+                // User count: try multiple fields for compatibility
+                const users = data.users || data.total_registered || data.genesis?.total || 25;
+                document.getElementById('builders').textContent = users;
+
+                // Messages (may be 0 due to KV limits)
+                if (data.messages > 0) {
+                    document.getElementById('messages').textContent = data.messages;
                 }
+
+                // Genesis spots remaining
+                const remaining = data.genesis?.genesis_remaining ?? (100 - users);
+                document.getElementById('remaining').textContent = Math.max(0, remaining);
+                if (document.getElementById('remaining-top')) {
+                    document.getElementById('remaining-top').textContent = Math.max(0, remaining);
+                }
+
+                // Progress bar
+                const claimed = 100 - Math.max(0, remaining);
+                const bar = document.getElementById('progress-bar');
+                if (bar) bar.style.width = Math.min(100, claimed) + '%';
             })
             .catch(() => {});
     </script>
