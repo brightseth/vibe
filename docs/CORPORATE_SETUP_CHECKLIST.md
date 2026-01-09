@@ -6,40 +6,63 @@
 
 ---
 
-## ⚠️ GET A LAWYER FIRST
+## THE STACK (Seth's Picks)
+
+| Function | Service | Notes |
+|----------|---------|-------|
+| Entity Formation | **Otoco** | On-chain Delaware formation |
+| Banking | **Mercury** | Startup-friendly, API access |
+| Cards (Primary) | **Ramp** | Expense tracking, team cards |
+| Cards (Backup) | **Brex** | If Ramp declines |
+| Payments | **Stripe** | If needed for billing |
+| Payroll | **Gusto** | When employees needed |
+| Crypto/Treasury | **Coinbase** | On-ramp/off-ramp |
+| Wallet Auth | **Privy** | Web3 auth infrastructure |
+| Domains | **name.com** | Domain management |
+| AI | **Claude** (Anthropic) | Already using |
+| Code | **Git** (GitHub) | Already using |
+| Deploy | **Vercel** | Already using |
+| Agents | **Manus** | Multi-agent orchestration |
+
+---
+
+## GET A LAWYER FIRST
 
 This checklist is for planning. Before executing:
-- [ ] Consult startup lawyer (Clerky, Fenwick, WSGR, or Gunderson)
+- [ ] Consult startup lawyer (Fenwick, WSGR, or Gunderson)
 - [ ] Consult tax advisor for equity grants
 - [ ] Review Eden SAFE for any /vibe-related provisions
 
 ---
 
-## Phase 1: Entity Formation
+## Phase 1: Entity Formation (Otoco)
 
-### Option A: Clerky (Recommended for Speed)
-- [ ] Create account at clerky.com
-- [ ] Delaware C-Corp formation (~$799 + state fees)
-- [ ] Includes: Certificate of Incorporation, Bylaws, Board Consent
-- [ ] Registered agent included
-- [ ] Stock purchase agreement templates
-
-### Option B: Stripe Atlas
-- [ ] Alternative if you want banking bundled
-- [ ] $500 one-time fee
-- [ ] Includes: Entity + Mercury account
-
-### Documents Needed:
+### On-Chain Delaware C-Corp
+- [ ] Go to otoco.io
+- [ ] Connect wallet (can use Privy for auth)
+- [ ] Select Delaware C-Corp
 - [ ] Company name: "Vibe Technologies, Inc." or "Slash Vibe, Inc."
 - [ ] Authorized shares: 10,000,000 common
 - [ ] Par value: $0.0001 per share
-- [ ] Founder: Seth Rosenberg (100% at founding → 90% after USV grant)
+- [ ] Deploy on-chain (Base or Ethereum mainnet)
+- [ ] Receive NFT representing ownership
+
+### Otoco Benefits
+- Fast (minutes, not days)
+- On-chain record of incorporation
+- Composable with DeFi/DAOs later
+- Still legally valid Delaware entity
+
+### Alternative: Traditional Formation
+If prefer traditional route:
+- Clerky ($799 + state fees)
+- Stripe Atlas ($500, includes Mercury)
 
 ---
 
 ## Phase 2: Banking & Finance
 
-### Mercury (Business Banking)
+### Mercury (Primary Banking)
 - [ ] Apply at mercury.com
 - [ ] Requires: EIN, Certificate of Incorporation
 - [ ] Features: Free wires, API, team cards
@@ -48,72 +71,85 @@ This checklist is for planning. Before executing:
 ### Ramp (Corporate Cards)
 - [ ] Apply at ramp.com
 - [ ] Requires: Mercury account funded
-- [ ] Features: Auto-categorization, spend limits per team member
-- [ ] Good for tracking agent API costs separately
+- [ ] Features: Auto-categorization, spend limits
+- [ ] Track agent API costs separately
+- [ ] Virtual cards for each service
 
-### Brex Alternative
+### Brex (Backup)
 - [ ] If Ramp declines (needs revenue history)
 - [ ] More startup-friendly approval
+
+### Coinbase (Crypto)
+- [ ] Business account at coinbase.com/institutional
+- [ ] For: Treasury management, crypto payments
+- [ ] On-ramp/off-ramp USD <-> crypto
 
 ---
 
 ## Phase 3: Cap Table & Equity
 
-### Carta Setup
-- [ ] Create company at carta.com
-- [ ] Upload incorporation docs
-- [ ] Issue founder shares (9,000,000 shares)
-- [ ] File 83(b) election within 30 days!
+### On-Chain Cap Table (via Otoco)
+- [ ] Issue founder tokens on-chain
+- [ ] 9,000,000 tokens to Seth (90%)
+- [ ] 1,000,000 tokens reserved for USV grant (10%)
+- [ ] Programmable vesting if needed
 
 ### USV/Fred Equity Grant
-**⚠️ NEEDS LAWYER REVIEW**
+**NEEDS LAWYER REVIEW**
 
 Options:
 1. **Direct founder grant:** 1,000,000 shares (10%) at incorporation
-   - Fred pays tax on FMV (should be near $0 at founding)
    - Simple, clean
+   - Fred pays tax on FMV (near $0 at founding)
 
 2. **Advisor shares with vesting:** 4-year vest, 1-year cliff
    - More typical for advisors
    - Tax-efficient for recipient
 
-3. **SAFE conversion:** If Eden SAFE has /vibe provisions
-   - Need to review Eden docs
-   - May require formal carve-out
+3. **Token grant:** If doing on-chain cap table
+   - 1,000,000 governance tokens
+   - Can be vesting or immediate
 
-**Recommendation:** Direct grant at founding if FMV is near zero. Talk to lawyer about optimal structure.
-
-### 409A Valuation
-- [ ] Not needed until you have employees with options
-- [ ] Carta can do this (~$1,500)
+**Recommendation:** Direct grant at founding if FMV is near zero.
 
 ---
 
-## Phase 4: Payroll & HR (When Needed)
+## Phase 4: Auth & Infrastructure
+
+### Privy (Wallet Auth)
+- [ ] Sign up at privy.io
+- [ ] For: User authentication with wallets
+- [ ] Supports: Email, social, and wallet login
+- [ ] Good for: Progressive web3 onboarding
+
+### Stripe (Payments - if needed)
+- [ ] Set up at stripe.com
+- [ ] For: Subscription billing, if monetizing
+- [ ] Can wait until revenue model clear
+
+---
+
+## Phase 5: Payroll & HR (When Needed)
 
 ### Gusto
 - [ ] Set up when you have first employee
 - [ ] Handles: Payroll, benefits, compliance
 - [ ] Integrates with Mercury
 
-### Deel Alternative
-- [ ] For international contractors
-- [ ] Handles compliance globally
-
 ---
 
-## Phase 5: Operations
+## Phase 6: Operations
 
-### Domain & Email
-- [ ] slashvibe.dev - already owned
+### Domains (name.com)
+- [x] slashvibe.dev - owned
 - [ ] vibe.inc or vibe.co - consider acquiring
-- [ ] team@slashvibe.dev - set up Google Workspace
+- [ ] team@slashvibe.dev - set up email
 
 ### API Keys & Services
-- [x] Anthropic API key: vibe-agents-jan26 (for agents)
-- [x] Anthropic API key: vibe-dev-jan26 (for dev)
+- [x] Anthropic: vibe-agents-jan26 (agents)
+- [x] Anthropic: vibe-dev-jan26 (dev)
 - [ ] Move to company Anthropic account
-- [ ] Neon Postgres - already set up
+- [x] Neon Postgres - set up
 - [ ] Vercel - transfer to company account
 
 ---
@@ -123,14 +159,14 @@ Options:
 | Week | Action |
 |------|--------|
 | 1 | Lawyer consultation, decide on structure |
-| 1 | Clerky incorporation |
+| 1 | Otoco formation (or Clerky if traditional) |
 | 1 | Mercury application |
 | 2 | EIN received, Mercury approved |
-| 2 | Carta setup, issue shares |
-| 2 | 83(b) election filed |
+| 2 | On-chain cap table, issue shares |
 | 2 | USV equity grant executed |
 | 3 | Ramp cards, expense tracking |
 | 3 | Transfer Vercel/services to company |
+| 3 | Privy setup for wallet auth |
 
 ---
 
@@ -138,35 +174,48 @@ Options:
 
 | Item | Cost |
 |------|------|
-| Clerky incorporation | $799 |
+| Otoco formation | ~$300-500 + gas |
 | Delaware franchise tax | $225 |
 | Registered agent | $50/year |
 | Mercury | Free |
 | Ramp | Free |
-| Carta | Free tier |
 | Gusto | ~$40/mo when needed |
 | Lawyer (equity docs) | $2,000-5,000 |
-| **Total** | ~$3,500-6,500 |
+| **Total** | ~$3,000-6,000 |
 
 ---
 
 ## Key Decisions Needed
 
 1. **Company name:** "Vibe Technologies, Inc." vs "Slash Vibe, Inc."
-2. **USV equity structure:** Direct grant vs advisor shares vs SAFE conversion
-3. **IP assignment:** Does Eden have any claim to /vibe IP?
-4. **Timing:** Incorporate before or after raising?
+2. **Formation method:** Otoco (on-chain) vs Clerky (traditional)
+3. **USV equity structure:** Direct grant vs advisor shares vs tokens
+4. **IP assignment:** Does Eden have any claim to /vibe IP?
+5. **Timing:** Incorporate before or after raising?
+
+---
+
+## Why On-Chain Formation (Otoco)?
+
+1. **Speed** - Minutes instead of days
+2. **Cost** - Competitive with traditional
+3. **Composability** - Can integrate with DeFi later
+4. **Transparency** - On-chain record
+5. **Aligned** - /vibe is building for AI agents, on-chain makes sense
+6. **Future-proof** - Easy to add token-based governance
 
 ---
 
 ## Resources
 
-- Clerky: https://clerky.com
+- Otoco: https://otoco.io
 - Mercury: https://mercury.com
 - Ramp: https://ramp.com
-- Carta: https://carta.com
+- Brex: https://brex.com
+- Coinbase: https://coinbase.com
+- Privy: https://privy.io
 - Gusto: https://gusto.com
-- YC Standard Docs: https://www.ycombinator.com/documents
+- Stripe: https://stripe.com
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Author:** @claude-code + @seth
 **Date:** 2026-01-08
-**Status:** DRAFT
+**Status:** IMPLEMENTING
 **Stakeholders:** All workshop agents
 
 ---
@@ -179,26 +179,26 @@ Reorganize from 9 task-based agents to 6 function-based agents that map to real 
 
 ## Migration Plan
 
-### Phase 1: Document (Today)
+### Phase 1: Document (Today) ✅
 - [x] Write this RFC
+- [x] Seth approval (verbal)
 - [ ] Get agent feedback
-- [ ] Seth approval
 
-### Phase 2: Reorganize (This Week)
-- [ ] Rename agent directories
-- [ ] Update agent configs
-- [ ] Merge overlapping code
-- [ ] Update .backlog.json assignments
-
-### Phase 3: Launch New Agents (Next Week)
-- [ ] Create @trust agent
-- [ ] Create @devrel agent
+### Phase 2: Reorganize ✅ IN PROGRESS
+- [x] Create new agent directories (growth, community, voice, trust, devrel)
+- [x] Create @growth agent (from welcome-agent)
+- [x] Create @community agent (from curator+streaks+games)
+- [x] Create @voice agent (from bridges+scribe)
+- [x] Create @trust agent (NEW)
+- [x] Create @devrel agent (NEW)
+- [ ] Update ops-agent to know new agent names
 - [ ] Test all agents work together
 
-### Phase 4: Deprecate Old (Week After)
-- [ ] Archive old agent code
+### Phase 3: Deprecate Old (Next)
+- [ ] Archive old agent directories
 - [ ] Update COORDINATION.md
 - [ ] Update EVOLUTION.md
+- [ ] Update cron/agents.js to use new agents
 
 ---
 
