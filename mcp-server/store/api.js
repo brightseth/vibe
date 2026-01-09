@@ -270,8 +270,19 @@ async function sendMessage(from, to, body, type = 'dm', payload = null) {
 
 async function getInbox(handle) {
   try {
-    const result = await request('GET', `/api/messages?user=${handle}`);
-    // Group messages by sender into threads
+    // Use new Postgres-backed inbox endpoint
+    const result = await request('GET', `/api/messages/inbox?handle=${handle}`);
+    // New endpoint returns threads directly
+    if (result.threads) {
+      return result.threads.map(t => ({
+        handle: t.handle,
+        messages: [], // Full messages fetched via getThread
+        unread: t.unread || 0,
+        lastMessage: t.preview || t.latest?.body,
+        lastTimestamp: t.latest?.timestamp || Date.now()
+      }));
+    }
+    // Fallback to old format
     const bySender = result.bySender || {};
     return Object.entries(bySender).map(([sender, messages]) => ({
       handle: sender,
@@ -293,7 +304,11 @@ async function getInbox(handle) {
 
 async function getUnreadCount(handle) {
   try {
-    const result = await request('GET', `/api/messages?user=${handle}`);
+    const result = await request('GET', `/api/messages/inbox?handle=${handle}`);
+    // Sum unread from all threads
+    if (result.threads) {
+      return result.threads.reduce((sum, t) => sum + (t.unread || 0), 0);
+    }
     return result.unread || 0;
   } catch (e) {
     return 0;
@@ -303,7 +318,16 @@ async function getUnreadCount(handle) {
 // Get raw inbox messages (for notification checks)
 async function getRawInbox(handle) {
   try {
-    const result = await request('GET', `/api/messages?user=${handle}`);
+    const result = await request('GET', `/api/messages/inbox?handle=${handle}`);
+    // Convert threads to flat message list for notification checks
+    if (result.threads) {
+      return result.threads.map(t => ({
+        from: t.handle,
+        body: t.latest?.body || t.preview,
+        timestamp: t.latest?.timestamp,
+        unread: t.unread
+      }));
+    }
     return result.inbox || [];
   } catch (e) {
     return [];
