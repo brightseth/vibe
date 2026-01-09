@@ -41,9 +41,17 @@ export default async function handler(req, res) {
     let messages = 0;
 
     if (kv) {
-      // Count TOTAL registered handles (the namespace)
+      // Count TOTAL registered handles from multiple sources
       try {
-        totalRegistered = await kv.hlen('vibe:handles') || 0;
+        // Primary: vibe:handles hash (new system)
+        const handleCount = await kv.hlen('vibe:handles') || 0;
+
+        // Fallback: count user:* keys (legacy system)
+        const userKeys = await kv.keys('user:*') || [];
+        const legacyCount = userKeys.length;
+
+        // Use whichever is higher (covers migration period)
+        totalRegistered = Math.max(handleCount, legacyCount);
       } catch (e) {
         console.error('[stats] Failed to count handles:', e.message);
       }
