@@ -14,7 +14,7 @@ Hey [NAME] — trying something new: a communication layer inside Claude Code.
 Instead of switching to Discord to ping you, I just type "vibe dm @[their-handle]" and you get it.
 
 Takes 2 min to set up:
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://slashvibe.dev/install.sh | bash
 
 Then restart Claude Code and run "vibe init"
 
@@ -36,7 +36,7 @@ Hey [NAME] — built DMs inside Claude Code.
 
 Instead of switching to Discord, I just type "vibe dm @you" and you get it.
 
-2 min: curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+2 min: curl -fsSL https://slashvibe.dev/install.sh | bash
 
 After restart, run "vibe init" then:
 vibe dm @seth "installed"
@@ -48,7 +48,7 @@ That way I know it worked.
 ```
 [NAME] — communication layer for Claude Code. DM without leaving terminal.
 
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://slashvibe.dev/install.sh | bash
 
 Restart, run "vibe init", then:
 vibe dm @seth "installed"
@@ -61,7 +61,7 @@ Testing if people actually use this instead of switching apps.
 [NAME] — testing a hypothesis: would you DM someone from Claude Code if you could?
 
 I built it. 2 min:
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://slashvibe.dev/install.sh | bash
 
 Restart, "vibe init", then DM me:
 vibe dm @seth "installed"
