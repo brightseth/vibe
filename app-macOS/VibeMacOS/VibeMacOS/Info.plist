@@ -22,6 +22,8 @@
     <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>VibeMacOS needs to control Terminal to run the /vibe installation script.</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2026 /vibe. All rights reserved.</string>
     <key>NSPrincipalClass</key>
