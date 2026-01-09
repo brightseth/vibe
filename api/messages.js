@@ -656,16 +656,17 @@ export default async function handler(req, res) {
 
   // GET - Fetch messages
   if (req.method === 'GET') {
-    const { user, with: withUser, markRead, sent, unreadOnly } = req.query;
+    try {
+      const { user, with: withUser, markRead, sent, unreadOnly } = req.query;
 
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required parameter: user"
-      });
-    }
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          error: "Missing required parameter: user"
+        });
+      }
 
-    const username = user.toLowerCase().replace('@', '');
+      const username = user.toLowerCase().replace('@', '');
 
     // Get thread with specific user
     if (withUser) {
@@ -764,6 +765,14 @@ export default async function handler(req, res) {
       total: inbox.length,
       storage: KV_CONFIGURED ? 'kv' : 'memory'
     });
+    } catch (e) {
+      console.error('[messages] GET error:', e.message, e.stack);
+      return res.status(500).json({
+        success: false,
+        error: e.message,
+        storage: KV_CONFIGURED ? 'kv' : 'memory'
+      });
+    }
   }
 
   return res.status(405).json({ error: "Method not allowed" });
