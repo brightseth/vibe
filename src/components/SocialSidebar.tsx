@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { vibeClient, type VibeUser } from "../lib/vibeClient";
+import { vibeClient, type VibeUser, type LiveSession } from "../lib/vibeClient";
 import GamesPanel from "./GamesPanel";
 import PatternsPanel from "./PatternsPanel";
 import { track } from "../lib/tracking";
 
 interface SocialSidebarProps {
   onUserClick: (handle: string) => void;
+  onWatchSession: (userHandle: string, sessionId: string) => void;
 }
 
-export default function SocialSidebar({ onUserClick }: SocialSidebarProps) {
+export default function SocialSidebar({ onUserClick, onWatchSession }: SocialSidebarProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<VibeUser[]>([]);
+  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [handle, setHandle] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [showSetup, setShowSetup] = useState(false);
@@ -44,11 +46,23 @@ export default function SocialSidebar({ onUserClick }: SocialSidebarProps) {
     setOnlineUsers(users);
   };
 
+  const loadLiveSessions = async () => {
+    const sessions = await vibeClient.getLiveSessions();
+    setLiveSessions(sessions);
+  };
+
   useEffect(() => {
     if (!isConnected) return;
 
-    // Poll for online users every 10 seconds
-    const interval = setInterval(loadOnlineUsers, 10000);
+    // Poll for online users and live sessions every 10 seconds
+    const interval = setInterval(() => {
+      loadOnlineUsers();
+      loadLiveSessions();
+    }, 10000);
+
+    // Load immediately
+    loadLiveSessions();
+
     return () => clearInterval(interval);
   }, [isConnected]);
 
@@ -237,36 +251,84 @@ export default function SocialSidebar({ onUserClick }: SocialSidebarProps) {
                 No one else online right now
               </div>
             ) : (
-              onlineUsers.map((user) => (
-                <div
-                  key={user.handle}
-                  onClick={() => {
-                    const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
-                    track.userClicked(sessionId, user.handle);
-                    onUserClick(user.handle);
-                  }}
-                  style={{
-                    padding: "8px",
-                    marginBottom: "4px",
-                    background: "#1a1a1a",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#252525";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#1a1a1a";
-                  }}
-                >
-                  <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>
-                    @{user.handle}
+              onlineUsers.map((user) => {
+                const liveSession = liveSessions.find(s => s.user_handle === user.handle);
+                return (
+                  <div
+                    key={user.handle}
+                    style={{
+                      padding: "8px",
+                      marginBottom: "4px",
+                      background: "#1a1a1a",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#252525";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#1a1a1a";
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div
+                        onClick={() => {
+                          const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+                          track.userClicked(sessionId, user.handle);
+                          onUserClick(user.handle);
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px", display: "flex", alignItems: "center", gap: "6px" }}>
+                          @{user.handle}
+                          {liveSession && (
+                            <span
+                              style={{
+                                fontSize: "9px",
+                                color: "#ff5555",
+                                background: "#ff555520",
+                                padding: "2px 6px",
+                                borderRadius: "8px",
+                                fontWeight: 600,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <span style={{ fontSize: "6px" }}>●</span> LIVE
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#888" }}>
+                          {user.oneLiner}
+                        </div>
+                      </div>
+                      {liveSession && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const sessionId = localStorage.getItem("vibe_current_session") || "unknown";
+                            track.sessionViewed(sessionId, liveSession.session_id);
+                            onWatchSession(user.handle, liveSession.session_id);
+                          }}
+                          style={{
+                            background: "#ff555520",
+                            border: "1px solid #ff5555",
+                            borderRadius: "4px",
+                            color: "#ff5555",
+                            fontSize: "10px",
+                            padding: "4px 8px",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Watch
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ fontSize: "11px", color: "#888" }}>
-                    {user.oneLiner}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

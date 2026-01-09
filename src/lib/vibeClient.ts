@@ -47,6 +47,14 @@ interface WordAssociationState {
   lastWord: string;
 }
 
+interface LiveSession {
+  user_handle: string;
+  session_id: string;
+  is_live: boolean;
+  started_at: string;
+  recent_commands: string[];
+}
+
 // Mock data for development
 const MOCK_USERS: VibeUser[] = [
   { handle: "gene", oneLiner: "Building AI agents", lastSeen: new Date().toISOString() },
@@ -389,5 +397,66 @@ class VibeClient {
   }
 }
 
+  // Live session sharing
+  async getLiveSessions(): Promise<LiveSession[]> {
+    if (USE_MOCK) {
+      // Mock: Gene and Sara are currently in live sessions
+      return [
+        {
+          user_handle: "gene",
+          session_id: "mock-session-gene",
+          is_live: true,
+          started_at: new Date(Date.now() - 600000).toISOString(), // 10 mins ago
+          recent_commands: ["npm install", "npm run dev", "git status"],
+        },
+        {
+          user_handle: "sara",
+          session_id: "mock-session-sara",
+          is_live: true,
+          started_at: new Date(Date.now() - 300000).toISOString(), // 5 mins ago
+          recent_commands: ["cd project", "code .", "npm test"],
+        },
+      ];
+    }
+
+    try {
+      const response = await fetch(`${VIBE_API_URL}/sessions/live`);
+      if (response.ok) {
+        return await response.json();
+      }
+      return [];
+    } catch (error) {
+      console.error("Failed to get live sessions:", error);
+      return [];
+    }
+  }
+
+  async setSessionLive(sessionId: string, isLive: boolean): Promise<boolean> {
+    if (!this.handle) return false;
+
+    if (USE_MOCK) {
+      console.log("[MOCK] Set session live:", sessionId, isLive);
+      return true;
+    }
+
+    try {
+      const response = await fetch(`${VIBE_API_URL}/sessions/live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          handle: this.handle,
+          sessionId,
+          isLive,
+        }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error("Failed to set session live:", error);
+      return false;
+    }
+  }
+}
+
 export const vibeClient = new VibeClient();
-export type { VibeUser, VibeMessage, GameState, TicTacToeState, HangmanState, WordAssociationState };
+export type { VibeUser, VibeMessage, GameState, TicTacToeState, HangmanState, WordAssociationState, LiveSession };
