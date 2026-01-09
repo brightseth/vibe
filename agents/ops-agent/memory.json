@@ -107,6 +107,10 @@
     {
       "timestamp": "2026-01-08T16:46:36.452Z",
       "observation": "Workshop coordination crisis Jan 8: Found 419 duplicate task assignments causing massive agent confusion. Despite chaos, agents shipped: Bridge system complete, Streak rescue, Gamification dashboard, Chess game, User matching, Ice breakers. Implemented coordination recovery - cleared duplicate assignments, announced status, celebrated ships. Key lesson: Our agents build fast even through coordination noise, but need clean task management for optimal productivity."
+    },
+    {
+      "timestamp": "2026-01-09T00:49:00.000Z",
+      "observation": "STATS FIX DEPLOYED Jan 9: Fixed critical bug in /api/stats - was querying empty KV storage instead of Postgres (source of truth for presence). Stats now show actual user count: 24 registered users (was showing 0-12). Also deployed /api/events for funnel tracking: handle_claimed, session_started, session_ended events. Funnel optimizations: handle auto-suggestion from git config, invite code on bye flow. Infrastructure: Postgres primary for presence, KV for messages/threads. System healthy."
     }
   ],
   "interactions": [],
