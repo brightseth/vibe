@@ -5,3 +5,7 @@ node_modules/
 .DS_Store
 .vercel
 .env*.local
+
+# Xcode user-specific files (scoped to VibeMacOS)
+app-macOS/VibeMacOS/**/xcuserdata/
+app-macOS/VibeMacOS/build/
