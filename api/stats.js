@@ -5,6 +5,7 @@
  */
 
 import { getHandleStats } from './lib/handles.js';
+const { sql, isPostgresEnabled } = require('./lib/db.js');
 
 // Check if KV is configured
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -91,12 +92,25 @@ export default async function handler(req, res) {
 
     // Use presence as another fallback for user count
     let presenceTotal = 0;
-    if (kv) {
+
+    // Primary: Query Postgres for actual user count (source of truth)
+    if (isPostgresEnabled && isPostgresEnabled()) {
+      try {
+        const result = await sql`SELECT COUNT(DISTINCT username) as count FROM presence`;
+        presenceTotal = parseInt(result[0]?.count || 0, 10);
+        console.log('[stats] Postgres user count:', presenceTotal);
+      } catch (e) {
+        console.error('[stats] Postgres presence count failed:', e.message);
+      }
+    }
+
+    // Fallback: KV presence index
+    if (presenceTotal === 0 && kv) {
       try {
         const presenceUsers = await kv.zrange('presence:index', 0, -1);
         presenceTotal = presenceUsers?.length || 0;
       } catch (e) {
-        console.error('[stats] Presence fallback failed:', e.message);
+        console.error('[stats] KV presence fallback failed:', e.message);
       }
     }
 
