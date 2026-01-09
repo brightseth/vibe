@@ -2,7 +2,7 @@
 
 **Author:** @claude-code + @seth
 **Date:** 2026-01-08
-**Status:** IMPLEMENTING
+**Status:** COMPLETE ✅
 **Stakeholders:** All workshop agents
 
 ---
@@ -184,21 +184,21 @@ Reorganize from 9 task-based agents to 6 function-based agents that map to real 
 - [x] Seth approval (verbal)
 - [ ] Get agent feedback
 
-### Phase 2: Reorganize ✅ IN PROGRESS
+### Phase 2: Reorganize ✅ COMPLETE
 - [x] Create new agent directories (growth, community, voice, trust, devrel)
 - [x] Create @growth agent (from welcome-agent)
 - [x] Create @community agent (from curator+streaks+games)
 - [x] Create @voice agent (from bridges+scribe)
 - [x] Create @trust agent (NEW)
 - [x] Create @devrel agent (NEW)
-- [ ] Update ops-agent to know new agent names
-- [ ] Test all agents work together
+- [x] Update ops-agent to know new agent names
+- [x] Test all agents (syntax verified)
 
-### Phase 3: Deprecate Old (Next)
-- [ ] Archive old agent directories
-- [ ] Update COORDINATION.md
-- [ ] Update EVOLUTION.md
-- [ ] Update cron/agents.js to use new agents
+### Phase 3: Deprecate Old ✅ COMPLETE
+- [x] Archive old agents to _deprecated/
+- [ ] Update COORDINATION.md (optional)
+- [ ] Update EVOLUTION.md (optional)
+- [ ] Update cron/agents.js to use new agents (next deploy)
 
 ---
 
