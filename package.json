@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "echo 'API-only deployment - no frontend build needed'",
+    "build": "mkdir -p dist && echo '<!DOCTYPE html><html><head><title>Redirecting...</title><meta http-equiv=\"refresh\" content=\"0;url=/\"></head><body>Redirecting...</body></html>' > dist/index.html",
     "preview": "vite preview",
     "tauri": "tauri"
   },
