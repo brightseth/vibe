@@ -143,15 +143,36 @@ async function test2_ValidRotation(userData) {
 }
 
 // Test 3: Replay attack (same nonce)
-async function test3_ReplayAttack(userData) {
+async function test3_ReplayAttack() {
   console.log('\n=== Test 3: Replay attack prevention ===');
 
-  if (!userData.success) {
-    console.log('⏭️  SKIPPED: Previous test failed');
+  // Register fresh user to avoid rate limit from previous tests
+  const signingKey = generateKeypair();
+  const recoveryKey = generateKeypair();
+  const handle = `test_replay_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+
+  try {
+    const regResponse = await fetch(`${TEST_REGISTRY}/api/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: handle,
+        building: 'testing replay protection',
+        publicKey: signingKey.publicKey,
+        recoveryKey: recoveryKey.publicKey
+      })
+    });
+
+    const regData = await regResponse.json();
+    if (!regData.success) {
+      console.log('✗ FAILED: User registration failed:', regData.error);
+      return { success: false };
+    }
+  } catch (error) {
+    console.log('✗ FAILED: Registration error:', error.message);
     return { success: false };
   }
 
-  const { handle, recoveryKey } = userData;
   const newSigningKey = generateKeypair();
 
   // Use a fixed nonce
@@ -220,8 +241,17 @@ async function test3_ReplayAttack(userData) {
       return { success: true };
     }
 
-    console.log('⚠️  WARNING: Different error:', data2.error);
-    return { success: true };
+    // Rate limit is also an acceptable response (blocks the replay)
+    if (data2.error === 'rate_limited') {
+      console.log('✅ PASSED: Replay blocked by rate limit');
+      console.log(`   Note: Rate limit triggered before nonce check (expected behavior)`);
+      return { success: true };
+    }
+
+    console.log('✗ FAILED: Unexpected error:', data2.error);
+    console.log('   Expected: replay_attack or rate_limited');
+    console.log('   Got:', JSON.stringify(data2));
+    return { success: false };
   } catch (error) {
     console.log('✗ FAILED: Network error:', error.message);
     return { success: false };
@@ -448,7 +478,7 @@ async function runTests() {
   const test2Result = await test2_ValidRotation(test1Result);
   results.push({ name: 'Valid key rotation', passed: test2Result.success });
 
-  const test3Result = await test3_ReplayAttack(test2Result);
+  const test3Result = await test3_ReplayAttack();
   results.push({ name: 'Replay attack prevention', passed: test3Result.success });
 
   const test4Result = await test4_InvalidTimestamp();
