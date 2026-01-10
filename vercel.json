@@ -95,7 +95,6 @@
     { "source": "/api/invites", "destination": "/api/invites.js" },
     { "source": "/invite/:code*", "destination": "/api/invite-page" },
     { "source": "/api/admin/stats", "destination": "/api/admin/stats.js" },
-    { "source": "/api/admin/purge-test-users", "destination": "/api/admin/purge-test-users.js" },
     { "source": "/api/report", "destination": "/api/report.js" },
     { "source": "/api/agents", "destination": "/api/agents.js" },
     { "source": "/api/webhooks", "destination": "/api/webhooks.js" },
