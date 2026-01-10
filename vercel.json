@@ -33,6 +33,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/artifacts", "destination": "/api/artifacts-browse" },
     { "source": "/a/:slug", "destination": "/api/artifacts/:slug" },
     { "source": "/api/presence/heartbeat", "destination": "/api/presence/heartbeat.js" },
     { "source": "/api/presence/who", "destination": "/api/presence/who.js" },

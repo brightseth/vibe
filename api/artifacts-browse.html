@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artifacts | /vibe</title>
+  <meta name="description" content="Browse guides, learnings, and workspaces created by the /vibe community">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 60px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #6B8FFF 0%, #4ecdc4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .stat strong {
+      color: #6B8FFF;
+      font-size: 1.5rem;
+      display: block;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 100px 20px;
+      color: #666;
+      font-size: 1.2rem;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+
+    .error {
+      text-align: center;
+      padding: 100px 20px;
+      color: #ff6b6b;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #2a2a2a;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card:hover {
+      border-color: #6B8FFF;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(107, 143, 255, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .template-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .template-guide {
+      background: #6B8FFF20;
+      color: #6B8FFF;
+    }
+
+    .template-learning {
+      background: #4ecdc420;
+      color: #4ecdc4;
+    }
+
+    .template-workspace {
+      background: #ff6b6b20;
+      color: #ff6b6b;
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .creator {
+      color: #6B8FFF;
+    }
+
+    .date {
+      color: #666;
+    }
+
+    .card-preview {
+      color: #aaa;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 100px 20px;
+      color: #666;
+    }
+
+    .empty h2 {
+      color: #888;
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid #2a2a2a;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: #6B8FFF;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .stats {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Artifacts</h1>
+      <p class="subtitle">Just-in-time social objects — guides, learnings, and workspaces</p>
+      <div class="stats">
+        <div class="stat">
+          <strong id="total-count">—</strong>
+          <span>Total</span>
+        </div>
+        <div class="stat">
+          <strong id="guide-count">—</strong>
+          <span>Guides</span>
+        </div>
+        <div class="stat">
+          <strong id="learning-count">—</strong>
+          <span>Learnings</span>
+        </div>
+        <div class="stat">
+          <strong id="workspace-count">—</strong>
+          <span>Workspaces</span>
+        </div>
+      </div>
+    </header>
+
+    <div id="content">
+      <div class="loading">Loading artifacts</div>
+    </div>
+
+    <footer>
+      <p>Created with <a href="https://slashvibe.dev">/vibe</a> — social layer for Claude Code</p>
+    </footer>
+  </div>
+
+  <script>
+    async function loadArtifacts() {
+      const contentEl = document.getElementById('content');
+
+      try {
+        // Fetch artifacts from API
+        const response = await fetch('/api/artifacts?scope=network&handle=guest&limit=50');
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to load artifacts');
+        }
+
+        const artifacts = data.artifacts || [];
+
+        // Update stats
+        document.getElementById('total-count').textContent = artifacts.length;
+        document.getElementById('guide-count').textContent =
+          artifacts.filter(a => a.template === 'guide').length;
+        document.getElementById('learning-count').textContent =
+          artifacts.filter(a => a.template === 'learning').length;
+        document.getElementById('workspace-count').textContent =
+          artifacts.filter(a => a.template === 'workspace').length;
+
+        // Render artifacts
+        if (artifacts.length === 0) {
+          contentEl.innerHTML = `
+            <div class="empty">
+              <h2>No artifacts yet</h2>
+              <p>Be the first to create one!</p>
+            </div>
+          `;
+          return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        artifacts.forEach(artifact => {
+          const card = createArtifactCard(artifact);
+          grid.appendChild(card);
+        });
+
+        contentEl.innerHTML = '';
+        contentEl.appendChild(grid);
+
+      } catch (error) {
+        console.error('Error loading artifacts:', error);
+        contentEl.innerHTML = `
+          <div class="error">
+            <p>Failed to load artifacts</p>
+            <p style="font-size: 0.9rem; margin-top: 10px;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function createArtifactCard(artifact) {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = `/a/${artifact.slug}`;
+
+      // Extract preview text from first paragraph block
+      let previewText = 'No preview available';
+      if (artifact.content && artifact.content.blocks) {
+        const firstPara = artifact.content.blocks.find(b => b.type === 'paragraph');
+        if (firstPara && firstPara.markdown) {
+          previewText = firstPara.markdown.substring(0, 150);
+          if (firstPara.markdown.length > 150) {
+            previewText += '...';
+          }
+        }
+      }
+
+      // Format date
+      const date = new Date(artifact.created_at);
+      const dateStr = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="template-badge template-${artifact.template}">${artifact.template}</span>
+        </div>
+        <h2 class="card-title">${escapeHtml(artifact.title)}</h2>
+        <div class="card-meta">
+          <span class="creator">@${escapeHtml(artifact.created_by)}</span>
+          <span class="date">${dateStr}</span>
+        </div>
+        <p class="card-preview">${escapeHtml(previewText)}</p>
+      `;
+
+      return card;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Load artifacts on page load
+    loadArtifacts();
+  </script>
+</body>
+</html>
