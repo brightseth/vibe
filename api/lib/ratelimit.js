@@ -60,6 +60,20 @@ const LIMITS = {
     window: 10,     // 10 seconds
     limit: 100,     // 100 updates per 10 seconds for system accounts
     message: 'System presence updates too frequent.'
+  },
+
+  // Key rotation: AIRC v0.2 security operation
+  key_rotation: {
+    window: 3600,   // 1 hour
+    limit: 1,       // 1 rotation per hour per handle
+    message: 'Key rotation limited to once per hour. Contact support if locked out.'
+  },
+
+  // Identity revocation: AIRC v0.2 security operation
+  identity_revoke: {
+    window: 86400,  // 24 hours
+    limit: 1,       // Only 1 attempt per day
+    message: 'Only 1 revocation attempt allowed per 24 hours per handle.'
   }
 };
 

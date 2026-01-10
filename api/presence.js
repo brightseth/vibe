@@ -708,6 +708,20 @@ export default async function handler(req, res) {
           if (session) {
             const result = verifyToken(token, session.handle);
             if (result.valid) {
+              // AIRC v0.2: Check session timestamp against key rotation
+              const { validateSessionTimestamp } = await import('./lib/auth.js');
+              const sessionCreatedAt = new Date(session.registeredAt).getTime();
+              const timestampValid = await validateSessionTimestamp(sql, session.handle, sessionCreatedAt);
+
+              if (!timestampValid.valid) {
+                return res.status(401).json({
+                  success: false,
+                  error: 'session_invalidated',
+                  message: timestampValid.error,
+                  reason: timestampValid.reason
+                });
+              }
+
               authenticatedHandle = session.handle;
               // Refresh session TTL
               await refreshSession(tokenSessionId);
