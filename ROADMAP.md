@@ -216,3 +216,16 @@ Core insights that guide the product:
 
 *Plan created: January 3, 2026*
 *Updated: January 9, 2026 — Vision section, M6-M9, Spectator Mode proposed*
+
+---
+
+## Platform & Services Strategy
+
+**See:** [PLATFORM_STRATEGY.md](./PLATFORM_STRATEGY.md)
+
+**TL;DR:** /vibe's social graph + payments = infrastructure for Claude Code-native services
+
+**Key Opportunity:** Integrate @flynnjamm's [ping.money](https://ping-money.com/) (expertise marketplace) with /vibe's graph for smart matching, live routing, and reputation
+
+**Status:** Proposal (Jan 9, 2026) — needs discussion with Flynn
+
