@@ -231,6 +231,8 @@ const tools = {
   // Unified social inbox (Phase 1a)
   vibe_social_inbox: require('./tools/social-inbox'),
   vibe_social_post: require('./tools/social-post'),
+  // Universal messaging (Phase 1b)
+  vibe_connect: require('./tools/connect'),
   // Language evolution
   vibe_patterns: require('./tools/patterns'),
   // Settings

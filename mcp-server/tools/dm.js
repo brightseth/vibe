@@ -1,5 +1,6 @@
 /**
  * vibe dm — Send a direct message
+ * Supports internal /vibe DMs and external platforms (Gmail, X, Farcaster, etc.)
  */
 
 const config = require('../config');
@@ -10,6 +11,7 @@ const patterns = require('../intelligence/patterns');
 const { trackMessage, checkBurst } = require('./summarize');
 const { requireInit, normalizeHandle, truncate, warning } = require('./_shared');
 const { actions, formatActions } = require('./_actions');
+const router = require('../../lib/messaging/router');
 
 const definition = {
   name: 'vibe_dm',
@@ -56,6 +58,71 @@ async function handler(args) {
   if ((!message || message.trim().length === 0) && !payload) {
     return { display: 'Need either a message or payload.' };
   }
+
+  // Check if this is an external platform message (email, X, Farcaster, etc.)
+  const platform = router.detectPlatform(handle);
+
+  if (platform !== 'vibe') {
+    // External platform - route via messaging adapters
+    try {
+      const result = await router.send(handle, message, {
+        handle: myHandle,
+        subject: args.subject, // For email
+        platform: args.platform // Allow explicit platform override
+      });
+
+      // Auth required
+      if (result.authRequired) {
+        return {
+          display: `🔐 Connect ${platform} first
+
+${platform} is not connected yet. Connect it to send messages:
+
+  vibe connect ${platform}
+
+Then you can message:
+  vibe dm ${handle} "${message.slice(0, 50)}..."
+`
+        };
+      }
+
+      // Success
+      if (result.success) {
+        return {
+          display: `✓ Sent via ${platform}
+
+To: ${handle}
+Message: "${truncate(message, 100)}"
+
+${platform === 'gmail' ? `Message ID: ${result.messageId}` : ''}
+`
+        };
+      }
+
+      // Error
+      return {
+        display: `❌ Failed to send via ${platform}
+
+Error: ${result.error}
+
+${platform} may need to be reconnected:
+  vibe connect ${platform} --action status
+`
+      };
+    } catch (error) {
+      return {
+        display: `❌ Error sending via ${platform}
+
+${error.message}
+
+Make sure ${platform} is configured:
+  vibe connect ${platform}
+`
+      };
+    }
+  }
+
+  // Continue with internal /vibe DM logic below...
 
   const trimmed = message ? message.trim() : '';
   const MAX_LENGTH = 2000;

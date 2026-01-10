@@ -1,5 +1,5 @@
 const { ensureWallet, getWalletAddress, getBalance, hasWallet } = require('../../lib/cdp/wallet-helpers');
-const { query } = require('../../api/lib/db');
+const { sql } = require('../../api/lib/db');
 
 /**
  * vibe wallet - View wallet status, balance, or create wallet
@@ -162,16 +162,16 @@ Questions?
       const balance = await getBalance(handle);
 
       // Get recent transactions
-      const txResult = await query(
-        `SELECT event_type, amount, metadata, created_at
-         FROM wallet_events
-         WHERE handle = $1
-         ORDER BY created_at DESC
-         LIMIT 5`,
-        [handle.replace('@', '')]
-      );
+      const cleanHandle = handle.replace('@', '');
+      const txResult = await sql`
+        SELECT event_type, amount, metadata, created_at
+        FROM wallet_events
+        WHERE handle = ${cleanHandle}
+        ORDER BY created_at DESC
+        LIMIT 5
+      `;
 
-      const recentTx = txResult.rows.map(tx => {
+      const recentTx = txResult.map(tx => {
         const amount = tx.amount ? `$${parseFloat(tx.amount).toFixed(2)}` : '';
         const type = tx.event_type;
         const date = new Date(tx.created_at).toLocaleDateString();
