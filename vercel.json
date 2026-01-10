@@ -70,6 +70,7 @@
     { "source": "/api/gigabrain/query", "destination": "/api/gigabrain/query.js" },
     { "source": "/api/gigabrain/backfill", "destination": "/api/gigabrain/backfill.js" },
     { "source": "/api/board", "destination": "/api/board.js" },
+    { "source": "/api/observations", "destination": "/api/observations.js" },
     { "source": "/api/cron/echo", "destination": "/api/cron/echo.js" },
     { "source": "/api/discord-bridge", "destination": "/api/discord-bridge.js" },
     { "source": "/api/social", "destination": "/api/social/index.js" },
