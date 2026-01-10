@@ -66,13 +66,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     menu.addItem(NSMenuItem.separator())
 
-    // Install
+    // Install or Update based on current status
+    let isInstalled = FileManager.default.fileExists(atPath: NSHomeDirectory() + "/.vibe/vibe-repo")
+    let installTitle = isInstalled ? "Update /vibe" : "Install /vibe"
     menu.addItem(
-      NSMenuItem(title: "Install /vibe", action: #selector(runInstall), keyEquivalent: ""))
-
-    // Update
-    menu.addItem(
-      NSMenuItem(title: "Check for Updates", action: #selector(checkUpdates), keyEquivalent: ""))
+      NSMenuItem(title: installTitle, action: #selector(runInstall), keyEquivalent: ""))
 
     menu.addItem(NSMenuItem.separator())
 
@@ -130,34 +128,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Refresh menu after a delay to pick up installation status
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
       self?.setupMenu()
-    }
-  }
-
-  @objc func checkUpdates() {
-    guard let installManager = installManager else { return }
-
-    let vibeDir = NSHomeDirectory() + "/.vibe/vibe-repo"
-
-    if !FileManager.default.fileExists(atPath: vibeDir) {
-      showAlert(title: "Not Installed", message: "Please install /vibe first")
-      return
-    }
-
-    showOutputWindow(title: "Checking for Updates")
-
-    // Run git pull
-    installManager.runCommand("cd \(vibeDir) && git pull") { [weak self] output in
-      DispatchQueue.main.async {
-        self?.outputWindow?.appendOutput(output)
-      }
-    } completion: { [weak self] success in
-      DispatchQueue.main.async {
-        if success {
-          self?.outputWindow?.appendOutput("\n✅ Update check complete\n")
-        } else {
-          self?.outputWindow?.appendOutput("\n❌ Update failed\n")
-        }
-      }
     }
   }
 
