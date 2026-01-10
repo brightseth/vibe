@@ -18,7 +18,7 @@ Claude reads the page and runs the installer.
 
 **Or manually:**
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash
 \`\`\`
 
 Then restart Claude Code to load the MCP server.
@@ -47,7 +47,7 @@ Just talk naturally. Claude figures it out.
 ## More Info
 
 - Website: https://slashvibe.dev
-- GitHub: https://github.com/brightseth/vibe
+- GitHub: https://github.com/brightseth/vibe-platform
 `;
 
 const JSON_RESPONSE = {
@@ -55,7 +55,7 @@ const JSON_RESPONSE = {
   description: "Social layer for Claude Code",
   install: {
     preferred: "Tell Claude: go to slashvibe.dev and install /vibe",
-    manual: "curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash",
+    manual: "curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash",
     then: "Restart Claude Code"
   },
   usage: [
@@ -75,7 +75,7 @@ const JSON_RESPONSE = {
   ],
   links: {
     website: "https://slashvibe.dev",
-    github: "https://github.com/brightseth/vibe"
+    github: "https://github.com/brightseth/vibe-platform"
   }
 };
 

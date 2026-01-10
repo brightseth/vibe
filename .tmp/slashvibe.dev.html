@@ -32,7 +32,7 @@ WHAT GETS INSTALLED:
   ~/.vibe/memory/         — Your local thread memories (JSONL, inspectable)
   ~/.claude.json updated  — Registers the MCP server with Claude Code
 
-SOURCE: https://github.com/brightseth/vibe
+SOURCE: https://github.com/brightseth/vibe-platform
 -->
 <head>
     <meta charset="UTF-8">
@@ -178,7 +178,7 @@ SOURCE: https://github.com/brightseth/vibe
         <details style="margin-bottom: 40px;">
             <summary style="color: #444; font-size: 11px; cursor: pointer;">Or install manually</summary>
             <div class="install" style="margin-top: 12px;">
-                <code>curl -fsSL raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash</code>
+                <code>curl -fsSL raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash</code>
                 <button class="copy" onclick="copy()">Copy</button>
             </div>
             <p class="note">Then restart Claude Code.</p>
@@ -215,7 +215,7 @@ SOURCE: https://github.com/brightseth/vibe
             <strong>What you're installing:</strong> An MCP server (~15 files) that adds presence, messaging, and memory to Claude Code.
             Local-first. Open source. Your memories stay in ~/.vibe/memory/ as inspectable JSONL files.
             <br><br>
-            <a href="https://github.com/brightseth/vibe" style="color: #00ff00;">View source on GitHub →</a>
+            <a href="https://github.com/brightseth/vibe-platform" style="color: #00ff00;">View source on GitHub →</a>
         </div>
 
         <div class="stats">
@@ -230,13 +230,13 @@ SOURCE: https://github.com/brightseth/vibe
         </div>
 
         <div class="footer">
-            <a href="https://github.com/brightseth/vibe">GitHub</a>
+            <a href="https://github.com/brightseth/vibe-platform">GitHub</a>
         </div>
     </div>
 
     <script>
         function copy() {
-            navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash');
+            navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash');
             const btn = document.querySelector('.copy');
             btn.textContent = 'Copied!';
             setTimeout(() => btn.textContent = 'Copy', 2000);

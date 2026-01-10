@@ -341,7 +341,7 @@ Each layer inevitable once the last exists.
 
 - **Install**: `curl -fsSL https://slashvibe.dev/install.sh | bash`
 - **Site**: https://slashvibe.dev
-- **GitHub**: https://github.com/brightseth/vibe
+- **GitHub**: https://github.com/brightseth/vibe-platform
 - **Eden**: https://eden.art
 - **Spirit**: https://spiritprotocol.io
 

@@ -128,4 +128,4 @@ Example responses:
 
 ---
 
-*Ready for PR to [brightseth/vibe](https://github.com/brightseth/vibe)*
+*Ready for PR to [brightseth/vibe-platform](https://github.com/brightseth/vibe-platform)*

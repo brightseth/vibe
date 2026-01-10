@@ -49,7 +49,7 @@ async function handler(args) {
     display += `Your install doesn't support automatic updates.\n\n`;
     display += `To update, re-run the installer:\n`;
     display += `\`\`\`\n`;
-    display += `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash\n`;
+    display += `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash\n`;
     display += `\`\`\`\n\n`;
     display += `This will migrate you to the git-based installer for future updates.\n\n`;
     display += `---\n`;

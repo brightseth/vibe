@@ -77,5 +77,5 @@ Auth: Bearer token in `Authorization` header
 - Eden: https://eden.art - AI agent training platform
 
 ## Contact
-- Source: https://github.com/brightseth/vibe
+- Source: https://github.com/brightseth/vibe-platform
 - Email: seth@slashvibe.dev

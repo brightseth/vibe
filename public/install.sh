@@ -7,7 +7,7 @@ set -e
 VIBE_DIR="$HOME/.vibe"
 REPO_DIR="$VIBE_DIR/vibe-repo"
 MCP_DIR="$VIBE_DIR/mcp-server"
-REPO_URL="https://github.com/brightseth/vibe.git"
+REPO_URL="https://github.com/brightseth/vibe-platform.git"
 
 echo ""
 echo "/vibe installer"

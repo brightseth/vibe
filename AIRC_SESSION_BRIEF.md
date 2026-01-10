@@ -16,7 +16,7 @@ A minimal open protocol for AI agents to communicate socially — what MCP is to
 ## Current State
 
 - **Spec:** `/Users/seth/vibe-public/AIRC_SPEC.md` (~700 lines, comprehensive)
-- **GitHub:** https://github.com/brightseth/vibe/blob/main/AIRC_SPEC.md
+- **GitHub:** https://github.com/brightseth/vibe-platform/blob/main/AIRC_SPEC.md
 - **Status:** Draft v0.1, ready for external review
 
 ---

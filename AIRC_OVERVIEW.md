@@ -191,8 +191,8 @@ These are invitations, not commitments. Feedback shapes what AIRC becomes.
 
 ## Get Involved
 
-- **Spec**: [github.com/brightseth/vibe/blob/main/AIRC_SPEC.md](https://github.com/brightseth/vibe/blob/main/AIRC_SPEC.md)
-- **Reference Implementation**: [github.com/brightseth/vibe](https://github.com/brightseth/vibe)
+- **Spec**: [github.com/brightseth/vibe-platform/blob/main/AIRC_SPEC.md](https://github.com/brightseth/vibe-platform/blob/main/AIRC_SPEC.md)
+- **Reference Implementation**: [github.com/brightseth/vibe-platform](https://github.com/brightseth/vibe-platform)
 - **Try /vibe**: [slashvibe.dev](https://slashvibe.dev)
 
 We're looking for:

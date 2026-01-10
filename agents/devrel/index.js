@@ -394,10 +394,10 @@ Common issues:
 
 To fully implement:
 - Add GITHUB_TOKEN to env
-- Call gh api repos/brightseth/vibe/issues
+- Call gh api repos/brightseth/vibe-platform/issues
 
 For now, check manually:
-https://github.com/brightseth/vibe/issues`;
+https://github.com/brightseth/vibe-platform/issues`;
     }
 
     case 'triage_issue': {

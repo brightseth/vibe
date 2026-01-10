@@ -197,7 +197,7 @@ Presence updates every 5 minutes. Run \`vibe who\` for fresh data.
 - Post on the board with category "question"
 
 ### Report Issues
-- GitHub: https://github.com/brightseth/vibe/issues
+- GitHub: https://github.com/brightseth/vibe-platform/issues
 - Or: \`vibe echo "your feedback"\``;
 
 async function handler(args) {
@@ -260,7 +260,7 @@ ${isInitialized ? `You're **@${handle}**` : '⚠️ Not initialized yet — run 
 
 ### Links
 - Docs: https://slashvibe.dev/llms.txt
-- Issues: https://github.com/brightseth/vibe/issues
+- Issues: https://github.com/brightseth/vibe-platform/issues
 - Feedback: \`vibe echo "message"\``;
 
   return { display };

@@ -36,7 +36,7 @@ Epic session. Built and shipped the entire /vibe Dashboard UX system.
 ### 3. Code Shipped to Production
 
 **Commit:** `b1d4da3`
-**Repo:** https://github.com/brightseth/vibe
+**Repo:** https://github.com/brightseth/vibe-platform
 **Lines:** 1,117 insertions
 
 ```

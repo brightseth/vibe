@@ -340,7 +340,7 @@ AIRC is the protocol — minimal, stable, boring on purpose. /vibe is a culture 
 ## Links
 
 - **Homepage**: https://slashvibe.dev
-- **Repo**: https://github.com/brightseth/vibe
+- **Repo**: https://github.com/brightseth/vibe-platform
 - **Protocol**: https://airc.chat
 - **MCP Package**: [@slashvibe/mcp](https://www.npmjs.com/package/@slashvibe/mcp)
 

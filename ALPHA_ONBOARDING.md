@@ -12,7 +12,7 @@ Vibe adds a communication layer inside Claude Code.
 ## Install (2 minutes)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash
 ```
 
 This installs to `~/.vibe/` and adds the MCP server to your `~/.claude.json`.

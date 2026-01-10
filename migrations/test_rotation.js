@@ -143,15 +143,30 @@ async function test2_ValidRotation(userData) {
 }
 
 // Test 3: Replay attack (same nonce)
-async function test3_ReplayAttack(userData) {
+async function test3_ReplayAttack() {
   console.log('\n=== Test 3: Replay attack prevention ===');
 
-  if (!userData.success) {
-    console.log('⏭️  SKIPPED: Previous test failed');
+  // Register fresh user (avoid rate limit from Test 2)
+  const signingKey = generateKeypair();
+  const recoveryKey = generateKeypair();
+  const handle = `test_replay_${Date.now()}`;
+
+  try {
+    await fetch(`${TEST_REGISTRY}/api/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: handle,
+        building: 'testing replay protection',
+        publicKey: signingKey.publicKey,
+        recoveryKey: recoveryKey.publicKey
+      })
+    });
+  } catch (error) {
+    console.log('✗ FAILED: Registration error:', error.message);
     return { success: false };
   }
 
-  const { handle, recoveryKey } = userData;
   const newSigningKey = generateKeypair();
 
   // Use a fixed nonce
@@ -448,7 +463,7 @@ async function runTests() {
   const test2Result = await test2_ValidRotation(test1Result);
   results.push({ name: 'Valid key rotation', passed: test2Result.success });
 
-  const test3Result = await test3_ReplayAttack(test2Result);
+  const test3Result = await test3_ReplayAttack();
   results.push({ name: 'Replay attack prevention', passed: test3Result.success });
 
   const test4Result = await test4_InvalidTimestamp();

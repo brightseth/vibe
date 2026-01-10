@@ -32,7 +32,7 @@ The emerging tagline. Goes against developer ethos of control/version control, b
 
 ## Decisions Made
 
-- **Stan has admin access** to brightseth/vibe repo (can push without PR)
+- **Stan has admin access** to brightseth/vibe-platform repo (can push without PR)
 - **Don't over-engineer** — observe usage, lay concrete where people walk
 - **Expand surface area** — more games, more use cases, explore latent space
 

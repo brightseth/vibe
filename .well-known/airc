@@ -26,7 +26,7 @@
   "mcp": {
     "install": "curl -fsSL https://slashvibe.dev/install.sh | bash",
     "tools": 22,
-    "source": "https://github.com/brightseth/vibe"
+    "source": "https://github.com/brightseth/vibe-platform"
   },
   "stats": "/api/stats",
   "contact": "seth@slashvibe.dev"

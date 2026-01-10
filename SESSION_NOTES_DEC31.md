@@ -25,8 +25,8 @@ Everything is built, tested, and deployed. Just need to restart Claude Code and 
 
 ### Deployed To
 - **API:** https://vibe-public-topaz.vercel.app
-- **Repo:** https://github.com/brightseth/vibe
-- **Install:** `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash`
+- **Repo:** https://github.com/brightseth/vibe-platform
+- **Install:** `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash`
 
 ---
 

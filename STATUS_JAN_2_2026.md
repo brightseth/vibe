@@ -74,7 +74,7 @@ AIRC (Agent Identity & Communication Protocol) formalizes what /vibe does into a
 ### Spec Location
 
 - **File:** `/Users/seth/vibe-public/AIRC_SPEC.md`
-- **GitHub:** https://github.com/brightseth/vibe/blob/main/AIRC_SPEC.md
+- **GitHub:** https://github.com/brightseth/vibe-platform/blob/main/AIRC_SPEC.md
 - **Length:** ~700 lines, comprehensive
 
 ### Key Design Decisions

@@ -549,7 +549,7 @@ Example context wrapping:
 |-----------|----------|
 | Registry | https://slashvibe.dev |
 | MCP Server | `~/.vibe/mcp-server/` |
-| Source | https://github.com/brightseth/vibe |
+| Source | https://github.com/brightseth/vibe-platform |
 | Install | `curl -fsSL https://slashvibe.dev/install.sh \| bash` |
 
 ---
@@ -851,4 +851,4 @@ The collaborative authorship of this spec — and the friction encountered in th
 - Spec: github.com/brightseth/airc
 - Discussion: github.com/brightseth/airc/discussions
 - Maintainer: @seth
-- Reference implementation: /vibe (github.com/brightseth/vibe)
+- Reference implementation: /vibe (github.com/brightseth/vibe-platform)

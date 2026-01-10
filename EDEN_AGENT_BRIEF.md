@@ -32,7 +32,7 @@ Hey [NAME] — built DMs inside Claude Code.
 
 Instead of switching to Discord, I just type "vibe dm @you" and you get it.
 
-2 min: curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+2 min: curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash
 
 After restart, run "vibe init" then:
 vibe dm @seth "installed"
@@ -44,7 +44,7 @@ That way I know it worked.
 ```
 [NAME] — communication layer for Claude Code. DM without leaving terminal.
 
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash
 
 Restart, run "vibe init", then:
 vibe dm @seth "installed"
@@ -57,7 +57,7 @@ Testing if people actually use this instead of switching apps.
 [NAME] — testing a hypothesis: would you DM someone from Claude Code if you could?
 
 I built it. 2 min:
-curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash
 
 Restart, "vibe init", then DM me:
 vibe dm @seth "installed"
@@ -110,6 +110,6 @@ That's the only thing that matters.
 
 ## Links
 
-- Install: `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe/main/install.sh | bash`
+- Install: `curl -fsSL https://raw.githubusercontent.com/brightseth/vibe-platform/main/install.sh | bash`
 - Landing: https://vibe-public-topaz.vercel.app
-- Repo: https://github.com/brightseth/vibe
+- Repo: https://github.com/brightseth/vibe-platform

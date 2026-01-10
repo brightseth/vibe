@@ -1,7 +1,7 @@
 {
   "name": "slashvibe-mcp",
   "version": "0.2.3",
-  "mcpName": "io.github.brightseth/vibe",
+  "mcpName": "io.github.brightseth/vibe-platform",
   "description": "Social layer for Claude Code - DMs, presence, and connection between AI-assisted developers",
   "main": "index.js",
   "bin": {
