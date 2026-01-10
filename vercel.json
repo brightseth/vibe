@@ -117,6 +117,8 @@
     { "source": "/api/migrate-presence", "destination": "/api/migrate-presence.js" },
     { "source": "/api/admin/backfill", "destination": "/api/admin/backfill.js" },
     { "source": "/api/admin/preflight", "destination": "/api/admin/preflight.js" },
+    { "source": "/api/share-page", "destination": "/api/share-page.js" },
+    { "source": "/shared/:slug", "destination": "/api/shared/[slug].js" },
     { "source": "/internal/entity-formation-deck-2026-01-09", "destination": "/internal-deck-vibe-entity-formation.html" },
     { "source": "/north-beach-pizza-stan", "destination": "/api/pizza-guide.js" },
     { "source": "/north-beach-pizza-stan.html", "destination": "/api/pizza-guide.js" }
