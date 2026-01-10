@@ -15,9 +15,29 @@
  *   Returns: { codes: [...], remaining }
  */
 
+import crypto from 'crypto';
 import { getHandleRecord, claimHandle } from './lib/handles.js';
 
 const KV_CONFIGURED = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+
+// ============ INLINE AUTH ============
+const AUTH_SECRET = process.env.VIBE_AUTH_SECRET || 'dev-secret-change-in-production';
+
+function extractToken(req) {
+  const authHeader = req.headers?.authorization || req.headers?.Authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) return authHeader.slice(7);
+  return null;
+}
+
+async function getSession(kv, sessionId) {
+  if (!kv) return null;
+  try {
+    return await kv.get(`session:${sessionId}`);
+  } catch (e) {
+    return null;
+  }
+}
+// ============ END AUTH ============
 
 async function getKV() {
   if (!KV_CONFIGURED) return null;
@@ -71,19 +91,40 @@ export default async function handler(req, res) {
 
   // POST /api/invites — Generate new invite code
   if (req.method === 'POST' && path === '/api/invites') {
-    // Get handle from auth token or body
-    const authHeader = req.headers.authorization;
-    let handle = req.body?.handle;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      // TODO: Validate token and extract handle
-      // For now, require handle in body
+    // Require token authentication - derive handle from token, don't trust body
+    const token = extractToken(req);
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required. Include Authorization: Bearer <token> header.'
+      });
     }
 
-    if (!handle) {
-      return res.status(400).json({
+    // Parse token to get sessionId
+    const parts = token.split('.');
+    if (parts.length !== 2) {
+      return res.status(401).json({
         success: false,
-        error: 'Handle required'
+        error: 'Invalid token format'
+      });
+    }
+
+    const [sessionId] = parts;
+    const session = await getSession(kv, sessionId);
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        error: 'Session expired or invalid. Please re-authenticate.'
+      });
+    }
+
+    // Use handle FROM TOKEN, not from body (prevents spoofing)
+    let handle = session.handle;
+    if (!handle) {
+      return res.status(401).json({
+        success: false,
+        error: 'Session does not contain handle'
       });
     }
 

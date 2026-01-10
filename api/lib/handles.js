@@ -128,9 +128,10 @@ export function generateSuggestions(handle) {
 
 // ============ REGISTRY OPERATIONS ============
 
-// Genesis phase: hard cap at 100 users
-// Set to 0 to disable cap (open registration)
-const GENESIS_CAP = 100;
+// Genesis phase: configurable cap via environment variable
+// Set VIBE_GENESIS_CAP=0 to disable cap (open registration)
+// Default: 0 (open registration) - set explicitly to cap
+const GENESIS_CAP = parseInt(process.env.VIBE_GENESIS_CAP || '0', 10);
 
 /**
  * Attempt to claim a handle atomically

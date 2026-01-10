@@ -122,55 +122,29 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // ============ DEPRECATION NOTICE ============
+  // This endpoint is deprecated. Use POST /api/presence with action=register
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Sunset', '2026-03-01');
+  res.setHeader('Link', '</api/presence>; rel="successor-version"');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // POST - Register or update user
+  // POST - DEPRECATED: Reject new registrations
   if (req.method === 'POST') {
-    const { username, building, invitedBy, inviteCode, publicKey } = req.body;
-
-    if (!username) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required field: username'
-      });
-    }
-
-    const user = username.toLowerCase().replace('@', '');
-    const existing = await getUser(user);
-    const now = new Date().toISOString();
-
-    // AIRC: Store public key for identity verification
-    const userData = {
-      username: user,
-      building: building || existing?.building || 'something cool',
-      createdAt: existing?.createdAt || now,
-      updatedAt: now,
-      invitedBy: invitedBy || existing?.invitedBy || null,
-      inviteCode: inviteCode || existing?.inviteCode || null,
-      publicKey: publicKey || existing?.publicKey || null  // AIRC: Ed25519 public key
-    };
-
-    await setUser(user, userData);
-
-    // Send welcome DM to new users
-    let welcomeSent = false;
-    if (!existing) {
-      try {
-        await sendWelcomeDM(user);
-        welcomeSent = true;
-      } catch (e) {
-        console.error(`[users] Failed to send welcome DM to @${user}:`, e.message);
+    console.warn('[users] DEPRECATED: POST /api/users called - redirect to /api/presence');
+    return res.status(410).json({
+      success: false,
+      error: 'endpoint_deprecated',
+      message: 'This endpoint is deprecated. Use POST /api/presence with action=register instead.',
+      migration: {
+        endpoint: '/api/presence',
+        method: 'POST',
+        body: { action: 'register', username: 'your_handle' },
+        docs: 'Registration now returns a signed token for authentication'
       }
-    }
-
-    return res.status(200).json({
-      success: true,
-      user: userData,
-      isNew: !existing,
-      welcomeSent,
-      storage: KV_CONFIGURED ? 'kv' : 'memory'
     });
   }
 

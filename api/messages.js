@@ -143,6 +143,42 @@ const memory = {
 // System accounts that bypass consent and can use simplified auth
 const SYSTEM_ACCOUNTS = ['vibe', 'system', 'solienne', 'scout'];
 
+// System account HMAC secret - required for system account sends
+const SYSTEM_SECRET = process.env.VIBE_SYSTEM_SECRET;
+
+/**
+ * Verify HMAC signature for system account sends
+ * Requires headers: x-vibe-system-timestamp, x-vibe-system-signature
+ * Payload: ${timestamp}.${sender}.${to}.${text}
+ */
+function verifySystemAuth(req, sender, to, text) {
+  if (!SYSTEM_SECRET) {
+    console.warn('[messages] VIBE_SYSTEM_SECRET not configured - rejecting system account');
+    return false;
+  }
+
+  const signature = req.headers['x-vibe-system-signature'];
+  const timestamp = req.headers['x-vibe-system-timestamp'];
+
+  if (!signature || !timestamp) {
+    return false;
+  }
+
+  // Check timestamp is within 60 seconds (prevent replay attacks)
+  const age = Date.now() - parseInt(timestamp);
+  if (isNaN(age) || age > 60000 || age < -5000) {
+    console.warn(`[messages] System auth timestamp expired: ${age}ms`);
+    return false;
+  }
+
+  // Verify HMAC: sha256(timestamp.sender.to.text)
+  const payload = `${timestamp}.${sender}.${to}.${text || ''}`;
+  const expected = crypto.createHmac('sha256', SYSTEM_SECRET)
+    .update(payload).digest('hex');
+
+  return signature === expected;
+}
+
 // KV wrapper
 async function getKV() {
   if (!KV_CONFIGURED) return null;
@@ -454,13 +490,21 @@ export default async function handler(req, res) {
     }
 
     // Require authentication for sending messages
-    // System accounts (solienne, vibe) can bypass token auth if they provide a valid sender
+    // System accounts require HMAC signature verification
     if (!authenticatedHandle) {
       if (SYSTEM_ACCOUNTS.includes(sender)) {
-        // Allow system accounts to send without full token verification
-        // This enables the Solienne bridge to respond to messages
-        authenticatedHandle = sender;
-        console.log(`[messages] System account bypass: @${sender}`);
+        // System accounts require HMAC verification
+        const recipient = to.toLowerCase().replace('@', '');
+        if (verifySystemAuth(req, sender, recipient, text)) {
+          authenticatedHandle = sender;
+          console.log(`[messages] System account authenticated: @${sender}`);
+        } else {
+          console.warn(`[messages] System account auth failed: @${sender}`);
+          return res.status(401).json({
+            success: false,
+            error: "System account requires valid signature. Include x-vibe-system-timestamp and x-vibe-system-signature headers."
+          });
+        }
       } else {
         return res.status(401).json({
           success: false,

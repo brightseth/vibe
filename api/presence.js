@@ -478,6 +478,9 @@ export default async function handler(req, res) {
         const handle = normalizeHandle(username);
         const kv = await getKV();
 
+        // Declare claimResult before KV block so it's accessible after
+        let claimResult = null;
+
         // ============ RATE LIMITING ============
         if (kv) {
           const ipHash = hashIP(getClientIP(req));
@@ -515,7 +518,7 @@ export default async function handler(req, res) {
           }
 
           // ============ ATOMIC HANDLE CLAIM ============
-          const claimResult = await claimHandle(kv, handle, {
+          claimResult = await claimHandle(kv, handle, {
             isAgent: false,
             operator: null
           });
