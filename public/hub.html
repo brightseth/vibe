@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/vibe — Hub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      border-bottom: 1px solid #222;
+      padding: 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #6B8FFF, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .header .tagline {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .header .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .header .stats span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header .stats .live { color: #4a4; }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 120px;
+      z-index: 99;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      font-size: 13px;
+      color: #666;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: #6B8FFF; }
+    .tab.active {
+      color: #6B8FFF;
+      border-bottom-color: #6B8FFF;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* WHO'S ONLINE */
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .user-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .user-card:hover { border-color: #6B8FFF; }
+
+    .user-card .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .user-card .handle {
+      font-size: 16px;
+      font-weight: 600;
+      color: #6B8FFF;
+    }
+
+    .user-card .status-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #1a2a1a;
+      color: #4a4;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .user-card .status-badge.offline {
+      background: #2a2a1a;
+      color: #888;
+    }
+
+    .user-card .building {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .user-card .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-family: inherit;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #6B8FFF;
+      color: #000;
+      border: none;
+    }
+
+    .btn-primary:hover { background: #8FA8FF; }
+
+    .btn-secondary {
+      background: transparent;
+      color: #666;
+      border: 1px solid #333;
+    }
+
+    .btn-secondary:hover {
+      border-color: #6B8FFF;
+      color: #6B8FFF;
+    }
+
+    /* BOARD */
+    .board-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .board-item {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .board-item .meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .board-item .author {
+      color: #6B8FFF;
+      font-weight: 600;
+    }
+
+    .board-item .time {
+      color: #666;
+    }
+
+    .board-item .category {
+      padding: 2px 8px;
+      background: #1a1a2a;
+      border-radius: 4px;
+      color: #6B8FFF;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .board-item .content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+
+    .board-item .link {
+      font-size: 12px;
+      color: #6B8FFF;
+      text-decoration: none;
+    }
+
+    .board-item .link:hover { text-decoration: underline; }
+
+    /* FEED */
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feed-item {
+      background: #111;
+      border: 1px solid #222;
+      border-left: 3px solid #6B8FFF;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .feed-item .meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .feed-item .author {
+      color: #6B8FFF;
+      font-weight: 600;
+    }
+
+    .feed-item .type {
+      color: #666;
+    }
+
+    .feed-item .time {
+      color: #666;
+      margin-left: auto;
+    }
+
+    .feed-item .what {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+
+    .feed-item .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .feed-item .tag {
+      font-size: 11px;
+      color: #888;
+      background: #1a1a1a;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* INBOX */
+    .inbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .inbox-item {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .inbox-item:hover { border-color: #6B8FFF; }
+
+    .inbox-item.unread {
+      background: #121218;
+      border-color: #6B8FFF;
+    }
+
+    .inbox-item .from {
+      font-size: 14px;
+      color: #6B8FFF;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .inbox-item .preview {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .inbox-item .time {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #888;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    /* Identity prompt */
+    .identity-prompt {
+      background: #111;
+      border: 1px solid #6B8FFF;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .identity-prompt h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #6B8FFF;
+    }
+
+    .identity-prompt p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .identity-prompt input {
+      width: 100%;
+      max-width: 300px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .identity-prompt input:focus {
+      outline: none;
+      border-color: #6B8FFF;
+    }
+
+    .badge {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      font-size: 12px;
+      color: #6B8FFF;
+      background: #111;
+      border: 1px solid #6B8FFF;
+      border-radius: 20px;
+      padding: 6px 14px;
+      z-index: 101;
+    }
+
+    @media (max-width: 768px) {
+      .users-grid {
+        grid-template-columns: 1fr;
+      }
+      .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="user-badge" class="badge" style="display: none;"></div>
+
+  <div class="header">
+    <h1>/vibe hub</h1>
+    <div class="tagline">See what's happening across the network</div>
+    <div class="stats">
+      <span><span class="live">●</span> <span id="online-count">—</span> online</span>
+      <span>⚡ <span id="total-count">—</span> builders</span>
+      <span>🚀 <span id="genesis-remaining">—</span> genesis spots left</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('who')">Who's Online</button>
+    <button class="tab" onclick="switchTab('feed')">Feed</button>
+    <button class="tab" onclick="switchTab('board')">Board</button>
+    <button class="tab" onclick="switchTab('inbox')">Inbox</button>
+  </div>
+
+  <div class="content">
+    <!-- WHO'S ONLINE -->
+    <div id="view-who" class="view active">
+      <div id="who-loading" class="loading">Loading builders...</div>
+      <div id="who-content" class="users-grid" style="display: none;"></div>
+    </div>
+
+    <!-- FEED -->
+    <div id="view-feed" class="view">
+      <div id="feed-loading" class="loading">Loading feed...</div>
+      <div id="feed-content" class="feed-list" style="display: none;"></div>
+    </div>
+
+    <!-- BOARD -->
+    <div id="view-board" class="view">
+      <div id="board-loading" class="loading">Loading board...</div>
+      <div id="board-content" class="board-list" style="display: none;"></div>
+    </div>
+
+    <!-- INBOX -->
+    <div id="view-inbox" class="view">
+      <div id="identity-prompt" class="identity-prompt">
+        <h3>Set your handle to see inbox</h3>
+        <p>Enter your /vibe handle to view messages</p>
+        <input type="text" id="handle-input" placeholder="@yourhandle" />
+        <button class="btn btn-primary" onclick="setHandle()">Continue</button>
+      </div>
+      <div id="inbox-loading" class="loading" style="display: none;">Loading inbox...</div>
+      <div id="inbox-content" class="inbox-list" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentHandle = localStorage.getItem('vibe_handle');
+    let currentTab = 'who';
+
+    if (currentHandle) {
+      document.getElementById('user-badge').textContent = currentHandle;
+      document.getElementById('user-badge').style.display = 'block';
+      document.getElementById('identity-prompt').style.display = 'none';
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+      document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.getElementById(`view-${tab}`).classList.add('active');
+
+      if (tab === 'who') loadWho();
+      if (tab === 'feed') loadFeed();
+      if (tab === 'board') loadBoard();
+      if (tab === 'inbox') loadInbox();
+    }
+
+    function setHandle() {
+      const input = document.getElementById('handle-input');
+      let handle = input.value.trim();
+
+      if (!handle) return;
+
+      // Remove @ if user included it
+      handle = handle.replace(/^@/, '');
+
+      localStorage.setItem('vibe_handle', '@' + handle);
+      currentHandle = '@' + handle;
+
+      document.getElementById('user-badge').textContent = currentHandle;
+      document.getElementById('user-badge').style.display = 'block';
+      document.getElementById('identity-prompt').style.display = 'none';
+
+      loadInbox();
+    }
+
+    async function loadWho() {
+      try {
+        const res = await fetch('/api/presence/who');
+        const data = await res.json();
+
+        document.getElementById('online-count').textContent = data.active?.length || 0;
+
+        const usersRes = await fetch('/api/users');
+        const users = await usersRes.json();
+
+        document.getElementById('total-count').textContent = users.users?.length || 0;
+
+        const onlineHandles = new Set((data.active || []).map(u => u.handle));
+
+        const content = document.getElementById('who-content');
+        content.innerHTML = users.users.map(user => {
+          const isOnline = onlineHandles.has(user.handle);
+          const onlineUser = data.active?.find(u => u.handle === user.handle);
+
+          return `
+            <div class="user-card">
+              <div class="header-row">
+                <div class="handle">@${user.handle}</div>
+                <div class="status-badge ${isOnline ? '' : 'offline'}">
+                  ${isOnline ? 'Online' : 'Offline'}
+                </div>
+              </div>
+              <div class="building">${user.one_liner || 'Building something cool'}</div>
+              <div class="actions">
+                <button class="btn btn-primary" onclick="sayHi('${user.handle}')">Say Hi</button>
+                ${user.profile_url ? `<button class="btn btn-secondary" onclick="window.open('${user.profile_url}', '_blank')">Profile</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('who-loading').style.display = 'none';
+        content.style.display = 'grid';
+      } catch (e) {
+        console.error('Failed to load who:', e);
+        document.getElementById('who-loading').textContent = 'Failed to load';
+      }
+    }
+
+    async function loadFeed() {
+      try {
+        const res = await fetch('/api/feed');
+        const data = await res.json();
+
+        const content = document.getElementById('feed-content');
+
+        if (!data.items || data.items.length === 0) {
+          content.innerHTML = '<div class="empty-state"><h3>No activity yet</h3><p>Be the first to ship something!</p></div>';
+        } else {
+          content.innerHTML = data.items.map(item => `
+            <div class="feed-item">
+              <div class="meta">
+                <span class="author">@${item.handle}</span>
+                <span class="type">shipped</span>
+                <span class="time">${formatTime(item.timestamp)}</span>
+              </div>
+              <div class="what">${item.what || item.content}</div>
+              ${item.url ? `<a href="${item.url}" target="_blank" class="link">${item.url}</a>` : ''}
+              ${item.tags ? `<div class="tags">${item.tags.map(t => `<span class="tag">#${t}</span>`).join('')}</div>` : ''}
+            </div>
+          `).join('');
+        }
+
+        document.getElementById('feed-loading').style.display = 'none';
+        content.style.display = 'flex';
+      } catch (e) {
+        console.error('Failed to load feed:', e);
+        document.getElementById('feed-loading').textContent = 'Failed to load';
+      }
+    }
+
+    async function loadBoard() {
+      try {
+        const res = await fetch('/api/board');
+        const data = await res.json();
+
+        const content = document.getElementById('board-content');
+
+        if (!data.entries || data.entries.length === 0) {
+          content.innerHTML = '<div class="empty-state"><h3>Board is empty</h3><p>Post something from your terminal with <code>vibe board</code></p></div>';
+        } else {
+          content.innerHTML = data.entries.map(entry => `
+            <div class="board-item">
+              <div class="meta">
+                <span class="author">@${entry.handle}</span>
+                <span class="category">${entry.category || 'general'}</span>
+                <span class="time">${formatTime(entry.timestamp)}</span>
+              </div>
+              <div class="content">${entry.content}</div>
+              ${entry.url ? `<a href="${entry.url}" target="_blank" class="link">${entry.url}</a>` : ''}
+            </div>
+          `).join('');
+        }
+
+        document.getElementById('board-loading').style.display = 'none';
+        content.style.display = 'flex';
+      } catch (e) {
+        console.error('Failed to load board:', e);
+        document.getElementById('board-loading').textContent = 'Failed to load';
+      }
+    }
+
+    async function loadInbox() {
+      if (!currentHandle) {
+        return;
+      }
+
+      document.getElementById('inbox-loading').style.display = 'block';
+
+      try {
+        const handleClean = currentHandle.replace('@', '');
+        const res = await fetch(`/api/messages/${handleClean}`);
+        const data = await res.json();
+
+        const content = document.getElementById('inbox-content');
+
+        if (!data.threads || data.threads.length === 0) {
+          content.innerHTML = '<div class="empty-state"><h3>Inbox empty</h3><p>No messages yet. Message someone from your terminal!</p></div>';
+        } else {
+          content.innerHTML = data.threads.map(thread => {
+            const lastMsg = thread.messages[thread.messages.length - 1];
+            return `
+              <div class="inbox-item ${thread.unread > 0 ? 'unread' : ''}" onclick="openThread('${thread.handle}')">
+                <div class="from">@${thread.handle} ${thread.unread > 0 ? `(${thread.unread} unread)` : ''}</div>
+                <div class="preview">${lastMsg.content}</div>
+                <div class="time">${formatTime(lastMsg.timestamp)}</div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        document.getElementById('inbox-loading').style.display = 'none';
+        content.style.display = 'flex';
+      } catch (e) {
+        console.error('Failed to load inbox:', e);
+        document.getElementById('inbox-loading').textContent = 'Failed to load';
+      }
+    }
+
+    function sayHi(handle) {
+      const msg = `Hey @${handle}, saw you on /vibe hub. Would love to connect!`;
+      console.log('Send message:', msg);
+      alert(`To send this message, open your terminal and run:\n\nvibe dm @${handle} "${msg}"`);
+    }
+
+    function openThread(handle) {
+      alert(`To view this thread, open your terminal and run:\n\nvibe open @${handle}`);
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 60000) return 'just now';
+      if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+      return Math.floor(diff / 86400000) + 'd ago';
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+      if (currentTab === 'who') loadWho();
+      if (currentTab === 'feed') loadFeed();
+      if (currentTab === 'board') loadBoard();
+      if (currentTab === 'inbox' && currentHandle) loadInbox();
+    }, 30000);
+
+    // Initial load
+    loadWho();
+
+    // Try to fetch genesis info
+    fetch('/api/admin/stats')
+      .then(r => r.json())
+      .then(data => {
+        if (data.health?.genesis_remaining) {
+          document.getElementById('genesis-remaining').textContent = data.health.genesis_remaining;
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
