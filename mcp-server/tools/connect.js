@@ -18,7 +18,7 @@ module.exports = {
     properties: {
       platform: {
         type: 'string',
-        enum: ['gmail', 'x', 'twitter', 'farcaster', 'whatsapp', 'telegram', 'discord'],
+        enum: ['gmail', 'x', 'twitter', 'farcaster', 'telegram', 'discord', 'whatsapp'],
         description: 'Platform to connect'
       },
       action: {
@@ -40,38 +40,81 @@ module.exports = {
 
     const { platform, action = 'connect' } = args;
 
-    // List all connected platforms
+    // List all platforms and their status
     if (action === 'list' || !platform) {
-      const connected = await credentials.listConnected(handle);
+      // Check which platforms are configured by testing adapters
+      const telegramBridge = require('../../mcp-server/bridges/telegram');
+      const discordBridge = require('../../mcp-server/bridges/discord-bot');
+      const farcasterBridge = require('../../mcp-server/bridges/farcaster');
+      const twitterBridge = require('../../mcp-server/twitter');
+      const smtpAdapter = router.getAdapter('gmail');
 
-      if (connected.length === 0) {
-        return {
-          display: `🔌 No platforms connected
+      const platforms = {
+        gmail: smtpAdapter && smtpAdapter.isConfigured(),
+        x: twitterBridge.getCredentials() !== null,
+        farcaster: farcasterBridge.isConfigured(),
+        telegram: telegramBridge.isConfigured(),
+        discord: discordBridge.isConfigured(),
+        whatsapp: false // Not yet implemented
+      };
 
-Available platforms:
-  - gmail      (email via Gmail API)
-  - x          (X/Twitter DMs)
-  - farcaster  (Farcaster DMs)
-  - whatsapp   (WhatsApp Business)
-  - telegram   (Telegram Bot)
-  - discord    (Discord DMs)
+      const configured = Object.entries(platforms)
+        .filter(([_, status]) => status)
+        .map(([name, _]) => name);
 
-Connect: vibe connect <platform>
-Example: vibe connect gmail
-`
-        };
+      let display = `🔌 Platform Status\n\n`;
+
+      // Configured platforms
+      if (configured.length > 0) {
+        display += `✓ Configured:\n`;
+        for (const p of configured) {
+          const emoji = {
+            gmail: '📧',
+            x: '🐦',
+            farcaster: '🎭',
+            telegram: '📱',
+            discord: '🎮',
+            whatsapp: '💬'
+          }[p] || '●';
+          display += `  ${emoji} ${p}\n`;
+        }
+        display += `\n`;
       }
 
-      const list = connected.map(p => `  ✓ ${p}`).join('\n');
-      return {
-        display: `🔌 Connected Platforms
+      // Available platforms
+      const available = Object.entries(platforms)
+        .filter(([_, status]) => !status)
+        .map(([name, _]) => name);
 
-${list}
+      if (available.length > 0) {
+        display += `⚪ Available:\n`;
+        for (const p of available) {
+          const emoji = {
+            gmail: '📧',
+            x: '🐦',
+            farcaster: '🎭',
+            telegram: '📱',
+            discord: '🎮',
+            whatsapp: '💬'
+          }[p] || '●';
+          const desc = {
+            gmail: 'Email anyone (OAuth or SMTP)',
+            x: 'X/Twitter DMs and tweets',
+            farcaster: 'Farcaster casts (via Neynar)',
+            telegram: 'Telegram messages (bot API)',
+            discord: 'Discord messages (bot API)',
+            whatsapp: 'WhatsApp messages (coming soon)'
+          }[p] || '';
+          display += `  ${emoji} ${p} - ${desc}\n`;
+        }
+      }
 
-Connect more: vibe connect <platform>
-Disconnect: vibe connect <platform> --action disconnect
-`
-      };
+      display += `\nConnect: vibe connect <platform>
+Test: vibe dm <recipient> "message"
+Status: vibe connect <platform> --action status
+`;
+
+      return { display };
     }
 
     // Normalize platform name
