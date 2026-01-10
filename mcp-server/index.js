@@ -237,7 +237,9 @@ const tools = {
   vibe_settings: require('./tools/settings'),
   // Background presence agent (Claude Code 2.1)
   vibe_presence_agent: require('./tools/presence-agent'),
-  vibe_mute: require('./tools/mute')
+  vibe_mute: require('./tools/mute'),
+  // Economic infrastructure (CDP integration)
+  vibe_wallet: require('./tools/wallet')
 };
 
 /**
