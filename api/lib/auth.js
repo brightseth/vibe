@@ -128,3 +128,55 @@ export function requireAuth(req, handle) {
 export function generateSessionId() {
   return `sess_${crypto.randomBytes(12).toString('base64url')}`;
 }
+
+/**
+ * Validate session against key rotation timestamp
+ * AIRC v0.2: Sessions created before key rotation are invalidated
+ * @param {object} sql - Database connection
+ * @param {string} handle - User handle
+ * @param {number} sessionCreatedAt - Session creation timestamp (ms)
+ * @returns {Promise<{ valid: boolean, error?: string, reason?: string }>}
+ */
+export async function validateSessionTimestamp(sql, handle, sessionCreatedAt) {
+  if (!sql) {
+    // No database = no rotation check (dev mode)
+    return { valid: true };
+  }
+
+  try {
+    const result = await sql`
+      SELECT key_rotated_at
+      FROM users
+      WHERE username = ${handle}
+      LIMIT 1
+    `;
+
+    if (!result || result.length === 0) {
+      return { valid: false, error: 'User not found' };
+    }
+
+    const keyRotatedAt = result[0].key_rotated_at;
+
+    // If never rotated, session is valid
+    if (!keyRotatedAt) {
+      return { valid: true };
+    }
+
+    // Check if session predates rotation
+    const rotationTime = new Date(keyRotatedAt).getTime();
+
+    if (sessionCreatedAt < rotationTime) {
+      return {
+        valid: false,
+        error: 'Session invalidated by key rotation',
+        reason: 'key_rotated'
+      };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    console.error('[auth] Session timestamp validation error:', error.message);
+    // Fail open: Allow session if DB check fails
+    return { valid: true };
+  }
+}
