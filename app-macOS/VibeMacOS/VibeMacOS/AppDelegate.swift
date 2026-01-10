@@ -74,10 +74,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     menu.addItem(NSMenuItem.separator())
 
-    // Open vibe directory
-    menu.addItem(
-      NSMenuItem(title: "Open ~/.vibe", action: #selector(openVibeDirectory), keyEquivalent: ""))
-
     // Open homepage
     menu.addItem(
       NSMenuItem(title: "Open slashvibe.dev", action: #selector(openHomepage), keyEquivalent: ""))
@@ -129,11 +125,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
       self?.setupMenu()
     }
-  }
-
-  @objc func openVibeDirectory() {
-    let vibeDir = NSHomeDirectory() + "/.vibe"
-    NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: vibeDir)
   }
 
   @objc func openHomepage() {
