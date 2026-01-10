@@ -24,27 +24,8 @@ This is a small room. Everyone here is building something. Say hi to someone.
 
 — @vibe`;
 
-// In-memory fallback with seed data
-let memoryUsers = {
-  seth: {
-    username: 'seth',
-    building: 'MCP server for social',
-    createdAt: new Date().toISOString(),
-    invitedBy: null
-  },
-  stan: {
-    username: 'stan',
-    building: 'file watcher analytics',
-    createdAt: new Date().toISOString(),
-    invitedBy: 'seth'
-  },
-  gene: {
-    username: 'gene',
-    building: 'autonomous artist agents',
-    createdAt: new Date().toISOString(),
-    invitedBy: 'seth'
-  }
-};
+// In-memory fallback (empty - only used for dev without KV/Postgres)
+let memoryUsers = {};
 
 async function getKV() {
   if (!KV_CONFIGURED) return null;
