@@ -1,0 +1,135 @@
+{
+  "title": "NFL Playoffs Prediction Markets - Kalshi vs Polymarket",
+  "template": "guide",
+  "content": {
+    "blocks": [
+      {
+        "type": "paragraph",
+        "markdown": "Live tracking of NFL playoff prediction markets across **Kalshi** (CFTC-regulated) and **Polymarket** (crypto-based). Compare odds, liquidity, and market efficiency in real-time."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Championship Markets"
+      },
+      {
+        "type": "paragraph",
+        "markdown": "Super Bowl winner markets show where smart money is flowing. Kalshi requires KYC and operates under US regulations, while Polymarket offers global access with crypto."
+      },
+      {
+        "type": "places",
+        "items": [
+          {
+            "name": "Kalshi - NFL Championship",
+            "neighborhood": "CFTC Regulated",
+            "why": "Real-money contracts, $25M+ volume, institutional participation. Chiefs 28¢, Ravens 22¢, 49ers 18¢ as of Jan 10.",
+            "link": "https://kalshi.com/markets/sports/nfl"
+          },
+          {
+            "name": "Polymarket - Super Bowl LIX",
+            "neighborhood": "Crypto Markets",
+            "why": "Global liquidity pool, $40M+ volume, faster price discovery. Chiefs 32%, Ravens 24%, 49ers 16% implied probability.",
+            "link": "https://polymarket.com/event/super-bowl-lix-winner"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Conference Championships"
+      },
+      {
+        "type": "paragraph",
+        "markdown": "AFC and NFC conference winner markets show divergence between platforms. Arbitrage opportunities exist when spreads exceed 3-5%."
+      },
+      {
+        "type": "schedule",
+        "items": [
+          {
+            "time": "AFC",
+            "event": "Chiefs 55% (Kalshi) vs 58% (Polymarket) | Ravens 35% vs 32% | Bills 8% vs 7%"
+          },
+          {
+            "time": "NFC",
+            "event": "49ers 42% (Kalshi) vs 38% (Polymarket) | Lions 28% vs 32% | Eagles 18% vs 20%"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Weekly Tracking Checklist"
+      },
+      {
+        "type": "checklist",
+        "items": [
+          {
+            "text": "Compare Super Bowl winner odds across both platforms",
+            "checked": false
+          },
+          {
+            "text": "Check conference championship implied probabilities",
+            "checked": false
+          },
+          {
+            "text": "Monitor volume changes (indicates sharp money movement)",
+            "checked": false
+          },
+          {
+            "text": "Track arbitrage spreads (>5% = opportunity)",
+            "checked": false
+          },
+          {
+            "text": "Note injury news impact on market prices",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "style": "warning",
+        "text": "Markets move fast after injury reports and practice updates. Kalshi tends to lag Polymarket by 15-30 minutes due to lower liquidity."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Key Differences"
+      },
+      {
+        "type": "paragraph",
+        "markdown": "**Kalshi advantages:** US legal, FDIC-insured deposits, tax reporting, lower fees (2% vs 2-3%). **Polymarket advantages:** Higher liquidity, global access, faster price discovery, more granular markets."
+      },
+      {
+        "type": "callout",
+        "style": "info",
+        "text": "Institutional money flows to Kalshi. Retail/crypto flows to Polymarket. Watch for divergence when institutional sentiment differs from retail."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Live Market Links"
+      },
+      {
+        "type": "bullets",
+        "items": [
+          "Kalshi NFL Hub: kalshi.com/markets/sports/nfl",
+          "Polymarket NFL: polymarket.com/event/super-bowl-lix-winner",
+          "Volume tracker: Check 24h volume to gauge market confidence",
+          "Odds comparison: Use Oddsjam or similar aggregators"
+        ]
+      },
+      {
+        "type": "attribution",
+        "from": "seth",
+        "to": null,
+        "context": "Updated Jan 10, 2026 - Wildcard weekend odds"
+      }
+    ]
+  },
+  "created_by": "seth",
+  "visibility": "public",
+  "provenance": {
+    "source_type": "manual",
+    "notes": "Demo artifact for /vibe artifact cards feature"
+  }
+}
