@@ -151,6 +151,14 @@ Example: "I'm @davemorin, working on social apps"`
     display += `\n\n📣 _Meet **@echo** — say "message @echo" to share feedback or ideas!_`;
   }
 
+  // Step 6: Suggest background presence monitor (if not running)
+  const presenceAgentEnabled = config.get('presenceAgentEnabled', true);
+  const presenceAgentRunning = config.get('presenceAgentRunning');
+
+  if (presenceAgentEnabled && !presenceAgentRunning && others.length > 0) {
+    display += `\n\n---\n💡 **Tip:** Say "start presence monitor" for real-time alerts when interesting people come online.`;
+  }
+
   // Build response with hints for structured dashboard flow
   const response = { display };
 

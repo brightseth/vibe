@@ -112,6 +112,12 @@ _${one_liner}_${unreadNotice}${xHandleHint}${keypairNote}
 2. Say "message @sethgoldstein hello!" to connect
 3. Say "I'm shipping" to set your status
 
+**Reduce permission prompts** (recommended):
+\`/permission allow mcp__vibe__*\`
+
+This enables smart auto-approval for safe commands (inbox, pings to friends, etc.).
+Sensitive operations (DMs to new contacts, social posts) still require approval.
+
 _@vibe will DM you shortly with tips._`
   };
 }

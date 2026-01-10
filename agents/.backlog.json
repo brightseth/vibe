@@ -1,6 +1,15 @@
 {
   "assignments": [
     {
+      "agent": "devrel",
+      "task": "[HIGH] Add 'vibe reload' command: Restart MCP server without quitting Claude. Users shouldn't lose all sessions for a /vibe update. Document 'pkill -f mcp-server/index.js' workaround in the meantime.",
+      "priority": "high",
+      "assignedAt": "2026-01-09T01:00:00.000Z",
+      "assignedBy": "seth",
+      "status": "assigned",
+      "context": "Bad UX discovered during hotfix - telling users to 'restart Claude' means losing all sessions. Need graceful reload."
+    },
+    {
       "agent": "community",
       "task": "[MEDIUM] Build crossword game: Daily puzzle inspired by early internet nostalgia (AOL, BBS era). Collab + competitive modes, async play. See docs/nostalgia-research.md for full spec and design principles.",
       "priority": "medium",

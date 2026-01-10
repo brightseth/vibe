@@ -264,6 +264,14 @@ async function sendMessage(from, to, body, type = 'dm', payload = null) {
       return null;
     }
 
+    // Emit list_changed notification for successful message send
+    // This allows other Claude Code instances to see the new message instantly
+    if (result.success || result.message) {
+      if (global.vibeNotifier) {
+        global.vibeNotifier.emitImmediate(); // Immediate for DMs
+      }
+    }
+
     return result.message;
   } catch (e) {
     console.error('Send failed:', e.message);

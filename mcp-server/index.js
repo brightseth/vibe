@@ -10,6 +10,7 @@ const presence = require('./presence');
 const config = require('./config');
 const store = require('./store');
 const prompts = require('./prompts');
+const NotificationEmitter = require('./notification-emitter');
 
 // Tools that shouldn't show presence footer (would be redundant/noisy)
 const SKIP_FOOTER_TOOLS = ['vibe_init', 'vibe_doctor', 'vibe_test', 'vibe_update', 'vibe_settings'];
@@ -234,7 +235,10 @@ const tools = {
   // Language evolution
   vibe_patterns: require('./tools/patterns'),
   // Settings
-  vibe_settings: require('./tools/settings')
+  vibe_settings: require('./tools/settings'),
+  // Background presence agent (Claude Code 2.1)
+  vibe_presence_agent: require('./tools/presence-agent'),
+  vibe_mute: require('./tools/mute')
 };
 
 /**
@@ -242,8 +246,28 @@ const tools = {
  */
 class VibeMCPServer {
   constructor() {
+    // Initialize notification emitter
+    this.notifier = new NotificationEmitter(this);
+
+    // Make notifier globally accessible for tools and store layer
+    global.vibeNotifier = this.notifier;
+
     // Start presence heartbeat
     presence.start();
+  }
+
+  /**
+   * Send MCP notification
+   * Called by NotificationEmitter to push list_changed events
+   */
+  notification(payload) {
+    // Send notification via stdout (MCP protocol)
+    const notification = {
+      jsonrpc: '2.0',
+      method: payload.method,
+      params: payload.params || {}
+    };
+    process.stdout.write(JSON.stringify(notification) + '\n');
   }
 
   async handleRequest(request) {
@@ -298,6 +322,18 @@ class VibeMCPServer {
           }
 
           const result = await tool.handler(args);
+
+          // Emit list_changed notification for state-changing tools
+          // This triggers Claude to refresh without reconnection
+          const stateChangingTools = [
+            'vibe_dm', 'vibe_ping', 'vibe_react', 'vibe_remember',
+            'vibe_status', 'vibe_context', 'vibe_handoff',
+            'vibe_reserve', 'vibe_release'
+          ];
+          if (stateChangingTools.includes(params.name)) {
+            // Debounced notification (prevents spam)
+            global.vibeNotifier?.emitChange(params.name);
+          }
 
           // Add ambient presence footer (unless tool is in skip list)
           let footer = '';
