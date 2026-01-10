@@ -572,7 +572,7 @@
           content.innerHTML = data.items.map(item => `
             <div class="feed-item">
               <div class="meta">
-                <span class="author">@${item.handle}</span>
+                <span class="author">@${item.handle || item.author}</span>
                 <span class="type">shipped</span>
                 <span class="time">${formatTime(item.timestamp)}</span>
               </div>
@@ -604,7 +604,7 @@
           content.innerHTML = data.entries.map(entry => `
             <div class="board-item">
               <div class="meta">
-                <span class="author">@${entry.handle}</span>
+                <span class="author">@${entry.author || entry.handle}</span>
                 <span class="category">${entry.category || 'general'}</span>
                 <span class="time">${formatTime(entry.timestamp)}</span>
               </div>
