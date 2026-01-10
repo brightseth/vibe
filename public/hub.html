@@ -522,7 +522,7 @@
 
         document.getElementById('online-count').textContent = data.active?.length || 0;
 
-        const usersRes = await fetch('/api/users');
+        const usersRes = await fetch('/api/users?all=true');
         const users = await usersRes.json();
 
         document.getElementById('total-count').textContent = users.users?.length || 0;
