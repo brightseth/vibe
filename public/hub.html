@@ -531,20 +531,21 @@
 
         const content = document.getElementById('who-content');
         content.innerHTML = users.users.map(user => {
-          const isOnline = onlineHandles.has(user.handle);
-          const onlineUser = data.active?.find(u => u.handle === user.handle);
+          const handle = user.username || user.handle;
+          const isOnline = onlineHandles.has(handle);
+          const onlineUser = data.active?.find(u => u.handle === handle);
 
           return `
             <div class="user-card">
               <div class="header-row">
-                <div class="handle">@${user.handle}</div>
+                <div class="handle">@${handle}</div>
                 <div class="status-badge ${isOnline ? '' : 'offline'}">
                   ${isOnline ? 'Online' : 'Offline'}
                 </div>
               </div>
-              <div class="building">${user.one_liner || 'Building something cool'}</div>
+              <div class="building">${user.building || user.one_liner || 'Building something cool'}</div>
               <div class="actions">
-                <button class="btn btn-primary" onclick="sayHi('${user.handle}')">Say Hi</button>
+                <button class="btn btn-primary" onclick="sayHi('${handle}')">Say Hi</button>
                 ${user.profile_url ? `<button class="btn btn-secondary" onclick="window.open('${user.profile_url}', '_blank')">Profile</button>` : ''}
               </div>
             </div>
