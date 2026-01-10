@@ -207,7 +207,6 @@ const tools = {
   vibe_agents: require('./tools/agents'),
   // Community
   vibe_invite: require('./tools/invite'),
-  vibe_board: require('./tools/board'),
   vibe_submit: require('./tools/submit'),
   // Creative Layer — Ideas, Requests, Ships
   vibe_idea: require('./tools/idea'),
