@@ -80,13 +80,22 @@ export DATABASE_URL="your-local-or-dev-neon-url"
 # 3. Run automated tests
 node migrations/test_migration.js
 
-# Expected output:
+# Expected output (6 tests total):
 # ✅ PASSED: Old registration works, recovery key is null
 # ✅ PASSED: New registration with recovery key works
 # ✅ PASSED: User retrieval includes all v0.2 fields
 # ✅ PASSED: v0.1 user can update without providing recovery key
 # ✅ PASSED: User listing works with mixed v0.1/v0.2 users
+# ✅ PASSED: Invalid recovery_key format
+# ✅ PASSED: Duplicate recovery_key values (SECURITY CRITICAL)
+# ✅ PASSED: Invalid registry URLs (non-HTTPS)
+# ✅ PASSED: Invalid status values
+# ✅ PASSED: Orphaned key_rotated_at timestamps
+# ✅ PASSED: All data integrity validation queries
 # 🎉 All tests passed!
+
+# Note: Test 6 requires DATABASE_URL to run SQL validations
+# If not set, SQL checks will be skipped with a warning
 ```
 
 ### Step 2: Deploy to Staging (15 minutes)

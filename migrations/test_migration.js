@@ -11,6 +11,8 @@
  *   node migrations/test_migration.js
  */
 
+const { sql, isPostgresEnabled } = require('../api/lib/db.js');
+
 const REGISTRY_URL = process.env.TEST_REGISTRY || 'http://localhost:3000';
 
 async function testOldRegistration() {
@@ -172,6 +174,108 @@ async function testListUsers() {
   return true;
 }
 
+async function testDataIntegrityValidations() {
+  console.log('\n=== Test 6: Data Integrity Validation Queries ===');
+
+  if (!isPostgresEnabled() || !sql) {
+    console.log('⚠️  SKIPPED: DATABASE_URL not configured; cannot run SQL validations');
+    return true;
+  }
+
+  const checks = [
+    {
+      name: 'Invalid recovery_key format',
+      query: sql`
+        SELECT COUNT(*)::int AS count
+        FROM users
+        WHERE recovery_key IS NOT NULL
+          AND recovery_key <> ''
+          AND recovery_key NOT LIKE 'ed25519:%'
+      `
+    },
+    {
+      name: 'Duplicate recovery_key values',
+      query: sql`
+        SELECT recovery_key, COUNT(*)::int AS count
+        FROM users
+        WHERE recovery_key IS NOT NULL
+          AND recovery_key <> ''
+        GROUP BY recovery_key
+        HAVING COUNT(*) > 1
+        LIMIT 5
+      `,
+      allowSamples: true
+    },
+    {
+      name: 'Invalid registry URLs (non-HTTPS)',
+      query: sql`
+        SELECT COUNT(*)::int AS count
+        FROM users
+        WHERE registry IS NOT NULL
+          AND registry <> ''
+          AND registry NOT LIKE 'https://%'
+      `
+    },
+    {
+      name: 'Invalid status values',
+      query: sql`
+        SELECT COUNT(*)::int AS count
+        FROM users
+        WHERE status IS NOT NULL
+          AND status NOT IN ('active', 'suspended', 'revoked')
+      `
+    },
+    {
+      name: 'Orphaned key_rotated_at timestamps',
+      query: sql`
+        SELECT COUNT(*)::int AS count
+        FROM users
+        WHERE key_rotated_at IS NOT NULL
+          AND (public_key IS NULL OR public_key = '')
+      `
+    }
+  ];
+
+  let failed = 0;
+
+  for (const check of checks) {
+    try {
+      const result = await check.query;
+      if (check.allowSamples) {
+        if (result.length > 0) {
+          failed++;
+          console.error(`❌ FAILED: ${check.name} (showing up to 5)`);
+          result.forEach(row => {
+            console.error(`   recovery_key=${row.recovery_key} count=${row.count}`);
+          });
+        } else {
+          console.log(`✅ PASSED: ${check.name}`);
+        }
+        continue;
+      }
+
+      const count = Number(result[0]?.count || 0);
+      if (count > 0) {
+        failed++;
+        console.error(`❌ FAILED: ${check.name} (count=${count})`);
+      } else {
+        console.log(`✅ PASSED: ${check.name}`);
+      }
+    } catch (error) {
+      failed++;
+      console.error(`❌ FAILED: ${check.name} threw error:`, error.message);
+    }
+  }
+
+  if (failed > 0) {
+    console.error(`⚠️  Data integrity checks failed: ${failed} issue(s) found`);
+    return false;
+  }
+
+  console.log('✅ PASSED: All data integrity validation queries');
+  return true;
+}
+
 async function runTests() {
   console.log('╔════════════════════════════════════════════════════════════╗');
   console.log('║  AIRC v0.2 Migration Test Suite                           ║');
@@ -184,7 +288,8 @@ async function runTests() {
     testNewRegistration,
     testUserRetrieval,
     testUpdateWithoutRecoveryKey,
-    testListUsers
+    testListUsers,
+    testDataIntegrityValidations
   ];
 
   let passed = 0;
