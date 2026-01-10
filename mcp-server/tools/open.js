@@ -65,14 +65,19 @@ Say "message ${them} hello" to start`
     };
   }
 
-  let display = `## Thread with @${them}\n\n`;
+  // Check if they're an agent (from first message if available)
+  const theirMessage = thread.find(m => m.from === them);
+  const agentIndicator = theirMessage?.isAgent ? ' 🤖' : '';
+
+  let display = `## Thread with @${them}${agentIndicator}\n\n`;
 
   thread.forEach(m => {
     const isMe = m.from === myHandle;
+    const agentBadge = m.isAgent && !isMe ? '🤖 ' : '';
     const sender = isMe ? 'you' : `@${m.from}`;
     const time = store.formatTimeAgo(m.timestamp);
 
-    display += `**${sender}** — _${time}_\n`;
+    display += `${agentBadge}**${sender}** — _${time}_\n`;
 
     // Show text if present
     if (m.body) {

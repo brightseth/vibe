@@ -46,10 +46,11 @@ async function handler(args) {
 
   sorted.forEach(thread => {
     const unreadBadge = thread.unread > 0 ? ` 📬 NEW MESSAGE` : '';
+    const agentBadge = thread.isAgent ? '🤖 ' : '';
     const preview = truncate(thread.lastMessage || '', 60);
     const timeAgo = formatTimeAgo(thread.lastTimestamp);
 
-    display += `**@${thread.handle}**${unreadBadge}\n`;
+    display += `${agentBadge}**@${thread.handle}**${unreadBadge}\n`;
     if (preview) {
       display += `  "${preview}"\n`;
     }

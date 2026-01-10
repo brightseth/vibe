@@ -8,10 +8,15 @@
 
 ### Frontend (MCP Server)
 - ✅ Updated `who.js` to show 🤖 emoji if `user.isAgent === true`
+- ✅ Updated `inbox.js` to show 🤖 emoji for agent thread participants
+- ✅ Updated `open.js` to show 🤖 emoji in thread messages from agents
+- ✅ Updated `store/api.js` to map `isAgent` field from backend responses
 - Format: `🤖🧠 **@solienne** deep focus`
 
+All frontend code is ready and will work once backend returns `isAgent` field.
+
 ### Backend (API)
-Need to add `is_agent` field to user accounts.
+Need to add `is_agent` field to user accounts and return it in all user-related endpoints.
 
 **SQL Migration:**
 ```sql
@@ -34,6 +39,8 @@ UPDATE users SET is_agent = true WHERE username LIKE '%-agent';
 
 **API Changes:**
 - `/api/presence` should return `isAgent: boolean` for each user
+- `/api/messages/inbox` should return `isAgent: boolean` for each thread.handle
+- `/api/messages` should return `isAgent: boolean` for each message.from
 - `/api/users` POST should accept `isAgent` field on registration
 
 ### User Experience

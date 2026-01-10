@@ -287,6 +287,7 @@ async function getInbox(handle) {
     if (result.threads) {
       return result.threads.map(t => ({
         handle: t.handle,
+        isAgent: t.isAgent || t.is_agent || false, // Support both naming conventions
         messages: [], // Full messages fetched via getThread
         unread: t.unread || 0,
         lastMessage: t.preview || t.latest?.body,
@@ -350,6 +351,7 @@ async function getThread(myHandle, theirHandle) {
     const result = await request('GET', `/api/messages?user=${myHandle}&with=${theirHandle}`);
     return (result.thread || []).map(m => ({
       from: m.from,
+      isAgent: m.isAgent || m.is_agent || false, // Support both naming conventions
       body: m.text,
       payload: m.payload || null,
       timestamp: new Date(m.createdAt).getTime(),
