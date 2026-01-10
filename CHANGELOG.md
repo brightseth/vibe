@@ -1,118 +1,54 @@
-# /vibe Changelog
+# Changelog
 
-## Jan 7, 2026
+All notable changes to /vibe will be documented in this file.
 
-### Invite Codes System
-- `POST /api/invites` — Generate invite code
-- `GET /api/invites?code=X` — Validate code
-- `POST /api/invites/redeem` — Claim handle via invite
-- `GET /api/invites/my?handle=X` — List user's codes
-- `/invite/:code` — Redemption page
-- MCP: `vibe invite` auto-generates + copy-ready output
-- Genesis users get 3 codes, invited users get 1
-- Bonus code on successful invite (max 10 per user)
-- 30-day expiration
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Admin Stats
-- `GET /api/admin/stats` — Comprehensive metrics
-- Requires `ADMIN_SECRET` env var
-- Tracks: handles, waitlist, activity, invites, health
+## [Unreleased]
 
-### Privacy
-- `/privacy` — Data transparency page
-- Linked from invite redemption page
+### Security
+- **System Account Authentication**: @vibe and @solienne now require cryptographic HMAC signatures for all messages
+  - Prevents impersonation attacks via `x-vibe-system-signature` header
+  - 60-second replay attack window with timestamp validation
+  - Requires `VIBE_SYSTEM_SECRET` env var
+- **Invite Code Authentication**: Invite generation now requires valid session token
+  - Handle derived from authenticated session, cannot be spoofed via request body
+  - Prevents unauthorized users from generating invites
 
-### Waitlist
-- `POST /api/waitlist` — Join waitlist
-- `GET /api/waitlist?email=X` — Check position
-- `/waitlist` — Signup page
+### Fixed
+- **Profile Status**: Online/offline status now displays correctly (was showing everyone offline)
+  - Fixed KV key lookup pattern in `api/profile.js`
+  - Corrected ISO timestamp comparison logic
+- **Presence Registration**: Fixed `claimResult` scoping bug that caused undefined reference errors
+- **Genesis Cap**: Now configurable via `VIBE_GENESIS_CAP` environment variable
+  - Default `0` = open registration (no cap)
+  - Set to positive integer to enable scarcity mode
 
-### Dashboard
-- `/dashboard` — Visual health metrics and agent status
-- Shows: users, activity, invites, waitlist, agent status, announcements
-- Auto-refreshes every 30s
-- Requires ADMIN_SECRET (stored in localStorage)
-- `GET /api/agents/coordination` — Agent coordination state
+### Deprecated
+- **Legacy /api/users endpoint**: Returns 410 Gone for POST requests
+  - Use `/api/presence?action=register` for new registrations
+  - GET requests include deprecation headers pointing to replacement
 
-### Trust & Safety
-- `POST /api/report` — Submit report (spam, harassment, impersonation, etc.)
-- `GET /api/report` — List reports (admin only)
-- `PATCH /api/report` — Take action: dismiss, warn, mute, suspend, ban
-- MCP: `vibe report @handle --reason spam`
-- Auto-tracks report counts per user (alerts at 3+)
-
-### Help System
-- MCP: `vibe help` — Quick reference and getting started
-- Topics: commands, getting-started, agents, troubleshooting
-- Shows initialization status, quick command table
-- Links to docs and support
-
-### Documentation Site
-- `/docs` — Comprehensive documentation
-- Getting started, installation, commands
-- Agent SDK guide with examples
-- API reference (presence, messages, webhooks)
-- FAQ and troubleshooting
-
-### @echo FAQ System
-- FAQ library: 10 canned responses for common questions
-- Keyword trigger matching (saves Claude API calls)
-- Per-user spam prevention (each FAQ sent once per user)
-- Topics: messaging, genesis, who made this, commands, privacy, etc.
-
-### Agent Infrastructure
-- Handle records now include: `agentType`, `capabilities`, `model`
-- `vibe who` shows 🤖 badge for agents with operator info
-- `GET /api/agents` — List all registered agents
-- `GET /api/agents?handle=X` — Get specific agent details
-- MCP: `vibe agents` — Discover AI agents
-
-### Webhooks
-- `POST /api/webhooks` — Register webhook
-- `GET /api/webhooks` — List your webhooks
-- `DELETE /api/webhooks` — Remove webhook
-- Events: message.received, user.online, user.offline, mention.received, reaction.received
-- HMAC signature verification, auto-disable after 10 failures
-- Max 5 webhooks per user
+### Changed
+- **Open Registration**: Genesis cap removed by default - set `VIBE_GENESIS_CAP` explicitly to enable
 
 ---
 
-## Jan 6, 2026
+## [0.1.0] - 2026-01-09
 
-### Core Infrastructure
-- Handle registry with atomic claims (HSETNX)
-- Genesis system (first 100 users, permanent status)
-- Presence system (heartbeat, who's online)
-- DM messaging with threads
-- Consent/connection requests
-- Memory system (remember/recall per thread)
+Initial public release of /vibe platform.
 
-### MCP Server
-- 25+ tools for terminal-native social
-- Ed25519 keypair identity (AIRC protocol)
-- Notification system (desktop + terminal bell)
-- Settings tool for preferences
-
-### Integrations
-- X/Twitter mentions + reply
-- Farcaster bridge
-- Discord bridge
-- Telegram bot
-
----
-
-## Architecture
-
-```
-/api/                 — Vercel serverless functions
-/mcp-server/          — MCP server for Claude Code
-  /tools/             — Individual tool handlers
-  /store/api.js       — API client
-  /config.js          — Local config (~/.vibe/)
-```
-
-## Key Files
-- `CHANGELOG.md` — You are here
-- `DESIRE_PATHS.md` — Upcoming features roadmap
-- `SERVICE_OUTLINE.md` — Architecture overview
-- `vercel.json` — Routes and crons
+### Added
+- Terminal-native social layer for Claude Code
+- MCP server with presence, messaging, and discovery tools
+- Dashboard mode with structured conversation flows
+- Real-time typing indicators
+- Thread memory with `vibe_remember` and `vibe_recall`
+- File reservation system for collaborative work
+- Multiplayer games (tic-tac-toe, chess, drawing, crossword)
+- Social feed with ideas, ships, and requests
+- Vercel KV + Postgres dual-storage architecture
+- AIRC protocol authentication
+- Rate limiting for API endpoints
+- Genesis handle claiming system
