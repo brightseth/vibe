@@ -61,7 +61,9 @@ async function getUser(username) {
   if (isPostgresEnabled() && sql) {
     try {
       const result = await sql`
-        SELECT username, building, invited_by, invite_code, public_key, created_at, updated_at
+        SELECT username, building, invited_by, invite_code, public_key,
+               recovery_key, registry, key_rotated_at, status,
+               created_at, updated_at
         FROM users
         WHERE username = ${username}
         LIMIT 1
@@ -74,6 +76,11 @@ async function getUser(username) {
           invitedBy: row.invited_by,
           inviteCode: row.invite_code,
           publicKey: row.public_key,
+          // AIRC v0.2 fields (optional, backwards compatible)
+          recoveryKey: row.recovery_key || null,
+          registry: row.registry || 'https://slashvibe.dev',
+          keyRotatedAt: row.key_rotated_at?.toISOString() || null,
+          status: row.status || 'active',
           createdAt: row.created_at?.toISOString(),
           updatedAt: row.updated_at?.toISOString()
         };
@@ -92,13 +99,19 @@ async function getUser(username) {
       if (isPostgresEnabled() && sql) {
         try {
           await sql`
-            INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+            INSERT INTO users (username, building, invited_by, invite_code, public_key,
+                              recovery_key, registry, key_rotated_at, status,
+                              created_at, updated_at)
             VALUES (
               ${kvData.username || username},
               ${kvData.building},
               ${kvData.invitedBy || null},
               ${kvData.inviteCode || null},
               ${kvData.publicKey || null},
+              ${kvData.recoveryKey || null},
+              ${kvData.registry || 'https://slashvibe.dev'},
+              ${kvData.keyRotatedAt ? new Date(kvData.keyRotatedAt) : null},
+              ${kvData.status || 'active'},
               ${kvData.createdAt ? new Date(kvData.createdAt) : new Date()},
               ${kvData.updatedAt ? new Date(kvData.updatedAt) : new Date()}
             )
@@ -123,13 +136,19 @@ async function setUser(username, data) {
   if (isPostgresEnabled() && sql) {
     try {
       await sql`
-        INSERT INTO users (username, building, invited_by, invite_code, public_key, created_at, updated_at)
+        INSERT INTO users (username, building, invited_by, invite_code, public_key,
+                          recovery_key, registry, key_rotated_at, status,
+                          created_at, updated_at)
         VALUES (
           ${username},
           ${data.building || null},
           ${data.invitedBy || null},
           ${data.inviteCode || null},
           ${data.publicKey || null},
+          ${data.recoveryKey || null},
+          ${data.registry || 'https://slashvibe.dev'},
+          ${data.keyRotatedAt ? new Date(data.keyRotatedAt) : null},
+          ${data.status || 'active'},
           ${data.createdAt ? new Date(data.createdAt) : new Date()},
           ${data.updatedAt ? new Date(data.updatedAt) : new Date()}
         )
@@ -138,6 +157,10 @@ async function setUser(username, data) {
           invited_by = COALESCE(EXCLUDED.invited_by, users.invited_by),
           invite_code = COALESCE(EXCLUDED.invite_code, users.invite_code),
           public_key = COALESCE(EXCLUDED.public_key, users.public_key),
+          recovery_key = COALESCE(EXCLUDED.recovery_key, users.recovery_key),
+          registry = COALESCE(EXCLUDED.registry, users.registry),
+          key_rotated_at = COALESCE(EXCLUDED.key_rotated_at, users.key_rotated_at),
+          status = COALESCE(EXCLUDED.status, users.status),
           updated_at = EXCLUDED.updated_at
       `;
     } catch (e) {
@@ -165,7 +188,9 @@ async function getAllUsers() {
   if (isPostgresEnabled() && sql) {
     try {
       const result = await sql`
-        SELECT username, building, invited_by, invite_code, public_key, created_at, updated_at
+        SELECT username, building, invited_by, invite_code, public_key,
+               recovery_key, registry, key_rotated_at, status,
+               created_at, updated_at
         FROM users
         ORDER BY created_at DESC
         LIMIT 1000
@@ -177,6 +202,11 @@ async function getAllUsers() {
           invitedBy: row.invited_by,
           inviteCode: row.invite_code,
           publicKey: row.public_key,
+          // AIRC v0.2 fields (optional, backwards compatible)
+          recoveryKey: row.recovery_key || null,
+          registry: row.registry || 'https://slashvibe.dev',
+          keyRotatedAt: row.key_rotated_at?.toISOString() || null,
+          status: row.status || 'active',
           createdAt: row.created_at?.toISOString(),
           updatedAt: row.updated_at?.toISOString()
         }));
@@ -248,7 +278,7 @@ export default async function handler(req, res) {
 
   // POST - Register or update user
   if (req.method === 'POST') {
-    const { username, building, invitedBy, inviteCode, publicKey } = req.body;
+    const { username, building, invitedBy, inviteCode, publicKey, recoveryKey } = req.body;
 
     if (!username) {
       return res.status(400).json({
@@ -261,7 +291,7 @@ export default async function handler(req, res) {
     const existing = await getUser(user);
     const now = new Date().toISOString();
 
-    // AIRC: Store public key for identity verification
+    // AIRC: Store keys for identity verification and recovery
     const userData = {
       username: user,
       building: building || existing?.building || 'something cool',
@@ -269,7 +299,11 @@ export default async function handler(req, res) {
       updatedAt: now,
       invitedBy: invitedBy || existing?.invitedBy || null,
       inviteCode: inviteCode || existing?.inviteCode || null,
-      publicKey: publicKey || existing?.publicKey || null  // AIRC: Ed25519 public key
+      publicKey: publicKey || existing?.publicKey || null,  // AIRC v0.1: Ed25519 signing key
+      recoveryKey: recoveryKey || existing?.recoveryKey || null,  // AIRC v0.2: Ed25519 recovery key (optional)
+      registry: existing?.registry || 'https://slashvibe.dev',  // AIRC v0.2: Registry location
+      keyRotatedAt: existing?.keyRotatedAt || null,  // AIRC v0.2: Last rotation timestamp
+      status: existing?.status || 'active'  // AIRC v0.2: Identity status
     };
 
     await setUser(user, userData);
