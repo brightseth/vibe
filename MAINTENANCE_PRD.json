@@ -1,0 +1,71 @@
+{
+  "project": "/vibe Autonomous Maintenance",
+  "description": "Task queue for Ralph Wiggum autonomous maintenance",
+  "updated": "2026-01-10T00:00:00Z",
+  "tasks": [
+    {
+      "id": "test-universal-messaging",
+      "status": "pending",
+      "description": "Add integration tests for universal messaging adapters",
+      "acceptance": [
+        "Test file created: lib/messaging/__tests__/adapters.test.js",
+        "Tests cover: Gmail SMTP, Telegram, Discord, Farcaster, X",
+        "All tests pass",
+        "Coverage > 80% for adapters"
+      ],
+      "priority": "high",
+      "estimatedMinutes": 30
+    },
+    {
+      "id": "fix-deps-vulnerabilities",
+      "status": "pending",
+      "description": "Update dependencies with known vulnerabilities",
+      "acceptance": [
+        "npm audit shows 0 high/critical vulnerabilities",
+        "All tests still pass",
+        "No breaking changes in dependencies"
+      ],
+      "priority": "high",
+      "estimatedMinutes": 15
+    },
+    {
+      "id": "update-readme-universal-messaging",
+      "status": "pending",
+      "description": "Update README.md with universal messaging examples",
+      "acceptance": [
+        "README has Quick Start section for messaging",
+        "Examples for each platform (Gmail, X, Farcaster, Telegram, Discord)",
+        "Links to UNIVERSAL_MESSAGING_COMPLETE.md for full guide",
+        "Tested examples (actually work)"
+      ],
+      "priority": "medium",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "add-platform-detection-tests",
+      "status": "pending",
+      "description": "Add unit tests for platform detection logic",
+      "acceptance": [
+        "Test file: lib/messaging/__tests__/router.test.js",
+        "Tests cover all recipient formats",
+        "Edge cases tested (ambiguous formats)",
+        "All tests pass"
+      ],
+      "priority": "medium",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "optimize-platform-detection",
+      "status": "pending",
+      "description": "Add caching to platform detection for repeated recipients",
+      "acceptance": [
+        "LRU cache added (max 1000 entries)",
+        "Performance benchmark shows 10x speedup for cached",
+        "Cache invalidation works",
+        "Tests pass"
+      ],
+      "priority": "low",
+      "estimatedMinutes": 30
+    }
+  ]
+}
