@@ -149,7 +149,35 @@ async function createEntry({ author, category, content, tags = [] }) {
       // Add to user's posts
       await kv.lpush(`board:user:${author}`, id);
 
-      return { success: true, id, entry };
+      // Record streak for retention tracking
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const streakKey = `streak:${author}`;
+        let streak = await kv.get(streakKey) || { current: 0, longest: 0, lastActive: null, activeDays: [], badges: [] };
+
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (streak.lastActive !== today) {
+          streak.current = streak.lastActive === yesterdayStr ? streak.current + 1 : 1;
+          if (streak.current > streak.longest) streak.longest = streak.current;
+          streak.activeDays = [...(streak.activeDays || []), today].slice(-30);
+          streak.lastActive = today;
+          if (streak.current >= 7 && !(streak.badges || []).includes('verified_builder')) {
+            streak.badges = [...(streak.badges || []), 'verified_builder'];
+          }
+          await kv.set(streakKey, streak);
+        }
+      } catch (e) {
+        // Streak tracking is non-critical
+        console.error('[board] Streak error:', e.message);
+      }
+
+      // Generate share URL for viral distribution
+      const shareUrl = `https://slashvibe.dev/api/share/${id}`;
+
+      return { success: true, id, entry, shareUrl, streak: `Share your ship: ${shareUrl}` };
     } catch (e) {
       console.error('[board] KV write error:', e.message);
       // Fall back to memory
