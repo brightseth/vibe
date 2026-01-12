@@ -44,12 +44,17 @@ export default async function handler(req, res) {
       let successfulInvites = 0;
 
       for (const code of inviteCodes) {
-        const codeData = await kv.hget('vibe:invites', code);
-        if (codeData) {
-          const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
-          if (parsed.status === 'used') {
-            successfulInvites++;
+        try {
+          const codeData = await kv.hget('vibe:invites', code);
+          if (codeData) {
+            const parsed = typeof codeData === 'string' ? JSON.parse(codeData) : codeData;
+            if (parsed.status === 'used') {
+              successfulInvites++;
+            }
           }
+        } catch (inviteErr) {
+          // Skip malformed invite data
+          continue;
         }
       }
 
