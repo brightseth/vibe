@@ -50,7 +50,7 @@ module.exports = {
         };
       }
 
-      const apiUrl = process.env.VIBE_API_URL || 'https://vibecodings.vercel.app';
+      const apiUrl = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
       if (action === 'score') {
         const response = await fetch(

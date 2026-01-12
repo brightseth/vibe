@@ -118,7 +118,7 @@ function updateGameSession(gameType, newState, sessionId = 'default') {
  * Post activity to board when someone ships something cool
  */
 async function postToBoard(content) {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
   try {
     await fetch(`${API_URL}/api/board`, {

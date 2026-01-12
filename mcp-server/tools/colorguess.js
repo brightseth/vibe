@@ -74,7 +74,7 @@ async function saveGameState(room, state) {
  * Post game activity to board
  */
 async function postGameActivity(action, room, player, details = '') {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
   try {
     let content;

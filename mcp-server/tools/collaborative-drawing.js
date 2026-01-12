@@ -86,7 +86,7 @@ async function saveRoom(roomName, gameState) {
 
 // Post drawing activity to board
 async function postDrawingActivity(roomName, playerHandle, action, details = '') {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
   
   try {
     let content = '';

@@ -54,7 +54,7 @@ module.exports = {
       }
 
       // Call payment API
-      const apiUrl = process.env.VIBE_API_URL || 'https://vibecodings.vercel.app';
+      const apiUrl = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
       const response = await fetch(`${apiUrl}/api/payments/tip`, {
         method: 'POST',

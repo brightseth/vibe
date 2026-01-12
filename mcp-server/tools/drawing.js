@@ -86,7 +86,7 @@ async function saveDrawingState(room, state) {
  * Post drawing activity to board
  */
 async function postDrawingActivity(action, room, player, details = '') {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
   try {
     let content;

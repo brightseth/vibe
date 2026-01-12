@@ -80,7 +80,7 @@ async function listActiveRooms() {
 
 // Post game activity to board
 async function postGameActivity(roomName, playerHandle, action, details = '') {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
   
   try {
     let content = '';

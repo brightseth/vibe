@@ -19,7 +19,7 @@ export async function checkForUpdates() {
     const localVersion = JSON.parse(await fs.readFile(versionPath, 'utf-8'));
 
     // Check remote version
-    const response = await fetch('https://slashvibe.dev/api/version', {
+    const response = await fetch('https://www.slashvibe.dev/api/version', {
       headers: { 'User-Agent': 'vibe-mcp-client' }
     });
 

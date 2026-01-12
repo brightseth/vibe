@@ -16,7 +16,7 @@ const memory = require('../games/memory');
 
 // Post game results to board
 async function postSoloGameResult(player, game, won, score = null) {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
   try {
     let content;

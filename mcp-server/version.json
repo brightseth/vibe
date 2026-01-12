@@ -10,5 +10,5 @@
     "Structured blocks: places, schedules, checklists, callouts"
   ],
   "breaking": false,
-  "updateUrl": "https://slashvibe.dev/api/version"
+  "updateUrl": "https://www.slashvibe.dev/api/version"
 }

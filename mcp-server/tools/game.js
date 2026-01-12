@@ -14,7 +14,7 @@ const chess = require('../games/chess');
 
 // Post game results to board and Discord
 async function postGameResult(winner, loser, isDraw, game = 'tic-tac-toe') {
-  const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+  const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
 
   // Post to board
   try {

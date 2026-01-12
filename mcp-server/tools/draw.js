@@ -58,7 +58,7 @@ const definition = {
 // Post drawing activities to the board
 async function postDrawingActivity(activity) {
   try {
-    const API_URL = process.env.VIBE_API_URL || 'https://slashvibe.dev';
+    const API_URL = process.env.VIBE_API_URL || 'https://www.slashvibe.dev';
     
     await fetch(`${API_URL}/api/board`, {
       method: 'POST',
